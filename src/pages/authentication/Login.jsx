@@ -1,9 +1,10 @@
 import React from 'react';
+import LoginIndex from '../../component/authentication/login/LoginIndex';
 
 function Login() {
   return (
     <div>
-      login
+      <LoginIndex />
     </div>
   );
 }
