@@ -1,196 +1,194 @@
-
-
 import React, { useState } from 'react';
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/style.css"; // Import default styles
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+import { FaApple, FaGoogle, FaYahoo, FaFacebookF, FaLinkedinIn, FaTwitter, FaMicrosoft, FaQrcode } from "react-icons/fa";
+ 
+import bgimage from '../../../../public/AuthicationImage/BgImage_login.jpg';
+import avatar from '../../../../public/AuthicationImage/avatar.jpg';
+
 
 const LoginForm = () => {
-  const [formData, setFormData] = useState({
-    companyName: '',
-    email: '',
-    mobile: '',
-    password: '',
-    country: 'India',
-    state: 'Kerala',
-    agreeToTerms: false
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+
+  // Initial validation schema (email only)
+  const initialValidationSchema = Yup.object({
+    email: Yup.string()
+      .email('Invalid email address')
+      .required('Email or mobile number is required'),
   });
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+  // Full validation schema (email and password)
+  const fullValidationSchema = Yup.object({
+    email: Yup.string()
+      .email('Invalid email address')
+      .required('Email or mobile number is required'),
+    password: Yup.string()
+      .required('Password is required')
+      .min(6, 'Password must be at least 6 characters'),
+  });
+
+  // Handle next button click
+  const handleNextClick = (values) => {
+    setEmail(values.email);
+    setShowPassword(true);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Form submitted:', formData);
+  // Handle form submission
+  const handleSubmit = (values) => {
+    console.log('Form submitted:', values);
+    // Add your authentication logic here
   };
+
+  // Social sign-in options
+  
+  
+  const socialSignInOptions = [
+    { id: "apple", icon: <FaApple />, bg: "bg-black", text: "text-white" },
+    { id: "google", icon: <FaGoogle />, bg: "bg-white", text: "text-black border border-gray-300" },
+    { id: "yahoo", icon: <FaYahoo />, bg: "bg-purple-600", text: "text-white" },
+    { id: "facebook", icon: <FaFacebookF />, bg: "bg-blue-600", text: "text-white" },
+    { id: "linkedin", icon: <FaLinkedinIn />, bg: "bg-blue-700", text: "text-white" },
+    { id: "twitter", icon: <FaTwitter />, bg: "bg-blue-400", text: "text-white" },
+    { id: "microsoft", icon: <FaMicrosoft />, bg: "bg-blue-500", text: "text-white" },
+    // { id: "more", icon: <BsThreeDots />, bg: "bg-gray-200", text: "text-gray-600" },
+  ];
+  
+  
 
   return (
-    <div className="flex w-full h-screen">
-      {/* Left Blue Panel */}
-     
-      
-      {/* Right Signup Form */}
-      <div className="w-full md:w-3/5 p-8 flex items-center justify-center">
-        <div className="w-full max-w-md">
-          <div className="flex justify-center mb-8">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-blue-600 rounded-md flex items-center justify-center mr-2">
-                <span className="w-4 h-4 bg-white rounded-full"></span>
-              </div>
-              <span className="font-bold text-xl">BizFlow Books</span>
+    <div 
+    style={{ 
+    backgroundImage: `url(${bgimage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    className=" bg-gray-100 min-h-screen flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl flex">
+        {/* Left section */}
+        <div className="w-full lg:w-1/2 p-8">
+          {/* BizFlow logo */}
+          <div className="mb-6 flex justify-between items-center">
+  <img 
+    src="/AuthicationImage/avatar.jpg" 
+    alt="BizFlow" 
+    className="h-8"
+  />
+
+  {/* Smart sign-in button */}
+  <button className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-full">
+    <span className="text-lg"> <FaQrcode /></span>
+    <span>Try smart sign-in</span>
+  </button>
+</div>
+
+
+          {/* Sign in heading */}
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold">Sign in</h1>
+            <p className="text-gray-600">to access Books</p>
+          </div>
+
+          {/* Sign in form */}
+          <Formik
+            initialValues={{ email: '', password: '' }}
+            validationSchema={showPassword ? fullValidationSchema : initialValidationSchema}
+            onSubmit={handleSubmit}
+          >
+            {({ values, isValid, dirty, handleSubmit }) => (
+              <Form>
+                <div className="mb-4">
+                  <Field
+                    type="text"
+                    name="email"
+                    placeholder="Email address or mobile number"
+                    className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={showPassword}
+                  />
+                  <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
+                </div>
+
+                {showPassword && (
+                  <div className="mb-4">
+                    <Field
+                      type="password"
+                      name="password"
+                      placeholder="Password"
+                      className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <ErrorMessage name="password" component="div" className="text-red-500 text-sm mt-1" />
+                    <div className="flex justify-end mt-2">
+                      <a href="#" className="text-blue-500 text-sm">Forgot Password?</a>
+                    </div>
+                  </div>
+                )}
+
+                {!showPassword ? (
+                  <button
+                    type="button"
+                    onClick={() => handleNextClick(values)}
+                    disabled={!isValid || !dirty}
+                    className="w-full bg-blue-500 text-white py-3 rounded font-medium hover:bg-blue-600 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    className="w-full bg-blue-500 text-white py-3 rounded font-medium hover:bg-blue-600 transition duration-200"
+                  >
+                    Sign In
+                  </button>
+                )}
+              </Form>
+            )}
+          </Formik>
+
+         
+
+          {/* Sign in using */}
+          <div className="mt-6">
+            <p className="text-gray-500 mb-4">Sign in using</p>
+            <div className="flex flex-wrap gap-2">
+              {socialSignInOptions.map((option) => (
+                <button
+                  key={option.id}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center ${option.bg} ${option.text}`}
+                >
+                  {option.icon}
+                </button>
+              ))}
             </div>
           </div>
-          
-          <h2 className="text-2xl font-bold mb-6">Let's get started.</h2>
-          
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <div className="flex items-center border rounded p-2">
-                <span className="text-gray-500 mr-2">⚙</span>
-                <input
-                  type="text"
-                  name="companyName"
-                  className="w-full focus:outline-none"
-                  placeholder="Company Name"
-                  value={formData.companyName}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-            
-            <div className="mb-4">
-              <div className="flex items-center border rounded p-2">
-                <span className="text-gray-500 mr-2">✉</span>
-                <input
-                  type="email"
-                  name="email"
-                  className="w-full focus:outline-none"
-                  placeholder="Email address"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-            
-            <div className="mb-4">
-              {/* <div className="flex items-center border rounded p-2">
-                <span className="text-gray-500 mr-2">📞</span>
-                <select className="bg-transparent border-r pr-2 text-gray-500">
-                  <option>+91</option>
-                </select>
-                <input
-                  type="tel"
-                  name="mobile"
-                  className="w-full focus:outline-none ml-2"
-                  placeholder="Mobile Number"
-                  value={formData.mobile}
-                  onChange={handleChange}
-                />
-              </div> */}
 
-<div className="mb-4">
-              <PhoneInput
-                country={"in"} // Default country (India)
-                value={formData.mobile}
-                onChange={(phone) => setFormData({ ...formData, mobile: phone })}
-                inputProps={{
-                  name: "mobile",
-                  required: true,
-                  autoFocus: false,
-                }}
-                containerStyle={{ width: "100%" }}
-                inputStyle={{
-                  width: "100%",
-                  height: "40px",
-                  paddingLeft: "50px", // Space for flag
-                }}
-              />
-            </div>
-            </div>
-            
-            <div className="mb-4">
-              <div className="flex items-center border rounded p-2">
-                <span className="text-gray-500 mr-2">🔑</span>
-                <input
-                  type="password"
-                  name="password"
-                  className="w-full focus:outline-none"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-            
-            <div className="mb-4 flex space-x-4">
-              <div className="flex-1 border rounded p-2 flex items-center">
-                <span className="text-gray-500 mr-2">🌎</span>
-                <span>India</span>
-              </div>
-              <div className="flex-1 border rounded p-2 flex items-center">
-                <span className="text-gray-500 mr-2">📍</span>
-                <span>Kerala</span>
-              </div>
-            </div>
-            
-            <div className="mb-4 text-sm">
-              <p>Your data will be in INDIA data center.</p>
-            </div>
-            
-            <div className="mb-6 flex items-center">
-              <input
-                type="checkbox"
-                name="agreeToTerms"
-                className="mr-2"
-                checked={formData.agreeToTerms}
-                onChange={handleChange}
-              />
-              <span className="text-sm">
-                I agree to the{" "}
-                <a href="#" className="text-blue-600">Terms of Service</a> and{" "}
-                <a href="#" className="text-blue-600">Privacy Policy</a>.
-              </span>
-            </div>
-            
-            <button
-              type="submit"
-              className="w-full bg-yellow-500 text-black font-bold py-3 rounded mb-2"
-            >
-              Create my account
-            </button>
-            
-            <p className="text-xs text-center mb-6">*No credit card required</p>
-            
-            <div className="mb-4">
-              <p className="text-center text-sm mb-4">Sign up using</p>
-              <div className="flex justify-center space-x-4">
-                <button className="border rounded-md w-10 h-10 flex items-center justify-center">
-                  G
-                </button>
-                <button className="border rounded-md w-10 h-10 flex items-center justify-center">
-                  M
-                </button>
-                <button className="border rounded-md w-10 h-10 flex items-center justify-center">
-                  in
-                </button>
-                <button className="border rounded-md w-10 h-10 flex items-center justify-center">
-                  X
-                </button>
-                <button className="border rounded-md w-10 h-10 flex items-center justify-center">
-                  f
-                </button>
-              </div>
-            </div>
-            
-            <div className="text-center text-sm">
-              Already have an account? <a href="#" className="text-blue-600">Log in</a>
-            </div>
-          </form>
+          {/* Sign up link */}
+          <div className="mt-6 text-center">
+            <p className="text-gray-600">
+              Don't have a BizFlow account? 
+              <a href="/Signup" className="text-blue-500 ml-1">Sign up now</a>
+            </p>
+          </div>
         </div>
+
+        {/* Right section */}
+        <div className="hidden lg:block w-1/2 p-8 bg-gray-50">
+          <div className="flex flex-col items-center h-full justify-center">
+            <div className="mb-6">
+              <img src="https://accounts.Zoho.com/v2/components/images/passwordless_illustration2x.png" alt="MFA" className="w-64" />
+            </div>
+            <h2 className="text-xl font-bold mb-2">MFA for all accounts</h2>
+            <p className="text-center text-gray-600 mb-4">
+              Secure online accounts with OneAuth 2FA. 
+              Back up OTP secrets and never lose access to your accounts.
+            </p>
+            <a href="#" className="text-blue-500">Learn more</a>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="absolute bottom-4 text-center text-gray-500 text-sm">
+        © 2025, BizFlow Corporation Pvt. Ltd. All Rights Reserved.
       </div>
     </div>
   );
