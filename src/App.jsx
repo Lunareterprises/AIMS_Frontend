@@ -1,13 +1,13 @@
 
 import './App.css'
+import { Routes, Route } from 'react-router-dom'
+import LandingPage from './pages/landingPage/LandingPage'
 
 function App() {
- 
-
   return (
-    <>
-      <h1 >AIMS Dashboard</h1>
-    </>
+  <Routes>
+      <Route path="/" element={<LandingPage />} />
+  </Routes>
   )
 }
 
