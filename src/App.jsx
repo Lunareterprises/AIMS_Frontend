@@ -1,12 +1,13 @@
 
 import './App.css'
+import LoginForm from './component/authentication/login/LoginForm'
 
 function App() {
  
 
   return (
     <>
-      <h1 >AIMS Dashboard</h1>
+      <LoginForm/>
     </>
   )
 }
