@@ -2,11 +2,18 @@
 import './App.css'
 import { Routes, Route } from 'react-router-dom'
 import LandingPage from './pages/landingPage/LandingPage'
+import Signup from './pages/authentication/Signup'
+import Login from './pages/authentication/Login'
+
 
 function App() {
   return (
   <Routes>
-      <Route path="/" element={<LandingPage />} />
+      <Route path="LandingPage" element={<LandingPage />} />
+      <Route path="Signup" element={<Signup />} />
+      <Route path="/" element={<Login />} />
+
+
   </Routes>
   )
 }
