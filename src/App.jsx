@@ -1,14 +1,13 @@
 
 import './App.css'
-import LoginForm from './component/authentication/login/LoginForm'
+import { Routes, Route } from 'react-router-dom'
+import LandingPage from './pages/landingPage/LandingPage'
 
 function App() {
- 
-
   return (
-    <>
-      <LoginForm/>
-    </>
+  <Routes>
+      <Route path="/" element={<LandingPage />} />
+  </Routes>
   )
 }
 
