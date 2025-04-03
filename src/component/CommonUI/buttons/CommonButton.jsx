@@ -1,9 +1,11 @@
 import React from 'react';
 
-export default function landingPage() {
+function CommonButton() {
   return (
     <div>
-      jhgyuhiyt
+      
     </div>
   );
 }
+
+export default CommonButton;
