@@ -13,9 +13,14 @@ import {
 } from "react-icons/fa";
 
 import bgimage from "../../../../public/Images/AuthicationImage/BgImage_login.jpg";
+import { login } from "../../../api/services/authService";
 
 
 const LoginForm = () => {
+
+  useEffect(() => {
+ login()
+  }, []);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
 
@@ -23,6 +28,7 @@ const LoginForm = () => {
   const initialValidationSchema = Yup.object({
     email: Yup.string()
       .email("Invalid email address")
+      
       .required("Email or mobile number is required"),
   });
 
