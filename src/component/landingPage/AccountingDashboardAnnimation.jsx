@@ -29,25 +29,29 @@ function AccountingDashboardAnnimation() {
     };
   }, []);
   return (
-    <div className='bg-[#006fda]'>
+    <div className='bg-[#006fda] h-screen'>
 
 
-        {/* <div className='flex items-center justify-center h-screen '>
-            <img src='/Images/landingPage/accountingImg.png' className='w-1/2'/>
-        </div> */}
 
 
 
  
-    <div className="relative w-full  overflow-hidden">
+    <div className="relative w-full  overflow-hidden ">
       {/* Animated background */}
       <canvas 
         ref={canvasRef} 
-        className="absolute inset-0 bg-[#006fda] z-0"
+        className="absolute   z-0"
       />
       
       {/* Content */}
       <div className="relative z-10 w-full h-full grid grid-cols-12 gap-4 p-4">
+
+      <div className="absolute flex items-center justify-center z-50">
+        <img 
+          src="/Images/landingPage/accountingImg.png" 
+          className="w-1/2 object-contain"
+        />
+      </div>
         
         {/* <div className="col-span-2">
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 h-96 flex flex-col items-center justify-center">
@@ -301,12 +305,11 @@ function AccountingDashboardAnnimation() {
         </div>
         
         {/* Right Accountant card */}
-        <div className="col-span-2">
+        {/* <div className="col-span-2">
           <div className=" rounded-lg  flex justify-center items-center">
               <img src="/Images/landingPage/accountant.png" alt="Accountant" className="  object-cover rounded mx-auto" />
           </div>
           
-          {/* Audit Trail card */}
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 h-46 mt-4">
             <div className="text-white mb-6">Audit Trail</div>
             <div className="space-y-4 text-white text-xs">
@@ -326,7 +329,7 @@ function AccountingDashboardAnnimation() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
       
       
