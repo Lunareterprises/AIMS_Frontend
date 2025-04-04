@@ -2,7 +2,7 @@ import React from 'react';
 
 const AccountingLandingPage = () => {
   return (
-    <div className="min-h-screen bg-[#006fda] flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-12 relative overflow-hidden">
+    <div className=" bg-[#2a6877] flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-10 relative overflow-hidden">
       {/* Badge */}
       <div className="bg-black/40 text-yellow-400 rounded-full px-4 py-2 mb-8 flex gap-3 items-center ">
 

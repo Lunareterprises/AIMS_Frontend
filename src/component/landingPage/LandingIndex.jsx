@@ -4,6 +4,7 @@ import SubHeader from './SubHeader'
 import AccountingLandingPage from './AccountingLandingPage'
 import AccountingDashboardAnnimation from './AccountingDashboardAnnimation'
 import TestimonialCarousel from './TestimonialCarousel'
+import PricingPage from './PricingPage'
 
 function LandingIndex() {
   return (
@@ -14,6 +15,7 @@ function LandingIndex() {
       <AccountingLandingPage />
       <AccountingDashboardAnnimation />
       <TestimonialCarousel />
+      <PricingPage />
     </div>
   )
 }
