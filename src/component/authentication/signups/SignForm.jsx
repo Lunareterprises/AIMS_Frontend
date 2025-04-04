@@ -137,8 +137,8 @@ const SignForm = () => {
 
     try {
       const response = await register(payload);
-      console.log("response:::::::::>>",response.data)
-      // alert("Registration successful!");
+      
+      alert(response.message);
       setModalOpen(true);
       setEmail(values.email);
     } catch (error) {
