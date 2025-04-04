@@ -3,6 +3,7 @@ import Header from './Header'
 import SubHeader from './SubHeader'
 import AccountingLandingPage from './AccountingLandingPage'
 import AccountingDashboardAnnimation from './AccountingDashboardAnnimation'
+import TestimonialCarousel from './TestimonialCarousel'
 
 function LandingIndex() {
   return (
@@ -12,6 +13,7 @@ function LandingIndex() {
       <hr className='text-gray-400'/>
       <AccountingLandingPage />
       <AccountingDashboardAnnimation />
+      <TestimonialCarousel />
     </div>
   )
 }
