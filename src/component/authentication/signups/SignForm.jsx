@@ -10,13 +10,14 @@ import google from "../../../assets/google.svg";
 import twitter from "../../../assets/twitter.svg";
 import zxcvbn from "zxcvbn";
 import OtpModal from "./OtpScreen";
+import { register } from "../../../api/services/authService";
 
 const SignForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [countryOptions, setCountryOptions] = useState([]);
   const [userLocation, setUserLocation] = useState({ country: "", state: "" });
   const [passwordStrength, setPasswordStrength] = useState(0);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(true);
   const [email, setEmail] = useState("");
 
   useEffect(() => {
@@ -67,6 +68,86 @@ const SignForm = () => {
       .required(),
   });
 
+  useEffect(() => {
+    const savedData = localStorage.getItem("organizationProfile");
+    if (savedData) {
+      const parsed = JSON.parse(savedData);
+      setFormData(parsed);
+    }
+
+    const fetchCountriesAndStates = async () => {
+      try {
+        const res = await axios.get(
+          "https://countriesnow.space/api/v0.1/countries/states"
+        );
+        if (res.data?.data) {
+          const countries = res.data.data.map((country) => ({
+            value: country.name,
+            label: country.name,
+          }));
+          const stateMap = {};
+          res.data.data.forEach((country) => {
+            stateMap[country.name] = country.states.map((state) => ({
+              value: state.name,
+              label: state.name,
+            }));
+          });
+
+          setCountryOptions(countries);
+          setCountryStateMap(stateMap);
+
+          // Autofill user location
+          const locRes = await axios.get("https://ipapi.co/json/");
+          const { country_name, currency, timezone, region } = locRes.data;
+
+          setFormData((prev) => ({
+            ...prev,
+            location: country_name,
+            currency: currency
+              ? `${currency} - ${getCurrencyName(currency)}`
+              : prev.currency,
+            timeZone: timezone || prev.timeZone,
+            state: region || prev.state,
+          }));
+
+          if (stateMap[country_name]) {
+            setStateOptions(stateMap[country_name]);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch country/state data:", error);
+      }
+    };
+
+    fetchCountriesAndStates();
+  }, []);
+
+  //------------------API-------Register----------//
+
+
+  const onSubmitForm = async (values, { setSubmitting }) => {
+    const payload = {
+      company_name: values.companyName,
+      company_mail: values.email,
+      company_mobile: values.mobile,
+      country: values.country?.value,
+      state: values.state,
+      password: values.password,
+    };
+
+    try {
+      const response = await register(payload);
+      console.log("response:::::::::>>",response.data)
+      // alert("Registration successful!");
+      setModalOpen(true);
+      setEmail(values.email);
+    } catch (error) {
+      // Already handled by interceptor, but can log or show more info here
+      console.error("Registration failed", error);
+    }
+    
+  };
+
   return (
     <div className="  flex w-full items-center justify-center h-screen mt-20 xl:mb-10  p-5 xl:p-40">
       <div className="w-full  flex items-center justify-center">
@@ -95,13 +176,9 @@ const SignForm = () => {
             }}
             enableReinitialize
             validationSchema={validationSchema}
-            onSubmit={(values) => {
-              setModalOpen(true);
-              setEmail(values.email);
-              console.log("Form submitted:", values);
-            }}
+            onSubmit={onSubmitForm}
           >
-            {({ setFieldValue, values }) => (
+            {({ setFieldValue, values, isSubmitting }) => (
               <Form>
                 <div className="mb-4">
                   <div className="flex items-center border border-gray-300 rounded p-2 focus-within:border-sky-100 focus-within:ring-2 focus-within:ring-sky-300">
@@ -139,7 +216,7 @@ const SignForm = () => {
                   />
                 </div>
 
-                <div className="mb-4 focus-within:border-sky-100 focus-within:ring-2 focus-within:ring-sky-300 rounded">
+                <div className="mb-2 focus-within:border-sky-100 focus-within:ring-2 focus-within:ring-sky-300 rounded">
                   <PhoneInput
                     country={"in"}
                     placeholder=" Mobile Number"
@@ -149,15 +226,15 @@ const SignForm = () => {
                     containerStyle={{ width: "100%" }}
                     inputStyle={{ width: "100%", height: "40px" }}
                   />
-                  <ErrorMessage
-                    name="mobile"
-                    component="p"
-                    className="text-red-500 text-sm"
-                  />
                 </div>
+                <ErrorMessage
+                  name="mobile"
+                  component="p"
+                  className="text-red-500 text-sm "
+                />
 
                 {/* Password Field */}
-                <div className="mb-4 relative ">
+                <div className="mb-4 mt-2 relative ">
                   <div className="flex items-center border border-gray-300 rounded p-2 focus-within:border-sky-100 focus-within:ring-2 focus-within:ring-sky-300">
                     <span className="text-gray-500 mr-2">🔑</span>
 
@@ -273,9 +350,12 @@ const SignForm = () => {
                 />
                 <button
                   type="submit"
-                  className="w-full mt-3 bg-yellow-500 text-black font-bold py-3 rounded mb-2"
+                  disabled={isSubmitting}
+                  className={`w-full mt-3 bg-yellow-500 text-black font-bold py-3 rounded mb-2 ${
+                    isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                 >
-                  Create my account
+                  {isSubmitting ? "Creating account..." : "Create my account"}
                 </button>
               </Form>
             )}
