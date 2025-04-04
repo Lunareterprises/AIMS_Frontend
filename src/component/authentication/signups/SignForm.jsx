@@ -68,59 +68,7 @@ const SignForm = () => {
       .required(),
   });
 
-  useEffect(() => {
-    const savedData = localStorage.getItem("organizationProfile");
-    if (savedData) {
-      const parsed = JSON.parse(savedData);
-      setFormData(parsed);
-    }
-
-    const fetchCountriesAndStates = async () => {
-      try {
-        const res = await axios.get(
-          "https://countriesnow.space/api/v0.1/countries/states"
-        );
-        if (res.data?.data) {
-          const countries = res.data.data.map((country) => ({
-            value: country.name,
-            label: country.name,
-          }));
-          const stateMap = {};
-          res.data.data.forEach((country) => {
-            stateMap[country.name] = country.states.map((state) => ({
-              value: state.name,
-              label: state.name,
-            }));
-          });
-
-          setCountryOptions(countries);
-          setCountryStateMap(stateMap);
-
-          // Autofill user location
-          const locRes = await axios.get("https://ipapi.co/json/");
-          const { country_name, currency, timezone, region } = locRes.data;
-
-          setFormData((prev) => ({
-            ...prev,
-            location: country_name,
-            currency: currency
-              ? `${currency} - ${getCurrencyName(currency)}`
-              : prev.currency,
-            timeZone: timezone || prev.timeZone,
-            state: region || prev.state,
-          }));
-
-          if (stateMap[country_name]) {
-            setStateOptions(stateMap[country_name]);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch country/state data:", error);
-      }
-    };
-
-    fetchCountriesAndStates();
-  }, []);
+ 
 
   //------------------API-------Register----------//
 

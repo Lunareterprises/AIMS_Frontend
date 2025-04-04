@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Modal from "react-modal";
 import OtpInput from "react-otp-input";
+import { registerWithOpt } from "../../../api/services/authService";
 
 const OtpModal = ({ isOpen, onClose, email }) => {
   const [otp, setOtp] = useState("");
@@ -33,21 +34,44 @@ const OtpModal = ({ isOpen, onClose, email }) => {
     console.log("OTP resent to:", email);
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (otp.length === 4) {
-        onClose()
-        setResendDisabled(false);
-      console.log("Verifying OTP:", otp);
+
+      const payload={
+        email: email,
+        otp: otp
+      }
+      try {
+        const response = await registerWithOpt(payload)
+  
+        if (response.data.result) {
+          console.log("OTP Verified Successfully:", response.data);
+          alert("OTP Verified Successfully!");
+          onClose();
+        } else {
+          alert(response.data.message || "Invalid OTP. Please try again.");
+        }
+      } catch (error) {
+        console.error("OTP verification failed:", error);
+        alert("An error occurred during verification. Please try again.");
+      }
     } else {
       alert("Please enter a valid 4-digit OTP.");
     }
   };
+  
+
+
+
+
+
+
 
   return (
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
-      style={{ overlay: { zIndex: 9999 } }}  // Higher z-index
+      style={{ overlay: { zIndex: 9999 } }} // Higher z-index
       className="flex items-center justify-center min-h-screen z-50"
       overlayClassName="fixed inset-0 flex items-center justify-center  bg-opacity-10"
     >
@@ -57,14 +81,11 @@ const OtpModal = ({ isOpen, onClose, email }) => {
 
         <OtpInput
           value={otp}
-        
-      
           numInputs={4}
           onChange={(value) => {
             const numericOnly = value.replace(/\D/g, ""); // removes all non-digit characters
             setOtp(numericOnly);
           }}
-          
           isInputNum={true} // ✅ Only allow numbers
           renderInput={(props) => <input {...props} />}
           inputStyle={{
@@ -72,8 +93,8 @@ const OtpModal = ({ isOpen, onClose, email }) => {
             height: "50px",
             margin: "5px",
             fontSize: "22px",
-            justifyContent:'center',
-            flex:1,
+            justifyContent: "center",
+            flex: 1,
             textAlign: "center",
             border: "2px solid #ddd",
             borderRadius: "8px",
