@@ -29,29 +29,26 @@ function AccountingDashboardAnnimation() {
     };
   }, []);
   return (
-    <div className='bg-[#006fda] h-screen'>
-
-
-
-
+    <div className='bg-[#2a6877] -mt-20 '>
 
  
     <div className="relative w-full  overflow-hidden ">
       {/* Animated background */}
-      <canvas 
+      {/* <canvas 
         ref={canvasRef} 
         className="absolute   z-0"
-      />
+      /> */}
       
       {/* Content */}
-      <div className="relative z-10 w-full h-full grid grid-cols-12 gap-4 p-4">
+      <div className="relative z-10 w-full h-full grid grid-cols-12 gap-4 py-32 ">
 
-      <div className="absolute flex items-center justify-center z-50">
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-50">
         <img 
           src="/Images/landingPage/accountingImg.png" 
-          className="w-1/2 object-contain"
+          className=" object-contain rounded-2xl"
         />
       </div>
+
         
         {/* <div className="col-span-2">
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 h-96 flex flex-col items-center justify-center">

@@ -1,132 +1,118 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import { Autoplay } from "swiper/modules";
 
 const TestimonialCarousel = () => {
+  const [testimonials, setTestimonials] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
-  
-  const testimonials = [
-    {
-      name: "TARUN KUMAR JAIN",
-      position: "DIRECTOR",
-      company: "CXW",
-      quote: "User-friendly, comprehensive, and highly compliant",
-      image: "/api/placeholder/240/240",
-      logoUrl: "/api/placeholder/50/20"
-    },
-    {
-      name: "SHAMAL NAMBOLAN",
-      position: "DIRECTOR",
-      company: "FRUITBAE",
-      quote: "One accounting solution for multiple outlets",
-      image: "/api/placeholder/240/240",
-      logoUrl: "/api/placeholder/50/20"
-    },
-    {
-      name: "ABDURAHMAN",
-      position: "COMMERCIAL MANAGER",
-      company: "NUBRA",
-      quote: "End-to-end accounting and inventory management made simple",
-      image: "/api/placeholder/240/240",
-      logoUrl: "/api/placeholder/50/20"
-    }
-  ];
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [testimonials.length]);
-
-  const goToPrevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + testimonials.length) % testimonials.length);
-  };
-
-  const goToNextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % testimonials.length);
-  };
+    fetch("/data/LandingTestinomial.json")
+      .then((res) => res.json())
+      .then((data) => setTestimonials(data))
+      .catch((error) => console.error("Error fetching testimonials:", error));
+  }, []);
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-black text-white overflow-hidden">
+    <div className="relative flex flex-col  bg-gray-800 text-white overflow-hidden px-28">
       <div className="container mx-auto px-4 py-16">
-        <div className="flex items-center justify-between overflow-hidden">
+        <Swiper
+          modules={[Autoplay]}
+          spaceBetween={30}
+          slidesPerView={1}
+          autoplay={{ delay: 3000 }}
+          onSlideChange={(swiper) => setCurrentSlide(swiper.activeIndex)}
+          className="w-full"
+        >
           {testimonials.map((testimonial, index) => (
-            <div
-              key={index}
-              className={`flex flex-none w-full transform transition-transform duration-700 ease-in-out ${
-                index === currentSlide ? 'translate-x-0' : 'translate-x-full'
-              }`}
-            >
-              {/* Left section - Testimonial */}
-              <div className="w-1/2 p-8">
-                <h1 className="text-4xl font-bold text-gray-300 mb-6">
-                  Make the switch to the future
-                  <br />
-                  of business accounting
-                </h1>
-                <div className="border-b border-gray-700 pb-8">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-24 h-24 rounded-lg overflow-hidden bg-blue-500">
-                      <img src={testimonial.image} alt={testimonial.name} className="w-full h-full object-cover" />
+            <SwiperSlide key={index}>
+              <div className="flex items-center justify-between w-full">
+                {/* Left section - Testimonial */}
+                <div className="w-1/2 p-8">
+                  <h1 className="text-4xl font-bold text-gray-300 mb-6">
+                    Make the switch to the future
+                    <br />
+                    of business accounting
+                  </h1>
+                  <div className="border-b border-gray-700 py-4">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="w-24 h-20 rounded-lg overflow-hidden bg-blue-500">
+                        <img src={testimonial.image} alt={testimonial.name} className=" object-cover" />
+                      </div>
+                      <div className="flex flex-col">
+                        <p className="text-xl font-semibold mb-2">"{testimonial.quote}"</p>
+                        <div className="flex items-center gap-2 text-gray-400">
+                          <p>{testimonial.name}, {testimonial.position}</p>
+                          <img src={testimonial.logoUrl} alt={testimonial.company} className="h-5" />
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex flex-col">
-                      <p className="text-xl font-semibold mb-2">"{testimonial.quote}"</p>
-                      <div className="flex items-center gap-2 text-gray-400">
-                        <p>{testimonial.name}, {testimonial.position}</p>
-                        <img src={testimonial.logoUrl} alt={testimonial.company} className="h-5" />
+                  </div>
+                  <div className="border-b border-gray-700 py-4">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="w-24 h-20 rounded-lg overflow-hidden bg-blue-500">
+                        <img src={testimonial.image} alt={testimonial.name} className=" object-cover" />
+                      </div>
+                      <div className="flex flex-col">
+                        <p className="text-xl font-semibold mb-2">"{testimonial.quote}"</p>
+                        <div className="flex items-center gap-2 text-gray-400">
+                          <p>{testimonial.name}, {testimonial.position}</p>
+                          <img src={testimonial.logoUrl} alt={testimonial.company} className="h-5" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border-b border-gray-700 py-4">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="w-24 h-20 rounded-lg overflow-hidden bg-blue-500">
+                        <img src={testimonial.image} alt={testimonial.name} className=" object-cover" />
+                      </div>
+                      <div className="flex flex-col">
+                        <p className="text-xl font-semibold mb-2">"{testimonial.quote}"</p>
+                        <div className="flex items-center gap-2 text-gray-400">
+                          <p>{testimonial.name}, {testimonial.position}</p>
+                          <img src={testimonial.logoUrl} alt={testimonial.company} className="h-5" />
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Right section - Quote graphic */}
-              <div className="w-1/2 flex items-center justify-center bg-gray-900 p-8">
-                <div className="text-center">
-                  <div className="text-6xl font-bold text-yellow-400">"</div>
-                  <h2 className="text-5xl font-bold">
-                    I TRUST
-                    <br />
-                    <span className="text-6xl">ZOHO BOOKS</span>
-                    <br />
-                    FOR MY
-                    <br />
-                    <span className="text-6xl">BUSINESS</span>
-                  </h2>
+                {/* Right section - Quote graphic */}
+                <div className="w-1/2 flex items-center justify-center bg-black p-8">
+                  <div className="text-center">
+                    <div className="text-6xl font-bold text-yellow-400">"</div>
+                    <h2 className="text-5xl font-bold">
+                      I TRUST
+                      <br />
+                      <span className="text-6xl">ZOHO BOOKS</span>
+                      <br />
+                      FOR MY
+                      <br />
+                      <span className="text-6xl">BUSINESS</span>
+                    </h2>
+                  </div>
                 </div>
               </div>
-            </div>
+            </SwiperSlide>
           ))}
-        </div>
+        </Swiper>
 
-        {/* Pagination dots */}
-        <div className="flex items-center gap-2 justify-center mt-8">
+        {/* Custom Pagination Dots */}
+        <div className="flex items-center gap-2 justify-end mr-20">
           {testimonials.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
               className={`h-2 rounded-full transition-all ${
-                currentSlide === index ? 'w-16 bg-blue-500' : 'w-2 bg-gray-600'
+                currentSlide === index ? "w-16 bg-blue-500" : "w-2 bg-gray-600"
               }`}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>
       </div>
-
-      {/* Navigation buttons */}
-      {/* <button 
-        onClick={goToPrevSlide} 
-        className="absolute top-1/2 left-4 bg-blue-600 p-2 rounded-full transform -translate-y-1/2"
-      >
-        <ChevronLeft size={24} />
-      </button>
-      <button 
-        onClick={goToNextSlide} 
-        className="absolute top-1/2 right-4 bg-blue-600 p-2 rounded-full transform -translate-y-1/2"
-      >
-        <ChevronRight size={24} />
-      </button> */}
     </div>
   );
 };
