@@ -245,28 +245,35 @@ const SignForm = () => {
                 </div>
 
                 {/* Terms & Conditions */}
-                <div className="mb-6 flex items-center">
-                  <Field
-                    type="checkbox"
-                    name="agreeToTerms"
-                    className="mr-2 mt-1 items-center"
-                  />
-                  <span className="text-sm items-center ">
-                    I agree to the{" "}
-                    <a href="#" className="text-blue-600">
-                      Terms of Service
-                    </a>{" "}
-                    and{" "}
-                    <a href="#" className="text-blue-600">
-                      Privacy Policy
-                    </a>
-                    .
-                  </span>
+                <div className="mb-2 flex items-center">
+                  <label className="flex items-center">
+                    <Field
+                      type="checkbox"
+                      name="agreeToTerms"
+                      className="mr-2"
+                    />
+                    <span className="text-sm">
+                      I agree to the{" "}
+                      <a href="#" className="text-blue-600">
+                        Terms of Service
+                      </a>{" "}
+                      and{" "}
+                      <a href="#" className="text-blue-600">
+                        Privacy Policy
+                      </a>
+                      .
+                    </span>
+                  </label>
                 </div>
 
+                <ErrorMessage
+                  name="agreeToTerms"
+                  component="div"
+                  className="text-red-500 text-sm ml-2"
+                />
                 <button
                   type="submit"
-                  className="w-full bg-yellow-500 text-black font-bold py-3 rounded mb-2"
+                  className="w-full mt-3 bg-yellow-500 text-black font-bold py-3 rounded mb-2"
                 >
                   Create my account
                 </button>
