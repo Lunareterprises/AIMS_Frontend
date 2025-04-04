@@ -10,6 +10,7 @@ export const login = async (credentials) => {
 export const register = async (formData) => {
   try {
     const response = await axiosInstance.post(API_ENDPOINTS.REGISTER, formData);
+    console.log("response---->>>???????",response);
     return response.data;
   } catch (error) {
     // Log for devs
