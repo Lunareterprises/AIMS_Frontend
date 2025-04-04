@@ -35,6 +35,8 @@ const OtpModal = ({ isOpen, onClose, email }) => {
 
   const handleVerify = () => {
     if (otp.length === 4) {
+        onClose()
+        setResendDisabled(false);
       console.log("Verifying OTP:", otp);
     } else {
       alert("Please enter a valid 4-digit OTP.");
@@ -55,8 +57,15 @@ const OtpModal = ({ isOpen, onClose, email }) => {
 
         <OtpInput
           value={otp}
-          onChange={setOtp}
+        
+      
           numInputs={4}
+          onChange={(value) => {
+            const numericOnly = value.replace(/\D/g, ""); // removes all non-digit characters
+            setOtp(numericOnly);
+          }}
+          
+          isInputNum={true} // ✅ Only allow numbers
           renderInput={(props) => <input {...props} />}
           inputStyle={{
             width: "50px",
