@@ -34,10 +34,10 @@ function AccountingDashboardAnnimation() {
  
     <div className="relative w-full  overflow-hidden ">
       {/* Animated background */}
-      {/* <canvas 
+      <canvas 
         ref={canvasRef} 
         className="absolute   z-0"
-      /> */}
+      />
       
       {/* Content */}
       <div className="relative z-10 w-full h-full grid grid-cols-12 gap-4 py-32 ">
