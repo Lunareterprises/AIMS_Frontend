@@ -1,0 +1,27 @@
+[
+    {
+      "image": "https://via.placeholder.com/150",
+      "quote": "This is an amazing product!",
+      "name": "John Doe",
+      "position": "CEO, CompanyX",
+      "logoUrl": "https://via.placeholder.com/50",
+      "company": "CompanyX"
+    },
+    {
+      "image": "https://via.placeholder.com/150",
+      "quote": "It changed the way we work!",
+      "name": "Jane Smith",
+      "position": "CTO, TechCorp",
+      "logoUrl": "https://via.placeholder.com/50",
+      "company": "TechCorp"
+    },
+    {
+      "image": "https://via.placeholder.com/150",
+      "quote": "It changed the way we work!",
+      "name": "Jane Smith",
+      "position": "CTO, TechCorp",
+      "logoUrl": "https://via.placeholder.com/50",
+      "company": "TechCorp"
+    }
+  ]
+  

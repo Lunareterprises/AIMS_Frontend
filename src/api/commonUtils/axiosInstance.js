@@ -1,33 +1,38 @@
 import axios from "axios";
 
-const API_BASE_URL = "https://your-api-url.com";
 
+const processENV = import.meta.env.VITE_BASE_URL;
+console.log("processEnv===>",processENV);
 const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Request Interceptor (for attaching auth token)
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    baseURL :  processENV,
+    headers : {
+        "Content-type":"application/json"
     }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+}   
+)
 
-// Response Interceptor (for handling errors globally)
+axiosInstance.interceptors.request.use(
+
+    (config) => {
+        console.log("request was sent", config);
+        return config;
+    },
+    (error) =>{
+        console.log("error in sending  request ", error);
+        return Promise.reject(error);
+    }
+
+)
+
 axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error("API Error:", error);
-    return Promise.reject(error);
-  }
-);
+    (response) =>{
+        console.log("recive the response",response );
+        return response;
+    },
+    (error) =>{
+        console.log("error in reciving response", error);
+        return Promise.reject(error);
+    }
+)
 
-export default axiosInstance;
+export default axiosInstance
