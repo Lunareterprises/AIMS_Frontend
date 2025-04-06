@@ -1,14 +1,10 @@
 import React from 'react';
-import LoginLeftSide from './LoginLeftSide';
 import LoginForm from './LoginForm';
 
-function LoginIndex() {
+export default function LoginIndex() {
   return (
     <div>
-      <LoginLeftSide />
-      <LoginForm />
+      <LoginForm/>
     </div>
   );
 }
-
-export default LoginIndex;

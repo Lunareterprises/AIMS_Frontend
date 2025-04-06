@@ -2,15 +2,15 @@ import React from 'react';
 
 const AccountingLandingPage = () => {
   return (
-    <div className="min-h-screen bg-[#006fda] flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-12 relative overflow-hidden">
+    <div className=" bg-[#2a6877] flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-10 relative overflow-hidden">
       {/* Badge */}
       <div className="bg-black/40 text-yellow-400 rounded-full px-4 py-2 mb-8 flex gap-3 items-center ">
 
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24" height="24">
             <path d="M24 2L31.2 16.6L47 19.2L35.5 30.4L38.4 46.2L24 38.8L9.6 46.2L12.5 30.4L1 19.2L16.8 16.6L24 2Z" 
-                fill="#FFD700" stroke="#E0B000" stroke-width="1" />
+                fill="#FFD700" stroke="#E0B000" strokeWidth="1" />
             <path d="M18 24L22 28L30 20" 
-                stroke="#040805" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                stroke="#040805" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
         </svg>
 
         <span className="font-medium text-gray-300 text-sm md:text-base whitespace-nowrap">GST compliant accounting software</span>

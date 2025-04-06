@@ -1,6 +1,8 @@
 export const API_ENDPOINTS = {
-    LOGIN: "/auth/login",
-    REGISTER: "/auth/register",
+    LOGIN: '',
+    REGISTER: '/user/registeration',
+    REGISTER_WITH_OTP: '/user/RegisterVerifyOTP',
+
     USERS: "/users",
     PRODUCTS: "/products",
     ORDERS: "/orders",
