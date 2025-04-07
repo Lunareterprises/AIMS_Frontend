@@ -7,7 +7,9 @@ const Sidebar = () => (
     <h2 className="text-xl font-bold mb-4">MyApp</h2>
     <nav className="flex flex-col space-y-2">
       <Link to="/LandingPage">Home</Link>
-      <Link to="/OrganizationProfile">Org Profile</Link>
+      <Link to="/AddItems">Add Items</Link>
+      <Link to="/ViewItems">Items Overview</Link>
+
     </nav>
   </div>
 );

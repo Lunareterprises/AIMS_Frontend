@@ -1,0 +1,9 @@
+[
+    {
+      "label": "Tax",
+      "options": [
+        { "label": "Standard Rate [5%]", "value": "Standard Rate [5%]" }
+      ]
+    }
+  ]
+  
