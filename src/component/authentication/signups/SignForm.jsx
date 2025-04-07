@@ -17,7 +17,7 @@ const SignForm = () => {
   const [countryOptions, setCountryOptions] = useState([]);
   const [userLocation, setUserLocation] = useState({ country: "", state: "" });
   const [passwordStrength, setPasswordStrength] = useState(0);
-  const [modalOpen, setModalOpen] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
   const [email, setEmail] = useState("");
 
   useEffect(() => {
