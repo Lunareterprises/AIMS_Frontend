@@ -19,14 +19,14 @@ const SubHeader = () => {
   return (
     <>
       {/* HEADER */}
-      <header className="shadow-none bg-[#006fda]  w-full px-24">
+      <header className="shadow-none bg-[#2a6877]  w-full px-24">
         <div className="py-1 px-6 flex justify-between items-center">
           {/* Logo */}
           <div className="flex gap-4 justify-center items-center">
             <img
-              src="/Images/landingPage/logo.png"
+              src="/Images/landingPage/logo1.png"
               alt="Company_Logo"
-              className="w-24 h-24"
+              className="w-16 h-16"
             />
           </div>
 
