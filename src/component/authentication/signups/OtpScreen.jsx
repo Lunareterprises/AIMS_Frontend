@@ -2,11 +2,15 @@ import React, { useState, useEffect } from "react";
 import Modal from "react-modal";
 import OtpInput from "react-otp-input";
 import { registerWithOpt } from "../../../api/services/authService";
+import { useNavigate } from "react-router-dom";
+
 
 const OtpModal = ({ isOpen, onClose, email }) => {
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(60);
   const [resendDisabled, setResendDisabled] = useState(true);
+
+  const Navi =useNavigate();
 
   useEffect(() => {
     if (isOpen) {
@@ -34,6 +38,8 @@ const OtpModal = ({ isOpen, onClose, email }) => {
     console.log("OTP resent to:", email);
   };
 
+  //---------------------------OTP---SCREEN api------------//
+
   const handleVerify = async () => {
     if (otp.length === 4) {
 
@@ -44,12 +50,22 @@ const OtpModal = ({ isOpen, onClose, email }) => {
       try {
         const response = await registerWithOpt(payload)
   
-        if (response.data.result) {
+        if (response.result) {
           console.log("OTP Verified Successfully:", response.data);
           alert("OTP Verified Successfully!");
           onClose();
+
+          localStorage.setItem('user_token',response.user_token)
+          localStorage.setItem('user_id',response.user_id)
+          localStorage.setItem('user_id',response.user_id)
+          localStorage.setItem('user_id',response.user_id)
+
+
+
+
+          Navi('/OrganizationProfile')
         } else {
-          alert(response.data.message || "Invalid OTP. Please try again.");
+          alert(response.message || "Invalid OTP. Please try again.");
         }
       } catch (error) {
         console.error("OTP verification failed:", error);
@@ -72,7 +88,7 @@ const OtpModal = ({ isOpen, onClose, email }) => {
       isOpen={isOpen}
       onRequestClose={onClose}
       style={{ overlay: { zIndex: 9999 } }} // Higher z-index
-      className="flex items-center justify-center min-h-screen z-50"
+      className="flex items-center justify-center  min-h-screen z-50"
       overlayClassName="fixed inset-0 flex items-center justify-center  bg-opacity-10"
     >
       <div className="bg-white rounded-lg shadow-lg p-6 w-96 text-center">
@@ -83,10 +99,10 @@ const OtpModal = ({ isOpen, onClose, email }) => {
           value={otp}
           numInputs={4}
           onChange={(value) => {
-            const numericOnly = value.replace(/\D/g, ""); // removes all non-digit characters
+            const numericOnly = value.replace(/\D/g, ""); 
             setOtp(numericOnly);
           }}
-          isInputNum={true} // ✅ Only allow numbers
+          isInputNum={true} 
           renderInput={(props) => <input {...props} />}
           inputStyle={{
             width: "50px",
