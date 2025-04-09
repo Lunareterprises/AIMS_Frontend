@@ -278,11 +278,16 @@ const AddItemForm = () => {
     );
   };
 
+
   return (
     <div className="bg-white min-h-screen">
       {/* Header */}
       <div className="flex justify-between items-center border-b p-4">
-        <h1 className="text-xl font-medium text-gray-800">Add Your Item</h1>
+      <h5 className="text-2xl font-medium flex items-center gap-2">
+  📦 Add Your Product
+</h5>
+
+
         {/* <button className="text-gray-600 hover:text-gray-800">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -793,6 +798,8 @@ const AddItemForm = () => {
                   onChange={(e) => handleChange("isbn", e.target.value)}
                 />
               </div>
+
+              
             </div>
           </div>
         </div>
