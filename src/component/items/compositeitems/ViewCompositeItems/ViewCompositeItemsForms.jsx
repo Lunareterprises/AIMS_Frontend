@@ -1,30 +1,66 @@
+import { Image, Info, RotateCcw } from "lucide-react";
 import React, { useState } from "react";
-import Transactions from "./Transaction";
-
-const ViewItemsForm = () => {
+import ChartSaleSummary from "../../itemsComponents/ChartSaleSummary";
+// import Transactions from "./Transaction";
+const items = [
+  {
+    id: 1,
+    name: "toy",
+    sku: "5",
+    accountingStock: 4.0,
+    physicalStock: 4.0,
+    quantity: 1,
+  },
+  {
+    id: 2,
+    name: "choclate",
+    sku: "4",
+    accountingStock: 2.0,
+    physicalStock: 2.0,
+    quantity: 1,
+  },
+];
+const ViewCompositeItemsForms = () => {
   const [activeTab, setActiveTab] = useState("overview");
 
   const [activeTabsale, setActiveTabsale] = useState("sales");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   //=============graph==================
+  const weeklyData = {
+    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    datasets: [
+      {
+        label: "Revenue",
+        data: [120, 190, 300, 250, 180, 220, 160],
+        backgroundColor: "rgba(59, 130, 246, 0.7)",
+      },
+    ],
+  };
 
-  const [timeFrame, setTimeFrame] = useState('This Month');
-  // const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const monthlyData = {
+    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+    datasets: [
+      {
+        label: "Revenue",
+        data: [3000, 4500, 4000, 5200, 6100, 4800],
+        backgroundColor: "rgba(34, 197, 94, 0.7)",
+      },
+    ],
+  };
 
-  // Y-axis values
-  const yAxisValues = ['5 K', '4 K', '3 K', '2 K', '1 K', '0'];
-  
-  // X-axis labels (dates)
-  const xAxisLabels = [
-    '01\nApr', '03\nApr', '05\nApr', '07\nApr', '09\nApr', '11\nApr', '13\nApr', 
-    '15\nApr', '17\nApr', '19\nApr', '21\nApr', '23\nApr', '25\nApr', '27\nApr', '29\nApr'
-  ];
   return (
     <div className="w-full max-w-6xl mx-auto p-4 font-sans bg-white rounded-lg shadow">
       {/* Header */}
       <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
-        <h1 className="text-2xl font-bold">Cake</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Gift Hamper</h1>
+          <p className="flex items-center text-gray-600">
+            <RotateCcw className="w-4 h-4 mr-2 text-blue-500" />
+            Returnable items
+          </p>
+        </div>
+
         <div className="flex items-center space-x-2">
           <button className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100">
             <svg
@@ -43,7 +79,7 @@ const ViewItemsForm = () => {
             </svg>
           </button>
           <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-            Adjust Stock
+            Create Bundle
           </button>
           <div className="relative">
             <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center">
@@ -215,63 +251,103 @@ const ViewItemsForm = () => {
               </div>
 
               {/* Stock Information */}
-              <div className="bg-gray-50 rounded-lg p-6">
-                <div className="grid grid-cols-2 gap-y-6">
-                  <div>
-                    <h3 className="text-gray-600 text-sm mb-1">
-                      Opening Stock
-                    </h3>
-                    <p className="text-xl font-bold">5.00</p>
+
+              <div className="bg-gray-50 p-6 max-w-md rounded-lg">
+                {/* Opening Stock */}
+                <div className="mb-5">
+                  <p className="text-sm font-medium">
+                    <span>Opening Stock : </span>
+                    <span>0.00</span>
+                  </p>
+                </div>
+
+                {/* Accounting Stock */}
+                <div className="mb-6">
+                  <div className="flex items-center mb-4">
+                    <h3 className="text-base font-bold">Accounting Stock</h3>
+                    <Info className="ml-1 h-4 w-4 text-gray-500" />
                   </div>
 
-                  <div>
-                    <h3 className="text-gray-600 text-sm mb-1">
-                      Stock on Hand
-                    </h3>
-                    <p className="text-xl font-bold">5.00</p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-gray-600 text-sm mb-1">
-                      Committed Stock
-                    </h3>
-                    <p className="text-xl font-bold">0.00</p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-gray-600 text-sm mb-1">
-                      Available for Sale
-                    </h3>
-                    <p className="text-xl font-bold">5.00</p>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between pb-1">
+                      <span>Stock on Hand</span>
+                      <span>: 5.00</span>
+                    </div>
+                    <div className="flex justify-between pb-1">
+                      <span>Committed Stock</span>
+                      <span>: 0.00</span>
+                    </div>
+                    <div className="flex justify-between border-t border-dotted border-gray-300 pt-1">
+                      <span>Available for Sale</span>
+                      <span>: 5.00</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Right Side Information */}
-              <div className=" mt-8">
-                {/* Qty Information */}
+                {/* Physical Stock */}
+                <div className="mb-6">
+                  <div className="flex items-center mb-4">
+                    <h3 className="text-base font-bold">Physical Stock</h3>
+                    <Info className="ml-1 h-4 w-4 text-gray-500" />
+                  </div>
 
-                <div className="flex-1  flex">
-                  <div className="text-center  mr-6">
-                    <div className="flex  items-baseline">
-                      <span className="text-3xl font-bold">0</span>
-                      <span className="text-gray-500 text-sm ml-2">Qty</span>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between pb-1">
+                      <span>Stock on Hand</span>
+                      <span>: 5.00</span>
                     </div>
-                    <div className="text-sm text-gray-700">To be Invoiced</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="flex items-baseline">
-                      <span className="text-3xl font-bold">0</span>
-                      <span className="text-gray-500 text-sm ml-2">Qty</span>
+                    <div className="flex justify-between pb-1">
+                      <span>Committed Stock</span>
+                      <span>: 0.00</span>
                     </div>
-                    <div className="text-sm text-gray-700">To be Billed</div>
+                    <div className="flex justify-between border-t border-dotted border-gray-300 pt-1">
+                      <span>Available for Sale</span>
+                      <span>: 5.00</span>
+                    </div>
                   </div>
+                </div>
+
+                {/* Status Cards */}
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    <div className="bg-white p-3 rounded shadow-sm">
+                      <div className="text-2xl font-normal">0</div>
+                      <div className="text-xs text-gray-500">Qty</div>
+                      <div className="text-xs mt-1">To be Shipped</div>
+                    </div>
+                    <div className="bg-white p-3 rounded shadow-sm">
+                      <div className="text-2xl font-normal">0</div>
+                      <div className="text-xs text-gray-500">Qty</div>
+                      <div className="text-xs mt-1">To be Received</div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-white p-3 rounded shadow-sm">
+                      <div className="text-2xl font-normal">0</div>
+                      <div className="text-xs text-gray-500">Qty</div>
+                      <div className="text-xs mt-1">To be Invoiced</div>
+                    </div>
+                    <div className="bg-white p-3 rounded shadow-sm">
+                      <div className="text-2xl font-normal">0</div>
+                      <div className="text-xs text-gray-500">Qty</div>
+                      <div className="text-xs mt-1">To be Billed</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Reorder Point */}
+                <div className="mt-6">
+                  <p className="text-sm">
+                    <span>Reorder point</span>
+                  </p>
+                  <p className="text-xl font-medium">1.00</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="w-full font-sans">
+          <div className="w-full font-sans mt-5">
             {/* Top Section with Dropdown and Tabs */}
             <div className="flex items-center justify-between mb-4">
               <div className="relative">
@@ -384,130 +460,74 @@ const ViewItemsForm = () => {
             </div>
           </div>
 
+          <div className="w-full max-w-3xl">
+            <h2 className="text-lg font-medium text-gray-800 mb-4">
+              Associated Items
+            </h2>
 
-
-
-
-
-  
-    <div className=" mt-5 w-full border border-gray-200 rounded-md bg-white">
-      {/* Header */}
-      <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
-        <h2 className="text-lg font-medium text-gray-800">Sales Order Summary (In AED)</h2>
-        <div className="relative">
-          <button 
-            className="flex items-center px-3 py-1 text-blue-600 font-medium"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          >
-            {timeFrame}
-            <svg 
-              className="ml-1 w-5 h-5" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24" 
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          
-          {isDropdownOpen && (
-            <div className="absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded shadow-lg z-10">
-              <div 
-                className="p-2 hover:bg-gray-100 cursor-pointer"
-                onClick={() => {
-                  setTimeFrame('This Week');
-                  setIsDropdownOpen(false);
-                }}
-              >
-                This Week
-              </div>
-              <div 
-                className="p-2 hover:bg-gray-100 cursor-pointer"
-                onClick={() => {
-                  setTimeFrame('This Month');
-                  setIsDropdownOpen(false);
-                }}
-              >
-                This Month
-              </div>
-              <div 
-                className="p-2 hover:bg-gray-100 cursor-pointer"
-                onClick={() => {
-                  setTimeFrame('This Year');
-                  setIsDropdownOpen(false);
-                }}
-              >
-                This Year
-              </div>
+            <div className="border border-gray-200 rounded">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50">
+                    <th className="text-left py-2 px-4 text-sm font-medium text-gray-600">
+                      ITEM DETAILS
+                    </th>
+                    <th className="text-right py-2 px-4 text-sm font-medium text-gray-600">
+                      QUANTITY
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item) => (
+                    <tr
+                      key={item.id}
+                      className="border-b border-gray-200 last:border-b-0"
+                    >
+                      <td className="py-4 px-4">
+                        <div className="flex items-start">
+                          <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center mr-3">
+                            <Image className="w-6 h-6 text-gray-400" />
+                          </div>
+                          <div>
+                            <div className="text-blue-500">{item.name}</div>
+                            <div className="text-gray-500 text-sm">
+                              [{item.sku}]
+                            </div>
+                            <div className="text-gray-600 text-sm mt-1">
+                              Accounting Stock:{" "}
+                              {item.accountingStock.toFixed(2)}
+                            </div>
+                            <div className="text-gray-600 text-sm">
+                              Physical Stock: {item.physicalStock.toFixed(2)}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-right align-top">
+                        {item.quantity}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          )}
-        </div>
-      </div>
-
-      <div className="flex p-4">
-        {/* Chart Area */}
-        <div className="flex-grow h-64 relative">
-          {/* Y-axis labels */}
-          <div className="absolute top-0 bottom-0 left-0 flex flex-col justify-between text-xs text-gray-500 pr-2">
-            {yAxisValues.map((value, index) => (
-              <div key={index}>{value}</div>
-            ))}
           </div>
 
-          {/* Chart content */}
-          <div className="absolute left-10 right-0 top-0 bottom-6 flex items-center justify-center">
-            <p className="text-gray-500">No data found.</p>
-          </div>
-
-          {/* X-axis labels */}
-          <div className="absolute left-10 right-0 bottom-0 flex justify-between text-xs text-gray-500">
-            {xAxisLabels.map((label, index) => (
-              <div key={index} className="flex flex-col items-center whitespace-pre-line text-center">
-                {label.split('\n').map((part, i) => (
-                  <span key={i}>{part}</span>
-                ))}
-              </div>
-            ))}
-          </div>
-
-          {/* Chart grid lines - horizontal */}
-          {[0, 1, 2, 3, 4, 5].map((_, index) => (
-            <div 
-              key={index} 
-              className="absolute left-10 right-0 border-t border-gray-100" 
-              style={{ top: `${index * 20}%` }}
+          <div className="">
+            <ChartSaleSummary
+              title="Sales Order Summary (In INR)"
+              weeklyData={weeklyData}
+              monthlyData={monthlyData}
             />
-          ))}
-        </div>
-
-        {/* Sidebar - Total Sales */}
-        <div className="w-64 border-l border-gray-100 pl-4 ml-4">
-          <div className="mb-4">
-            <h3 className="text-sm font-medium text-gray-800">Total Sales</h3>
           </div>
-          
-          <div className="bg-blue-50 border border-blue-100 rounded p-3">
-            <div className="flex items-center mb-1">
-              <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
-              <span className="font-medium">DIRECT SALES</span>
-            </div>
-            <div className="text-lg font-medium">AED0.00</div>
-          </div>
-        </div>
-      </div>
-    </div>
- 
         </>
       )}
 
       {activeTab === "transactions" && (
-        <div className="mt-4">
-          <Transactions />
-        </div>
+        <div className="mt-4">{/* <Transactions /> */}</div>
       )}
     </div>
   );
 };
 
-export default ViewItemsForm;
+export default ViewCompositeItemsForms;
