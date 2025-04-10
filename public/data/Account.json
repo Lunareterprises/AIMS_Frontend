@@ -1,0 +1,14 @@
+[
+    {
+      "label": "Income",
+      "options": [
+        { "label": "Discount", "value": "discount" },
+        { "label": "General Income", "value": "general_income" },
+        { "label": "Interest Income", "value": "interest_income" },
+        { "label": "Late Fee Income", "value": "late_fee_income" },
+        { "label": "Other Charges", "value": "other_charges" },
+        { "label": "Sales", "value": "sales" }
+      ]
+    }
+  ]
+  

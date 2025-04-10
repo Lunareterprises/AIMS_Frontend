@@ -1,0 +1,11 @@
+[
+    {
+      "label": "Stock",
+      "options": [
+        { "label": "Inventory Asset", "value": "Inventory Asset" },
+        { "label": "Inventory Liability", "value": "Inventory Liability" },
+        { "label": "Work On Progress", "value": "Work On Progress"}
+      ]
+    }
+  ]
+  

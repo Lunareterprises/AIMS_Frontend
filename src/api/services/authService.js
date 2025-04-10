@@ -1,6 +1,5 @@
-
 import axiosInstance from "../commonUtils/axiosInstance";
-import { API_ENDPOINTS } from "../commonUtils/endpoints";
+import { API_ENDPOINTS } from "../commonUtils/Constants";
 
 export const login = async (credentials) => {
   const response = await axiosInstance.post(API_ENDPOINTS.LOGIN, credentials);
@@ -10,30 +9,53 @@ export const login = async (credentials) => {
 export const register = async (formData) => {
   try {
     const response = await axiosInstance.post(API_ENDPOINTS.REGISTER, formData);
-    console.log("response---->>>???????",response);
+    console.log("response---->>>???????", response);
     return response.data;
   } catch (error) {
-    // Log for devs
     console.error("Register API failed:", error);
-
-    // Re-throw if you want to handle it in the component
     throw error;
   }
 };
 export const registerWithOpt = async (formData) => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.REGISTER_WITH_OTP, formData);
-    console.log("response---->>>???????",response);
+    const response = await axiosInstance.post(
+      API_ENDPOINTS.REGISTER_WITH_OTP,
+      formData
+    );
+    console.log("response---->>>registerWithOpt", response);
     return response.data;
   } catch (error) {
-    // Log for devs
     console.error("Register API failed:", error);
-
-    // Re-throw if you want to handle it in the component
     throw error;
   }
 };
 
+export const organization = async (formData) => {
+  try {
+    const response = await axiosInstance.post(
+      API_ENDPOINTS.ORGANIZATION,
+      formData
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Register API failed:", error);
+    throw error;
+  }
+};
+//-------------ITEMS-----------------------
+
+export const GET_ALL_ITEMS = async (body) => {
+  try {
+    const response = await axiosInstance.post(
+      API_ENDPOINTS.GET_ALL_ITEMS,
+      body
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Register API failed:", error);
+    throw error;
+  }
+};
 
 export const logout = () => {
   localStorage.removeItem("token");
