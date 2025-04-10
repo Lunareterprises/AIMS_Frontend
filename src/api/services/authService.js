@@ -1,4 +1,3 @@
-
 import axiosInstance from "../commonUtils/axiosInstance";
 import { API_ENDPOINTS } from "../commonUtils/Constants";
 
@@ -10,7 +9,7 @@ export const login = async (credentials) => {
 export const register = async (formData) => {
   try {
     const response = await axiosInstance.post(API_ENDPOINTS.REGISTER, formData);
-    console.log("response---->>>???????",response);
+    console.log("response---->>>???????", response);
     return response.data;
   } catch (error) {
     console.error("Register API failed:", error);
@@ -19,8 +18,11 @@ export const register = async (formData) => {
 };
 export const registerWithOpt = async (formData) => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.REGISTER_WITH_OTP, formData);
-    console.log("response---->>>registerWithOpt",response);
+    const response = await axiosInstance.post(
+      API_ENDPOINTS.REGISTER_WITH_OTP,
+      formData
+    );
+    console.log("response---->>>registerWithOpt", response);
     return response.data;
   } catch (error) {
     console.error("Register API failed:", error);
@@ -30,14 +32,30 @@ export const registerWithOpt = async (formData) => {
 
 export const organization = async (formData) => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.ORGANIZATION, formData);
+    const response = await axiosInstance.post(
+      API_ENDPOINTS.ORGANIZATION,
+      formData
+    );
     return response.data;
   } catch (error) {
     console.error("Register API failed:", error);
     throw error;
   }
 };
+//-------------ITEMS-----------------------
 
+export const GET_ALL_ITEMS = async (body) => {
+  try {
+    const response = await axiosInstance.post(
+      API_ENDPOINTS.GET_ALL_ITEMS,
+      body
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Register API failed:", error);
+    throw error;
+  }
+};
 
 export const logout = () => {
   localStorage.removeItem("token");
