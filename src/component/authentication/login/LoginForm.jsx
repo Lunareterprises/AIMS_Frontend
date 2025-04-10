@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import {
@@ -14,25 +14,30 @@ import {
 
 import bgimage from "../../../../public/Images/AuthicationImage/BgImage_login.jpg";
 import { login } from "../../../api/services/authService";
-
+import ForgotPasswordModal from "./ForgotPassword";
+import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
+import Loader from "../../CommonUI/buttons/Loader/Loader";
 
 const LoginForm = () => {
+  const [loading, setLoading] = useState(false);
+  const Navi =useNavigate()
 
   useEffect(() => {
- login()
+    login();
   }, []);
+  const [showForgotModal, setShowForgotModal] = useState(false);
+
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
 
-  // Initial validation schema (email only)
   const initialValidationSchema = Yup.object({
     email: Yup.string()
       .email("Invalid email address")
-      
+
       .required("Email or mobile number is required"),
   });
 
-  // Full validation schema (email and password)
   const fullValidationSchema = Yup.object({
     email: Yup.string()
       .email("Invalid email address")
@@ -42,19 +47,39 @@ const LoginForm = () => {
       .min(6, "Password must be at least 6 characters"),
   });
 
-  // Handle next button click
   const handleNextClick = (values) => {
     setEmail(values.email);
     setShowPassword(true);
   };
 
-  // Handle form submission
-  const handleSubmit = (values) => {
-    console.log("Form submitted:", values);
-    // Add your authentication logic here
-  };
+  const handleSubmit = async (values) => {
+    setLoading(true);
+    try {
+      console.log("Form submitted:", values);
+      const response = await login(values);
+      console.log("Login successful:", response);
 
-  // Social sign-in options
+      // Store token (if provided)
+      if (response.result === true) {
+        localStorage.setItem("user_token", response.user_token);
+        Swal.fire("Success", "Logged in successfully", "success");
+        Navi("/ItemList");
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: response.message ,
+          icon: "error",
+        });
+      }
+    } catch (error) {
+      Swal.fire(
+        error.response?.data?.message || "Something went wrong",
+        "error"
+      );
+    }finally {
+      setLoading(false);
+    }
+  };
 
   const socialSignInOptions = [
     { id: "apple", icon: <FaApple />, bg: "bg-black", text: "text-white" },
@@ -144,7 +169,7 @@ const LoginForm = () => {
                     name="email"
                     placeholder="Email address or mobile number"
                     className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    disabled={showPassword}
+                    // disabled={showPassword}
                   />
                   <ErrorMessage
                     name="email"
@@ -185,10 +210,11 @@ const LoginForm = () => {
                   </button>
                 ) : (
                   <button
+                  disabled={loading}
                     type="submit"
                     className="w-full bg-blue-500 text-white py-3 rounded font-medium hover:bg-blue-600 transition duration-200"
                   >
-                    Sign In
+               {loading ? <Loader size={4} /> : "Login"}
                   </button>
                 )}
               </Form>
@@ -211,7 +237,14 @@ const LoginForm = () => {
           </div>
 
           {/* Sign up link */}
+
           <div className="mt-6 text-center">
+            <a
+              onClick={() => setShowForgotModal(true)}
+              className="text-blue-500 text-sm"
+            >
+              Forgot Password?
+            </a>
             <p className="text-gray-600">
               Don't have a BizFlow account?
               <a href="/Signup" className="text-blue-500 ml-1">
@@ -247,6 +280,11 @@ const LoginForm = () => {
       <div className="absolute bottom-4 text-center text-gray-500 text-sm">
         © 2025, BizFlow Corporation Pvt. Ltd. All Rights Reserved.
       </div>
+
+      <ForgotPasswordModal
+        isOpen={showForgotModal}
+        onClose={() => setShowForgotModal(false)}
+      />
     </div>
   );
 };

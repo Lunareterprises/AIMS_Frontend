@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "name": "Laptop",
+    "image": "/images/laptop.jpg",
+    "sellingPrice": 50000,
+    "costPrice": 40000
+  },
+  {
+    "id": 2,
+    "name": "Monitor",
+    "image": "/images/monitor.jpg",
+    "sellingPrice": 15000,
+    "costPrice": 12000
+  }
+]
