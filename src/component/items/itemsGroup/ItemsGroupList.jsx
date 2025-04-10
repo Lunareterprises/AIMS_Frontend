@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ChevronDown, Trash, FolderOpen, X, MoreVertical, HelpCircle, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-export default function CompositeItemsList() {
+export default function ItemsGroupList() {
 
   const Navi =useNavigate()
   const [items, setItems] = useState([
@@ -31,26 +31,17 @@ export default function CompositeItemsList() {
 
   return (
     <div className="bg-white rounded shadow w-full ">
-      <div className="p-4 flex items-center justify-between border-b">
-        <div className="flex items-center space-x-2">
-          <button className="border border-gray-300 rounded px-3 py-1.5 text-sm font-medium flex items-center space-x-1 bg-white text-gray-700">
-            <span>Bulk Actions</span>
-            <ChevronDown size={16} />
-          </button>
-          
-          <button className="border border-gray-300 rounded p-1.5 text-gray-500 hover:bg-gray-100">
-            <Trash size={16} />
-          </button>
-        </div>
+    
+        
         
     
 
 
-        <div className="flex justify-between items-center p-4">
+        <div className="flex justify-end items-end p-4">
      
         <div className="flex gap-2">
           <button
-            onClick={() => Navi("/Addcompositeitems")}
+            onClick={() => Navi("/ItemGroupAdd")}
             className="bg-blue-500 text-white px-4 py-2 rounded-md flex items-center"
           >
             <Plus className="mr-1 h-4 w-4" /> New
@@ -62,7 +53,7 @@ export default function CompositeItemsList() {
             <HelpCircle className="h-5 w-5" />
           </button>
         </div>
-      </div>
+      
       </div>
       
       <div className="overflow-x-auto">

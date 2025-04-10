@@ -260,6 +260,7 @@ import {
   Layers,
   Tag,
   ArchiveRestore,
+  Folders,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -306,37 +307,38 @@ export default function Sidebar() {
             icon={<BarChart2 size={20} />}
             label="Dashboard"
             collapsed={collapsed}
+            to="/dashboard"
+          />
+          <NavItem
+            icon={<Package size={20} />}
+            label="Product"
+            collapsed={collapsed}
             notification={true}
             children={[
               {
-                icon: <Package size={18} />,
-                label: "Product",
-                children: [
-                  {
-                    icon: <Box size={16} />,
-                    label: "Items",
-                    to: "/ItemList",
-                  },
-                  {
-                    icon: <Layers size={16} />,
-                    label: "Composite Items",
-                    to: "/Compositeitemlist",
-                  },
-                  {
-                    icon: <Tag size={16} />,
-                    label: "Price Lists",
-                    to: "/price-lists",
-                  },
-                  {
-                    icon: <ArchiveRestore size={16} />,
-                    label: "Inventory Adjustments",
-                    to: "/inventory-adjustments",
-                  },
-                ],
+                icon: <Box size={16} />,
+                label: "Items",
+                to: "/ItemList",
               },
               {
-                icon: <BarChart2 size={18} />,
-                label: "Sales",
+                icon: <Layers size={16} />,
+                label: "Composite Items",
+                to: "/Compositeitemlist",
+              },
+              {
+                icon: <Folders size={16} />,
+                label: "Items Groups",
+                to: "/ItemsGroupList",
+              },
+              {
+                icon: <Tag size={16} />,
+                label: "Price Lists",
+                to: "/PriceList",
+              },
+              {
+                icon: <ArchiveRestore size={16} />,
+                label: "Inventory Adjustments",
+                to: "/Inventory_AdjustmentList",
               },
             ]}
           />

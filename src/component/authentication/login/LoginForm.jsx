@@ -15,8 +15,14 @@ import {
 import bgimage from "../../../../public/Images/AuthicationImage/BgImage_login.jpg";
 import { login } from "../../../api/services/authService";
 import ForgotPasswordModal from "./ForgotPassword";
+import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
+import Loader from "../../CommonUI/buttons/Loader/Loader";
 
 const LoginForm = () => {
+  const [loading, setLoading] = useState(false);
+  const Navi =useNavigate()
+
   useEffect(() => {
     login();
   }, []);
@@ -46,8 +52,33 @@ const LoginForm = () => {
     setShowPassword(true);
   };
 
-  const handleSubmit = (values) => {
-    console.log("Form submitted:", values);
+  const handleSubmit = async (values) => {
+    setLoading(true);
+    try {
+      console.log("Form submitted:", values);
+      const response = await login(values);
+      console.log("Login successful:", response);
+
+      // Store token (if provided)
+      if (response.result === true) {
+        localStorage.setItem("user_token", response.user_token);
+        Swal.fire("Success", "Logged in successfully", "success");
+        Navi("/ItemList");
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: response.message ,
+          icon: "error",
+        });
+      }
+    } catch (error) {
+      Swal.fire(
+        error.response?.data?.message || "Something went wrong",
+        "error"
+      );
+    }finally {
+      setLoading(false);
+    }
   };
 
   const socialSignInOptions = [
@@ -138,7 +169,7 @@ const LoginForm = () => {
                     name="email"
                     placeholder="Email address or mobile number"
                     className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    disabled={showPassword}
+                    // disabled={showPassword}
                   />
                   <ErrorMessage
                     name="email"
@@ -179,10 +210,11 @@ const LoginForm = () => {
                   </button>
                 ) : (
                   <button
+                  disabled={loading}
                     type="submit"
                     className="w-full bg-blue-500 text-white py-3 rounded font-medium hover:bg-blue-600 transition duration-200"
                   >
-                    Sign In
+               {loading ? <Loader size={4} /> : "Login"}
                   </button>
                 )}
               </Form>

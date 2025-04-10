@@ -11,6 +11,11 @@ import ItemList from "../pages/Items/itemlist/itemlist";
 import Addcompositeitems from "../pages/Items/compositeitems/Addcompositeitems";
 import ViewCompositeitem from "../pages/Items/compositeitems/ViewCompositeitem/ViewCompositeitem";
 import Compositeitemlist from "../pages/Items/compositeitems/Compositeitemlist/Compositeitemlist";
+import AddpriceList from "../pages/Items/priceList/AddpriceList";
+import PriceList from "../pages/Items/priceList/PriceList";
+import InventoryAdjustmentList from "../pages/Items/InventoryAdjustmentList/InventoryAdjustmentList";
+import ItemsGroupList from "../pages/Items/itemsGroupList/itemsGroupList";
+import ItemGroupAdd from "../pages/Items/itemsGroupList/ItemGroupAdd";
 
 const AppRoutes = () => {
   return (
@@ -24,7 +29,15 @@ const AppRoutes = () => {
       <Route path="/OrganizationProfile" element={<OrganizationProfile />} />
 
       <Route
-        path="/AddItems"
+        path="/ItemList"
+        element={
+          <MainLayout>
+            <ItemList />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="ItemList/AddItems"
         element={
           <MainLayout>
             <AddItems />
@@ -36,14 +49,6 @@ const AppRoutes = () => {
         element={
           <MainLayout>
             <ViewItems />
-          </MainLayout>
-        }
-      />
-      <Route
-        path="/ItemList"
-        element={
-          <MainLayout>
-            <ItemList />
           </MainLayout>
         }
       />
@@ -70,6 +75,51 @@ const AppRoutes = () => {
         element={
           <MainLayout>
             <ViewCompositeitem />
+          </MainLayout>
+        }
+      />
+      {/* //////------------------- */}
+      <Route
+        path="/ItemsGroupList"
+        element={
+          <MainLayout>
+            <ItemsGroupList />
+          </MainLayout>
+        }
+      />
+
+      <Route
+        path="/ItemGroupAdd"
+        element={
+          <MainLayout>
+            <ItemGroupAdd />
+          </MainLayout>
+        }
+      />
+
+      <Route
+        path="/price-lists/create"
+        element={
+          <MainLayout>
+            <AddpriceList />
+          </MainLayout>
+        }
+      />
+
+      <Route
+        path="/PriceList"
+        element={
+          <MainLayout>
+            <PriceList />
+          </MainLayout>
+        }
+      />
+
+      <Route
+        path="/Inventory_AdjustmentList"
+        element={
+          <MainLayout>
+            <InventoryAdjustmentList />
           </MainLayout>
         }
       />
