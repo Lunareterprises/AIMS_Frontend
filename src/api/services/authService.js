@@ -57,6 +57,19 @@ export const GET_ALL_ITEMS = async (body) => {
   }
 };
 
+export const ADD_ITEMS = async (body) => {
+  try {
+    const response = await axiosInstance.post(
+      API_ENDPOINTS.ADD_ITEMS,
+      body
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Register API failed:", error);
+    throw error;
+  }
+};
+
 export const logout = () => {
   localStorage.removeItem("token");
 };
