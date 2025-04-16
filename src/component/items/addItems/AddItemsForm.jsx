@@ -5,7 +5,6 @@ import CustomDropdownSelect from "../../customDropdown/CustomDropdownSelect";
 import AddModal from "../../modalComponents/modalComponents";
 import ImageProps from "../../imageProp/imageProp";
 
-
 const AddItemForm = () => {
   const [trackInventory, setTrackInventory] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -18,17 +17,16 @@ const AddItemForm = () => {
   const [showModalTax, setShowModalTax] = useState(false);
 
   const [accountPurchase, setAccountPurchase] = useState([]);
-  const [showModalaccountPurchase, setShowModalaccountPurchase] = useState(false);
+  const [showModalaccountPurchase, setShowModalaccountPurchase] =
+    useState(false);
 
   const [brand, setBrand] = useState([]);
   const [showModalbrand, setShowModalbrand] = useState(false);
- 
 
   const [prefferedvendor, setPrefferedvendor] = useState([]);
 
-  const [showModalprefferedvendor, setShowModalPrefferedvendor] = useState(false);
-
-
+  const [showModalprefferedvendor, setShowModalPrefferedvendor] =
+    useState(false);
 
   const [Invento, setInvento] = useState([]);
   const [showModalInvento, setShowModalInvento] = useState(false);
@@ -98,9 +96,7 @@ const AddItemForm = () => {
     });
   };
 
-
   //---------------  {/* Image Upload */}================//
-
 
   const fileInputRef = useRef();
 
@@ -138,8 +134,6 @@ const AddItemForm = () => {
       img.src = URL.createObjectURL(file);
     });
   };
-
-
 
   //----------validation ===============//
 
@@ -230,9 +224,9 @@ const AddItemForm = () => {
       }
     };
 
-    Inventopurchase()
-    Accountpurchase()
-    Tax()
+    Inventopurchase();
+    Accountpurchase();
+    Tax();
     Account();
     Brand();
     Manufacturers();
@@ -250,9 +244,6 @@ const AddItemForm = () => {
       // proceed with API call or further logic
     }
   };
-
-
-
 
   //===============ADD Unit ++++++++++++++
 
@@ -278,15 +269,13 @@ const AddItemForm = () => {
     );
   };
 
-
   return (
     <div className="bg-white min-h-screen">
       {/* Header */}
       <div className="flex justify-between items-center border-b p-4">
-      <h5 className="text-2xl font-medium flex items-center gap-2">
-  📦 Add Your Product
-</h5>
-
+        <h5 className="text-2xl font-medium flex items-center gap-2">
+          📦 Add Your Product
+        </h5>
 
         {/* <button className="text-gray-600 hover:text-gray-800">
           <svg
@@ -552,7 +541,6 @@ const AddItemForm = () => {
                           <option value="in">in</option>
                           <option value="mm">mm</option>
                         </select>
-                    
                       </div>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
@@ -669,26 +657,22 @@ const AddItemForm = () => {
                 </div>
               </div> */}
 
+              <div className="mb-6">
+                <ImageProps
+                  accept="image,pdf,excel"
+                  multiple={true}
+                  maxFiles={1}
+                  maxSizeMB={5}
+                  maxResolution={7000}
+                  onFilesSelected={(files) =>
+                    console.log("Final Files:", files)
+                  }
+                />
+              </div>
 
-<div className="mb-6">
-<ImageProps
-  accept="image,pdf,excel"
-  multiple={true}
-  maxFiles={1}
-  maxSizeMB={5}
-  maxResolution={7000}
-  onFilesSelected={(files) => console.log("Final Files:", files)}
-/>
-    </div>
-
-{/* 
+              {/* 
     <ImageProps accept="image" />
  <ImageProps accept="pdf ,excel, image" multiple={false} maxFiles={10} /> */}
-
-
-
-
-
 
               {/* Weight */}
               <div className="mb-6">
@@ -798,8 +782,6 @@ const AddItemForm = () => {
                   onChange={(e) => handleChange("isbn", e.target.value)}
                 />
               </div>
-
-              
             </div>
           </div>
         </div>
@@ -863,13 +845,13 @@ const AddItemForm = () => {
                       Tax
                     </label>
                     <div className="relative">
-                    <CustomDropdownSelect
-                      options={tax}
-                      value={selectedOption}
-                      onChange={handleChangeselect}
-                      placeholder="Choose a Tax"
-                      onAddNewClick={() => setShowModalTax(true)}
-                    />
+                      <CustomDropdownSelect
+                        options={tax}
+                        value={selectedOption}
+                        onChange={handleChangeselect}
+                        placeholder="Choose a Tax"
+                        onAddNewClick={() => setShowModalTax(true)}
+                      />
                     </div>
                   </div>
                 </div>
@@ -993,12 +975,12 @@ const AddItemForm = () => {
                     Inventory Account<span className="text-red-500">*</span>
                   </label>
                   <CustomDropdownSelect
-                  options={Invento}
-                  value={selectedOption}
-                  onChange={handleChangeselect}
-                  placeholder="Choose a Inventory Account "
-                  onAddNewClick={() => setShowModalInvento(true)}
-                />
+                    options={Invento}
+                    value={selectedOption}
+                    onChange={handleChangeselect}
+                    placeholder="Choose a Inventory Account "
+                    onAddNewClick={() => setShowModalInvento(true)}
+                  />
                 </div>
 
                 <div>
@@ -1011,8 +993,7 @@ const AddItemForm = () => {
 
                     <option value="FIFO">FIFO (FIRST IN FIRST OUT)</option>
 
-                    <option value='WAC'>WAC(Weighted Average Costing  )</option>
-
+                    <option value="WAC">WAC(Weighted Average Costing )</option>
                   </select>
                 </div>
 

@@ -261,6 +261,14 @@ import {
   Tag,
   ArchiveRestore,
   Folders,
+  Users,
+  Truck,
+  ClipboardList,
+  Receipt,
+  DollarSign,
+  Repeat,
+  RotateCcw,
+  FileMinus,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -345,22 +353,50 @@ export default function Sidebar() {
 
           <NavItem
             icon={<Map size={20} />}
-            label="Maps"
+            label="Sales"
             collapsed={collapsed}
             children={[
               {
-                icon: <Map size={18} />,
-                label: "World Map",
+                icon: <Users size={18} />,
+                label: "Customers",
+                to: "/CustomersList",
               },
               {
-                icon: <Map size={18} />,
-                label: "Local Maps",
-                children: [
-                  {
-                    icon: <Map size={16} />,
-                    label: "City Zones",
-                  },
-                ],
+                icon: <FileText size={18} />,
+                label: "Quotes",
+                to: "/Addqoutes",
+              },
+              {
+                icon: <Package size={18} />,
+                label: "Packages",
+              },
+              {
+                icon: <Truck size={18} />,
+                label: "Shipments",
+              },
+              {
+                icon: <ClipboardList size={18} />,
+                label: "Delivery Challans",
+              },
+              {
+                icon: <Receipt size={18} />,
+                label: "Invoices",
+              },
+              {
+                icon: <DollarSign size={18} />,
+                label: "Payment Received",
+              },
+              {
+                icon: <Repeat size={18} />,
+                label: "Recurring Invoices",
+              },
+              {
+                icon: <RotateCcw size={18} />,
+                label: "Sales Return",
+              },
+              {
+                icon: <FileMinus size={18} />,
+                label: "Credit Notes",
               },
             ]}
           />

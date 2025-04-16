@@ -16,6 +16,10 @@ import PriceList from "../pages/Items/priceList/PriceList";
 import InventoryAdjustmentList from "../pages/Items/InventoryAdjustmentList/InventoryAdjustmentList";
 import ItemsGroupList from "../pages/Items/itemsGroupList/itemsGroupList";
 import ItemGroupAdd from "../pages/Items/itemsGroupList/ItemGroupAdd";
+import CustomersList from "../pages/sales/CustomersList";
+import CustomersAdd from "../pages/sales/CustomersAdd";
+import CustomerView from "../pages/sales/CustomerView";
+import Addqoutes from "../pages/sales/quotes/Addqoutes";
 
 const AppRoutes = () => {
   return (
@@ -120,6 +124,44 @@ const AppRoutes = () => {
         element={
           <MainLayout>
             <InventoryAdjustmentList />
+          </MainLayout>
+        }
+      />
+      {/* //-------sale-------------- */}
+
+      <Route
+        path="/CustomersList"
+        element={
+          <MainLayout>
+            <CustomersList />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/CustomersAdd_Details"
+        element={
+          <MainLayout>
+            <CustomersAdd />
+          </MainLayout>
+        }
+      />
+
+      <Route
+        path="/CustomerView"
+        element={
+          <MainLayout>
+            <CustomerView />
+          </MainLayout>
+        }
+      />
+
+      {/* //---------------------------Quotes-------------?? */}
+
+      <Route
+        path="/Addqoutes"
+        element={
+          <MainLayout>
+            <Addqoutes />
           </MainLayout>
         }
       />

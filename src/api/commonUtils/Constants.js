@@ -6,4 +6,5 @@ export const API_ENDPOINTS = {
   FORGOT_PASSWORD: "/products",
   //----------------ITEMS-----------------------------------
   GET_ALL_ITEMS: "/item/list",
+  ADD_ITEMS:"/item/add"
 };
