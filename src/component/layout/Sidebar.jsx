@@ -401,12 +401,12 @@ export default function Sidebar() {
             ]}
           />
 
-          <NavItem
+          {/* <NavItem
             icon={<Paintbrush size={20} />}
             label="Theme"
             collapsed={collapsed}
-          />
-          <NavItem
+          /> */}
+          {/* <NavItem
             icon={<Diamond size={20} />}
             label="Components"
             collapsed={collapsed}
@@ -421,9 +421,9 @@ export default function Sidebar() {
             <div className="px-4 py-2 text-xs uppercase tracking-wider text-slate-500 mt-4">
               Extra
             </div>
-          )}
+          )} */}
 
-          <NavItem
+          {/* <NavItem
             icon={<Calendar size={20} />}
             label="Calendar"
             collapsed={collapsed}
@@ -438,7 +438,7 @@ export default function Sidebar() {
             icon={<Library size={20} />}
             label="Examples"
             collapsed={collapsed}
-          />
+          /> */}
         </div>
 
         <div
