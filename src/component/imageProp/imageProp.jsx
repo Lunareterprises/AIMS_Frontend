@@ -210,6 +210,7 @@ const ImageProps = ({
                 📄 {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
               </span>
               <button
+              type="button"
                 className="text-red-500 hover:text-red-700"
                 onClick={() => handleDeleteFile(idx)}
                 title="Delete"

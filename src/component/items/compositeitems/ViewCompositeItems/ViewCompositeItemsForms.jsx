@@ -1,6 +1,18 @@
-import { Image, Info, RotateCcw } from "lucide-react";
-import React, { useState } from "react";
+import { Image, Info, RotateCcw, View } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import ChartSaleSummary from "../../itemsComponents/ChartSaleSummary";
+import { useLocation } from "react-router-dom";
+import { edit_composit, view_composit } from "../authServiceComposite";
+import {
+  create_unit,
+  GET_ALL_ITEMS,
+  list_unit,
+} from "../../../../api/services/authService";
+import Swal from "sweetalert2";
+import CustomDropdownSelect from "../../../customDropdown/CustomDropdownSelect";
+import AddModal from "../../../modalComponents/modalComponents";
+import AssociateComponents from "../AssociateComponents";
+import EditAssociateComponents from "../EditassociateComponents";
 // import Transactions from "./Transaction";
 const items = [
   {
@@ -21,12 +33,19 @@ const items = [
   },
 ];
 const ViewCompositeItemsForms = () => {
+  const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
-
+  const [loading, setLoading] = useState(false);
   const [activeTabsale, setActiveTabsale] = useState("sales");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [prdt, setprdt] = useState([]);
+
+  const toggleEdit = () => {
+    setIsEditing(!isEditing);
+  };
 
   //=============graph==================
+
   const weeklyData = {
     labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     datasets: [
@@ -49,20 +68,372 @@ const ViewCompositeItemsForms = () => {
     ],
   };
 
+  //=====>>>>Product
+
+  const Productlist = async () => {
+    try {
+      const response = await GET_ALL_ITEMS();
+      const data = await response.list;
+      const transformedManufactureOptions = data?.map((item) => ({
+        id: item.i_id,
+        name: item.i_name,
+        image: item.i_image || "", // fallback to empty if null
+        sellingPrice: item.i_sales_price || 0,
+        costPrice: item.i_purchase_price || 0,
+      }));
+
+      setprdt(transformedManufactureOptions);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  ///=========>>>>UNIT====<<<<<<-------------------
+
+  const [Unitlist, setUnitlist] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+
+  const Unit = async () => {
+    try {
+      const response = await list_unit();
+      const data = await response.list;
+      const transformedManufactureOptions = data?.map((item) => ({
+        value: item.un_id,
+        label: item.un_name,
+      }));
+      setUnitlist(transformedManufactureOptions);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  const [unitselect, setUnitselect] = useState(null);
+  const handleChangeselectunitselect = (selected) => {
+    setUnitselect(selected);
+    console.log("Selected:", selected);
+  };
+
+  const Add__unit = async (item) => {
+    try {
+      const data = {
+        unit_name: item.label,
+      };
+
+      const res = await create_unit(data);
+
+      console.log("API raw response:", res);
+
+      Swal.fire({
+        icon: "success",
+        title: "Added!",
+        text: "Unit Created Successfully.",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      Unit();
+    } catch (err) {
+      console.error("API error:", err?.response?.data || err.message);
+
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: err?.response?.data?.message || "Something went wrong!",
+      });
+    }
+  };
+
+  useEffect(() => {
+    Unit();
+    Productlist();
+  }, []);
+
+  //----------->>>Edit Api<<<---------------------//
+  const location = useLocation();
+  const { item_id } = location.state || {};
+
+  console.log("Received Item ID:", item_id);
+
+  const [itemDetails, setItemDetails] = useState(null);
+  //--------------->>>>>Image <<M<------------
+  const [imageFile, setImageFile] = useState(null);
+  const [deletedImage, setDeletedImage] = useState(false);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+    }
+  };
+
+  const handleImageDelete = () => {
+    setImageFile(null);
+    setDeletedImage(true);
+  };
+
+  //=-----------------------------------
+  const [formData, setFormData] = useState({
+    ci_name: "",
+    ci_returnable_item: "",
+    i_unit: "",
+    ci_created_source: "",
+    ci_inventory_account: "",
+    ci_inventory_account: "",
+    ci_purchase_price: "",
+    ci_purchase_description: "",
+    ci_sales_price: "",
+    ci_sales_account: "",
+    ci_sales_description: "",
+    handsOnStock: "",
+    committedStock: "",
+    availableSale: "",
+    openingStock: "",
+    ci_brand_id: "",
+    ci_upc: "",
+    ci_mpn: "",
+    ci_ean: "",
+    ci_isbn: "",
+    ci_dimension_value: {
+      length: "",
+      width: "",
+      height: ""
+    },
+    dimensionUnit: "",
+
+    associate_items: [],
+  });
+  useEffect(() => {
+    if (itemDetails) {
+      let dimensions = { length: "", width: "", height: "" };
+      if (itemDetails.ci_dimension_value) {
+        try {
+          const parsed = JSON.parse(itemDetails.ci_dimension_value);
+          dimensions = {
+            length: parsed[0] || "",
+            width: parsed[1] || "",
+            height: parsed[2] || "",
+          };
+        } catch (err) {
+          console.error("Failed to parse dimensions", err);
+        }
+      }
+      setFormData({
+        ci_name: itemDetails.ci_name || "",
+        ci_returnable_item: itemDetails.itemDetails || "",
+        i_unit: itemDetails.i_unit || "",
+        ci_created_source: itemDetails.ci_created_source || "",
+        ci_inventory_account: itemDetails.ci_inventory_account || "",
+        ci_inventory_account: itemDetails.ci_inventory_account || "",
+        ci_purchase_price: itemDetails.ci_purchase_price || "",
+        ci_purchase_description: itemDetails.ci_purchase_description || "",
+        ci_sales_price: itemDetails.ci_sales_price || "",
+        ci_sales_account: itemDetails.ci_sales_account || "",
+        ci_sales_description: itemDetails.ci_sales_description || "",
+        handsOnStock: itemDetails.handsOnStock || "",
+        committedStock: itemDetails.committedStock || "",
+        availableSale: itemDetails.availableSale || "",
+        openingStock: itemDetails.availableSale || "",
+        ci_brand_id: itemDetails.ci_brand_id || "",
+        ci_upc: itemDetails.ci_upc || "",
+        ci_mpn: itemDetails.ci_mpn || "",
+        ci_ean: itemDetails.ci_ean || "",
+        ci_isbn: itemDetails.ci_isbn || "",
+        dimensions,
+        dimensionUnit: itemDetails.ci_dimension_unit || "cm",
+      });
+    }
+  }, [itemDetails]);
+
+  useEffect(() => {
+    if (itemDetails && Unitlist.length > 0) {
+      const matchedUnit = Unitlist.find(
+        (unit) => unit.value.toString() === itemDetails.ci_unit.toString()
+      );
+      if (matchedUnit) {
+        console.log("Matched Unit Name:", matchedUnit.label);
+        setUnitselect(matchedUnit); // This will show the label (un_name) in the dropdown
+      } else {
+        console.log("No matching unit found for i_unit:", itemDetails.ci_unit);
+      }
+    }
+  }, [itemDetails, Unitlist]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleDimensionChange = (field, value) => {
+    if (["length", "width", "height"].includes(field)) {
+      // Allow only numbers and optional single decimal point
+      if (!/^\d*\.?\d*$/.test(value)) return;
+    }
+
+    setFormData({
+      ...formData,
+      dimensions: {
+        ...formData.dimensions,
+        [field]: value,
+      },
+    });
+  };
+
+  const View_Items = async () => {
+    try {
+      const data = { composite_item_id: item_id };
+      const res = await view_composit(data);
+      if (res.result) {
+        setItemDetails(res.data[0]); // Set the first item from list
+      }
+    } catch (error) {
+      console.error("Failed to fetch item:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (item_id) {
+      View_Items();
+    }
+  }, [item_id]);
+
+  // if (!itemDetails) return <div>Loading item details...</div>;
+
+  //------------->>>>>>>>>>>>>>Edit<<<<<<<<<<<<----------------------------------------
+
+  const handleSubmit = async () => {
+    const updateData = new FormData();
+
+    updateData.append("composite_item_id", itemDetails.ci_id || "");
+    updateData.append("type", itemDetails.ci_type || "");
+    updateData.append("name", itemDetails.ci_name || "");
+    updateData.append("sku", formData.ci_sku || "");
+    updateData.append("unit_id", unitselect?.value || "");
+    updateData.append("sales_price", formData.ci_sales_price || "");
+    updateData.append("brand_id", formData.ci_brand_id || "");
+    updateData.append("sales_account", formData.ci_sales_account || "");
+    updateData.append("sales_description", formData.ci_sales_description || "");
+    updateData.append("purchase_cost_price", formData.ci_purchase_price || "");
+    updateData.append("purchase_account", formData.ci_purchase_account || "");
+    updateData.append(
+      "purchase_description",
+      formData.ci_purchase_description || ""
+    );
+    updateData.append("preferred_vendor", formData.ci_preferred_vendor || "");
+    updateData.append(
+      "preferred_vendor_id",
+      formData.ci_preferred_vendor_id || ""
+    );
+    updateData.append("handsOnStock", formData.handsOnStock || "");
+    updateData.append("track_inventory", formData.ci_track_inventory || "");
+    updateData.append("inventory_account", formData.ci_inventory_account || "");
+    updateData.append(
+      "inventory_valuation_method",
+      formData.ci_inventory_account || ""
+    );
+
+    updateData.append("created_source", formData.ci_created_source || "");
+
+    updateData.append("rate_per_unit", formData.ci_rate_per_unit || "");
+    updateData.append("returnable_item", formData.ci_returnable_item || "");
+    updateData.append("excise_product", formData.ci_excise_product || "");
+    updateData.append("dimension_unit", itemDetails.ci_dimension_unit || "");
+    let dimensionValue = itemDetails.ci_dimension_value;
+
+    if (typeof dimensionValue === "string") {
+      try {
+        dimensionValue = JSON.parse(dimensionValue); // Parse string to array
+      } catch (error) {
+        console.error("Error parsing dimension_value:", error);
+      }
+    }
+
+    updateData.append("dimension_value", JSON.stringify(dimensionValue));
+
+    updateData.append("weight_unit", itemDetails.ci_weight_unit);
+    updateData.append("weight_value", itemDetails.ci_weight_value);
+    updateData.append("manufacture_id", itemDetails.ci_manufacture_id || 1);
+    updateData.append("brand_id", itemDetails.ci_brand);
+    updateData.append("upc", itemDetails.ci_upc);
+    updateData.append("mpn", itemDetails.ci_mpn);
+    updateData.append("ean", itemDetails.ci_ean);
+    updateData.append("isbn", itemDetails.ci_isbn);
+    updateData.append("tax", itemDetails.ci_tax);
+    updateData.append("reorder_point", itemDetails.ci_reorder_point);
+
+    if (formData.items && formData.items.length > 0) {
+      updateData.append("associate_items", JSON.stringify(formData.items));
+    } else {
+      updateData.append("associate_items", JSON.stringify([])); // Send empty array if no items
+    }
+
+   
+    updateData.append("ci_dimension_unit", formData.dimensionUnit)
+
+    updateData.append(
+      "dimension_value",
+      JSON.stringify([
+        formData.dimensions.length,
+        formData.dimensions.width,
+        formData.dimensions.height,
+      ])
+    );
+
+    // If you want to upload a new image, you should append the image file
+    if (imageFile) {
+      updateData.append("image", imageFile); // New image uploaded
+    } else if (deletedImage) {
+      updateData.append("image", null); // User deleted existing image
+    }
+
+    setLoading(true);
+    try {
+      const res = await edit_composit(updateData);
+
+      if (res?.result) {
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: res.message || "Item updated successfully!",
+        });
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Warning",
+          text: res.message || "Something went wrong!",
+        });
+      }
+    } catch (error) {
+      console.error("Edit error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to update item.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="w-full max-w-6xl mx-auto p-4 font-sans bg-white rounded-lg shadow">
+    <div className="w-full mx-auto p-4 font-sans bg-white rounded-lg shadow">
       {/* Header */}
       <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
         <div>
-          <h1 className="text-2xl font-bold">Gift Hamper</h1>
-          <p className="flex items-center text-gray-600">
+          <h1 className="text-2xl font-bold">{formData.ci_name}</h1>
+          <p className="flex items-center mt-2 text-gray-600">
             <RotateCcw className="w-4 h-4 mr-2 text-blue-500" />
-            Returnable items
+
+            {formData.ci_returnable_item}
           </p>
         </div>
 
         <div className="flex items-center space-x-2">
-          <button className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100">
+          <button
+            className={`p-2 rounded-lg border border-gray-300 hover:bg-gray-100 ${
+              isEditing ? "bg-red-500" : ""
+            }`}
+            onClick={toggleEdit}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-5 w-5"
@@ -165,28 +536,168 @@ const ViewCompositeItemsForms = () => {
             <div className="w-full md:w-7/12 pr-0 md:pr-6">
               <div className="grid grid-cols-3 gap-4 mb-8">
                 <div className="col-span-1 text-gray-600">Item Type</div>
-                <div className="col-span-2 font-medium">Inventory Items</div>
+                <div className="col-span-2 font-medium">{formData.ci_type}</div>
 
                 <div className="col-span-1 text-gray-600">SKU</div>
-                <div className="col-span-2 font-medium">1</div>
+                <div className="col-span-2 font-medium">{formData.ci_sku}</div>
 
                 <div className="col-span-1 text-gray-600">Unit</div>
-                <div className="col-span-2 font-medium">kg</div>
+                <div className="col-span-2 font-medium">
+                  <div className="">
+                    <CustomDropdownSelect
+                      options={Unitlist}
+                      className=""
+                      value={unitselect}
+                      onChange={handleChangeselectunitselect}
+                      placeholder="Choose a Unit"
+                      onAddNewClick={() => setShowModal(true)}
+                      refreshOptions={Unit}
+                      deleteType="Unit"
+                    />
+                  </div>
+                </div>
 
                 <div className="col-span-1 text-gray-600">Created Source</div>
-                <div className="col-span-2 font-medium">User</div>
+                <div className="col-span-2 font-medium">
+                  <input
+                    className="px-2 py-2"
+                    name="ci_created_source"
+                    value={formData.ci_created_source}
+                    onChange={handleChange}
+                    placeholder="User"
+                  />
+                </div>
 
                 <div className="col-span-1 text-gray-600">
                   Inventory Account
                 </div>
-                <div className="col-span-2 font-medium">Finished Goods</div>
+                <div className="col-span-2 font-medium">
+                  <input
+                    className="px-2 py-2"
+                    name="ci_inventory_account"
+                    value={formData.ci_inventory_account}
+                    onChange={handleChange}
+                    placeholder="Nil"
+                  />
+                </div>
 
                 <div className="col-span-1 text-gray-600">
                   Inventory Valuation Method
                 </div>
                 <div className="col-span-2 font-medium">
-                  FIFO (First In First Out)
+                  <input
+                    className="px-2 py-2"
+                    name="ci_valuation_method"
+                    value={formData.ci_valuation_method}
+                    onChange={handleChange}
+                    placeholder="Nil"
+                  />
                 </div>
+
+                {isEditing && (
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Dimensions */}
+                    <div className="mb-6">
+                      <label className="block mb-2 text-gray-700">
+                        Dimensions
+                      </label>
+                      <div className="flex items-center">
+                        <div className="flex-1">
+                          <div className="flex">
+                            <input
+                              type="text"
+                              placeholder="Length"
+                              className="w-full border border-gray-300 rounded-l px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              value={formData.dimensions.length}
+                              onChange={(e) =>
+                                handleDimensionChange("length", e.target.value)
+                              }
+                            />
+
+                            <input
+                              type="text"
+                              placeholder="Width"
+                              className="w-full border-y border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              value={formData.dimensions.width}
+                              onChange={(e) =>
+                                handleDimensionChange("width", e.target.value)
+                              }
+                            />
+
+                            <input
+                              type="text"
+                              placeholder="Height"
+                              className="w-full border border-gray-300 rounded-r-none px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              value={formData.dimensions.height}
+                              onChange={(e) =>
+                                handleDimensionChange("height", e.target.value)
+                              }
+                            />
+                            <div className="relative">
+                              <select
+                                className="h-full border border-gray-300 rounded-r px-2 py-2 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                value={formData.dimensionUnit}
+                                onChange={(e) =>
+                                  handleChange("dimensionUnit", e.target.value)
+                                }
+                              >
+                                <option value="cm">cm</option>
+                                <option value="in">in</option>
+                                <option value="mm">mm</option>
+                              </select>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">
+                            (Length X Width X Height)
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-gray-600">UPC</div>
+                    <div className="font-medium">
+                      <input
+                        className="px-2 py-2"
+                        name="ci_upc"
+                        value={formData.ci_upc}
+                        onChange={handleChange}
+                        placeholder="Nil"
+                      />
+                    </div>
+
+                    <div className="text-gray-600">MPN</div>
+                    <div className="font-medium">
+                      <input
+                        className="px-2 py-2"
+                        name="ci_mpn"
+                        value={formData.ci_mpn}
+                        onChange={handleChange}
+                        placeholder="Nil"
+                      />
+                    </div>
+
+                    <div className="text-gray-600">EAN</div>
+                    <div className="font-medium">
+                      <input
+                        className="px-2 py-2"
+                        name="ci_ean"
+                        value={formData.ci_ean}
+                        onChange={handleChange}
+                        placeholder="Nil"
+                      />
+                    </div>
+
+                    <div className="text-gray-600">ISBN</div>
+                    <div className="font-medium">
+                      <input
+                        className="px-2 py-2"
+                        name="ci_upc"
+                        value={formData.ci_upc}
+                        onChange={handleChange}
+                        placeholder="Nil"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Purchase Information */}
@@ -194,17 +705,39 @@ const ViewCompositeItemsForms = () => {
                 <h2 className="text-lg font-bold mb-4">Purchase Information</h2>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="col-span-1 text-gray-600">Cost Price</div>
-                  <div className="col-span-2 font-medium">AED60.00</div>
+                  <div className="col-span-2 font-medium">
+                    <input
+                      className="px-2 py-2"
+                      name="ci_purchase_price"
+                      value={formData.ci_purchase_price}
+                      onChange={handleChange}
+                      placeholder="Nil"
+                    />
+                  </div>
 
                   <div className="col-span-1 text-gray-600">
                     Purchase Account
                   </div>
                   <div className="col-span-2 font-medium">
-                    Advertising And Marketing
+                    <input
+                      className="px-2 py-2"
+                      name="ci_purchase_account"
+                      value={formData.ci_purchase_account}
+                      onChange={handleChange}
+                      placeholder="Nil"
+                    />
                   </div>
 
                   <div className="col-span-1 text-gray-600">Description</div>
-                  <div className="col-span-2 font-medium">Butter Cake</div>
+                  <div className="col-span-2 font-medium">
+                    <input
+                      className="px-2 py-2"
+                      name="ci_purchase_description"
+                      value={formData.ci_purchase_description}
+                      onChange={handleChange}
+                      placeholder="Nil"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -213,13 +746,37 @@ const ViewCompositeItemsForms = () => {
                 <h2 className="text-lg font-bold mb-4">Sales Information</h2>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="col-span-1 text-gray-600">Selling Price</div>
-                  <div className="col-span-2 font-medium">AED100.00</div>
+                  <div className="col-span-2 font-medium">
+                    <input
+                      className="px-2 py-2"
+                      name="cci_sales_price"
+                      value={formData.ci_sales_price}
+                      onChange={handleChange}
+                      placeholder="Nil"
+                    />
+                  </div>
 
                   <div className="col-span-1 text-gray-600">Sales Account</div>
-                  <div className="col-span-2 font-medium">General Income</div>
+                  <div className="col-span-2 font-medium">
+                    <input
+                      className="px-2 py-2"
+                      name="ci_sales_account"
+                      value={formData.ci_sales_account}
+                      onChange={handleChange}
+                      placeholder="Nil"
+                    />
+                  </div>
 
                   <div className="col-span-1 text-gray-600">Description</div>
-                  <div className="col-span-2 font-medium">Butter Cake</div>
+                  <div className="col-span-2 font-medium">
+                    <input
+                      className="px-2 py-2"
+                      name="ci_sales_description"
+                      value={formData.ci_sales_description}
+                      onChange={handleChange}
+                      placeholder="Nil"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -257,7 +814,7 @@ const ViewCompositeItemsForms = () => {
                 <div className="mb-5">
                   <p className="text-sm font-medium">
                     <span>Opening Stock : </span>
-                    <span>0.00</span>
+                    <span>{formData.openingStock}</span>
                   </p>
                 </div>
 
@@ -341,7 +898,9 @@ const ViewCompositeItemsForms = () => {
                   <p className="text-sm">
                     <span>Reorder point</span>
                   </p>
-                  <p className="text-xl font-medium">1.00</p>
+                  <p className="text-xl font-medium">
+                    {formData.ci_reorder_point}
+                  </p>
                 </div>
               </div>
             </div>
@@ -460,57 +1019,26 @@ const ViewCompositeItemsForms = () => {
             </div>
           </div>
 
-          <div className="w-full max-w-3xl">
-            <h2 className="text-lg font-medium text-gray-800 mb-4">
-              Associated Items
-            </h2>
-
-            <div className="border border-gray-200 rounded">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50">
-                    <th className="text-left py-2 px-4 text-sm font-medium text-gray-600">
-                      ITEM DETAILS
-                    </th>
-                    <th className="text-right py-2 px-4 text-sm font-medium text-gray-600">
-                      QUANTITY
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item) => (
-                    <tr
-                      key={item.id}
-                      className="border-b border-gray-200 last:border-b-0"
-                    >
-                      <td className="py-4 px-4">
-                        <div className="flex items-start">
-                          <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center mr-3">
-                            <Image className="w-6 h-6 text-gray-400" />
-                          </div>
-                          <div>
-                            <div className="text-blue-500">{item.name}</div>
-                            <div className="text-gray-500 text-sm">
-                              [{item.sku}]
-                            </div>
-                            <div className="text-gray-600 text-sm mt-1">
-                              Accounting Stock:{" "}
-                              {item.accountingStock.toFixed(2)}
-                            </div>
-                            <div className="text-gray-600 text-sm">
-                              Physical Stock: {item.physicalStock.toFixed(2)}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 text-right align-top">
-                        {item.quantity}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <div className="w-full mb-5">
+            {itemDetails && (
+              <EditAssociateComponents
+                products={prdt}
+                defaultItems={itemDetails.items || []}
+                onChange={(updatedItems) => {
+                  if (updatedItems && updatedItems.length > 0) {
+                    setFormData((prev) => ({
+                      ...prev,
+                      items: updatedItems.map((item) => ({
+                        ic_item_id: item.id,
+                        ic_quantity: item.quantity,
+                        ic_sales_price: item.sellingPrice,
+                        ic_cost_price: item.costPrice,
+                      })),
+                    }));
+                  }
+                }}
+              />
+            )}
           </div>
 
           <div className="">
@@ -526,6 +1054,49 @@ const ViewCompositeItemsForms = () => {
       {activeTab === "transactions" && (
         <div className="mt-4">{/* <Transactions /> */}</div>
       )}
+
+      <button
+        type="submit"
+        className="bg-blue-600 mt-5 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2 ml-5 w-100"
+        disabled={loading}
+        onClick={handleSubmit}
+      >
+        {loading ? (
+          <>
+            <svg
+              className="animate-spin h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              ></path>
+            </svg>
+            Update...
+          </>
+        ) : (
+          "Save your Changes"
+        )}
+      </button>
+      {/* Add Unit Modal */}
+      <AddModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onAdd={Add__unit}
+        title="Add item"
+        placeholder="Enter Unit"
+      />
     </div>
   );
 };
