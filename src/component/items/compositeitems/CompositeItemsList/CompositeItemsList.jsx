@@ -20,7 +20,7 @@ import {
   deleteitems,
   GET_ALL_ITEMS,
 } from "../../../../api/services/authService";
-import { get_all_composit } from "../authServiceComposite";
+import { deletecomposite, get_all_composit } from "../authServiceComposite";
 
 export default function CompositeItemsList() {
   const Navi = useNavigate();
@@ -103,7 +103,7 @@ export default function CompositeItemsList() {
       console.log("Deleting items:", payload);
 
       try {
-        const res = await deleteitems(payload); // your API call
+        const res = await deletecomposite(payload); // your API call
         console.log("API raw response:", res);
 
         const results = res?.result;

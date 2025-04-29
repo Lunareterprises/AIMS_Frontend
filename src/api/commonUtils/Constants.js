@@ -39,6 +39,8 @@ export const API_ENDPOINTS = {
   LIST_COMPOSIT_ITEM: "/crm/compositeItem/list",
   VIEW_COMPOSIT_ITEM: "/crm/compositeItem/data",
   EDIT_COMPOSIT_ITEM: "/crm/compositeItem/edit",
+  DELETE_COMPOSIT_ITEM: "/crm/compositeItem/delete",
+
 
 
 

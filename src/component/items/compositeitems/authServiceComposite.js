@@ -85,6 +85,13 @@ export const deleteitems = async (body) => {
   }
 };
 
+export const deletecomposite = async (payload) => {
+  const response = await axiosInstance.delete(API_ENDPOINTS.DELETE_COMPOSIT_ITEM, {
+    data: payload,
+  });
+  return response.data;
+};
+
 
 
 
