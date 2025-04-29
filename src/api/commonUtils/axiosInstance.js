@@ -3,12 +3,13 @@ import axios from "axios";
 const user_token = localStorage.getItem("user_token");
 const user_id = localStorage.getItem("user_id");
 
+console.log("user_token", user_token);
+
 const processENV = import.meta.env.VITE_BASE_URL;
 console.log("processEnv===>", processENV);
 const axiosInstance = axios.create({
   baseURL: processENV,
   headers: {
-    "Content-Type": "application/json",
     u_id: user_id,
     Authorization: `Bearer ${user_token}`,
   },

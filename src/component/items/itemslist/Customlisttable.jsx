@@ -1,5 +1,3 @@
-
-
 import { useEffect, useRef, useState } from "react";
 import Swal from "sweetalert2";
 import {
@@ -13,16 +11,15 @@ import {
   Download,
   ChevronRight,
   Trash,
-  FolderOpen,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
+  custom_list,
   deleteitems,
   GET_ALL_ITEMS,
-} from "../../../../api/services/authService";
-import { deletecomposite, get_all_composit } from "../authServiceComposite";
+} from "../../../api/services/authService";
 
-export default function CompositeItemsList() {
+export default function Customlisttable() {
   const Navi = useNavigate();
   const [sortField, setSortField] = useState("name");
   const [sortDirection, setSortDirection] = useState("asc");
@@ -49,8 +46,8 @@ export default function CompositeItemsList() {
         limit,
         filters: label,
       };
-      const response = await get_all_composit(body);
-      setItems(response.data || []);
+      const response = await GET_ALL_ITEMS(body);
+      setItems(response.list || []);
       setTotalPages(response.totalPages || 1);
     } catch (error) {
       Swal.fire("Error", "Failed to fetch items", "error");
@@ -103,7 +100,7 @@ export default function CompositeItemsList() {
       console.log("Deleting items:", payload);
 
       try {
-        const res = await deletecomposite(payload); // your API call
+        const res = await deleteitems(payload); // your API call
         console.log("API raw response:", res);
 
         const results = res?.result;
@@ -143,68 +140,87 @@ export default function CompositeItemsList() {
   };
 
   const handleEdit = (itemId) => {
-    Navi("/View_Composite_item", { state: { item_id: itemId } });
+    Navi("/detail_product", { state: { item_id: itemId } });
   };
 
   ///-----------filter Search--------------//
   const [isOpen, setIsOpen] = useState(false);
-  const [activeFilter, setActiveFilter] = useState("All Composite Items");
+  const [activeFilter, setActiveFilter] = useState("Active Items");
   const [searchTermfilter, setSearchTermfilter] = useState("");
   const [itemsfilter, setItemsfilter] = useState([]);
   const [loadingfilter, setLoadingfilter] = useState(false);
   const dropdownRef = useRef(null);
-  const menuItems = [
-    { id: "all", label: "All Composite Items", starred: true },
+  const staticMenuItems = [
+    { id: "all", label: "All", starred: false },
     { id: "active", label: "Active", starred: false },
     { id: "inactive", label: "Inactive", starred: false },
-    { id: "lowStock", label: "Low Stock", starred: false },
-    { id: "kitItem", label: "Kit Item", starred: false },
-    { id: "assemblyItems", label: "Assembly Items", starred: false },
+    { id: "sales", label: "Sales", starred: false },
+    { id: "purchases", label: "Purchases", starred: true },
+    { id: "services", label: "Services", starred: false },
+    { id: "inventory", label: "Inventory Items", starred: false },
+    { id: "non_inventory", label: "Non-inventory Items", starred: false },
     { id: "returnable", label: "Returnable", starred: false },
-    { id: "ungrouped", label: "Ungrouped Items", starred: false },
+    { id: "non_returnable", label: "Non Returnable", starred: false },
+    { id: "ungrouped", label: "Ungrouped", starred: false },
   ];
-  // Simulate API call
-  useEffect(() => {
-    if (isOpen) {
-      setLoadingfilter(true);
-      // Replace with your actual API call
-      const fetchData = async () => {
-        try {
-          // Simulating API delay
-          await new Promise((resolve) => setTimeout(resolve, 500));
-          setItemsfilter(menuItems);
-        } catch (error) {
-          console.error("Error fetching data:", error);
-        } finally {
-          setLoadingfilter(false);
-        }
-      };
 
-      fetchData();
+  const fetchData = async () => {
+    setLoadingfilter(true);
+    try {
+      const body = { table: "items" };
+      const response = await custom_list(body);
+      const customItems = response.data || [];
+
+      const formattedCustomItems = customItems.map((item) => ({
+        id: `custom_${item.id}`,
+        label: item.label || item.cv_name || "Unnamed",
+        starred: item.cv_is_favorite || 0,
+        isCustom: true,
+      }));
+
+      const combinedItems = [...staticMenuItems, ...formattedCustomItems];
+      setItemsfilter(combinedItems);
+    } catch (err) {
+      console.error("Error fetching filters:", err);
+    } finally {
+      setLoadingfilter(false);
     }
+  };
+
+  // Open dropdown and fetch data
+  useEffect(() => {
+    if (isOpen) fetchData();
   }, [isOpen]);
 
-  // Handle click outside to close dropdown
+  // Click outside to close
   useEffect(() => {
-    function handleClickOutside(event) {
+    const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
       }
-    }
+    };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [dropdownRef]);
+  }, []);
 
+  // Toggle star status
   const toggleStar = (id) => {
-    setItemsfilter(
-      items.map((item) =>
+    setItemsfilter((prev) =>
+      prev.map((item) =>
         item.id === id ? { ...item, starred: !item.starred } : item
       )
     );
   };
+  //------------------
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  //-------------------
 
   const handleItemClick = (label, id) => {
     setActiveFilter(label);
@@ -212,11 +228,11 @@ export default function CompositeItemsList() {
     setIsOpen(false);
   };
 
-  const filteredItems = searchTermfilter
-    ? itemsfilter.filter((item) =>
-        item.label.toLowerCase().includes(searchTermfilter.toLowerCase())
-      )
-    : itemsfilter;
+  const filteredItems = itemsfilter
+    .filter((item) =>
+      item.label.toLowerCase().includes(searchTermfilter.toLowerCase())
+    )
+    .sort((a, b) => (b.starred ? 1 : 0) - (a.starred ? 1 : 0)); // starred items first
 
   //---------------------
 
@@ -317,7 +333,7 @@ export default function CompositeItemsList() {
                       onClick={() => handleItemClick(item.label, item.id)}
                     >
                       <span>{item.label}</span>
-                      {/* <button
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleStar(item.id);
@@ -332,28 +348,28 @@ export default function CompositeItemsList() {
                           size={16}
                           fill={item.starred ? "currentColor" : "none"}
                         />
-                      </button> */}
+                      </button>
                     </div>
                   ))
                 )}
               </div>
 
               {/* Custom View Button */}
-              {/* <div className="px-4 py-2 border-t border-gray-200">
+              <div className="px-4 py-2 border-t border-gray-200">
                 <a href="/CustomViewBuilder">
                   <button className="flex items-center text-blue-500 hover:text-blue-600 font-medium">
                     <Plus size={18} className="mr-1" />
                     <span>New Custom View</span>
                   </button>
                 </a>
-              </div> */}
+              </div>
             </div>
           )}
         </div>
 
         <div className="flex gap-2">
           <button
-            onClick={() => Navi("/Addcompositeitems")}
+            onClick={() => Navi("AddItems")}
             className="bg-blue-500 text-white px-4 py-2 rounded-md flex items-center"
           >
             <Plus className="mr-1 h-4 w-4" /> New
@@ -453,7 +469,7 @@ export default function CompositeItemsList() {
                   Sale Description
                 </th>
                 <th className="px-2 py-1 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                  Opening Stock
+                  Stock on Hand
                 </th>
                 <th className="px-2 py-1 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
                   Action
@@ -463,38 +479,67 @@ export default function CompositeItemsList() {
             <tbody>
               {items.map((item) => (
                 <tr
-                  key={item.ci_id}
+                  key={item.i_id}
                   className="border-b text-center border-gray-200 hover:bg-gray-50"
                 >
                   <td className="px-2 py-1 text-center">
                     <input
                       type="checkbox"
                       className="w-4 h-4"
-                      checked={selectedIds.includes(item.ci_id)}
-                      onChange={() => handleCheckboxChange(item.ci_id)}
+                      checked={selectedIds.includes(item.i_id)}
+                      onChange={() => handleCheckboxChange(item.i_id)}
                     />
                   </td>
                   <td className="px-2 py-1">
                     <div className="flex items-center">
-                      <div className="  rounded mr-2 flex items-center justify-center text-gray-400">
-                        <FolderOpen size={13} className="text-blue-500 " />
+                      <div className="w-8 h-8 bg-gray-200 rounded mr-2 flex items-center justify-center text-gray-400">
+                        {item.i_image ? (
+                          <img
+                            src={`${import.meta.env.VITE_BASE_URL}/${
+                              item.i_image
+                            }`}
+                            alt={item.i_name}
+                            className="w-8 h-8 rounded object-cover"
+                          />
+                        ) : (
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          </svg>
+                        )}
                       </div>
-                      <span className="text-blue-500">{item.ci_name}</span>
+                      <span className="text-blue-500">{item.i_name}</span>
                     </div>
                   </td>
-                  <td className="px-2 py-1">{item.ci_sku || "nil"}</td>
-                  <td className="px-2 py-1">{item.ci_purchase_price}</td>
-                  <td className="px-2 py-1">{item.ci_purchase_description}</td>
-                  <td className="px-2 py-1">{item.ci_sales_price}</td>
-                  <td className="px-2 py-1">{item.ci_sales_description}</td>
-                  <td className="px-2 py-1">{item.ci_opening_stock}</td>
+                  <td className="px-2 py-1">{item.i_sku}</td>
+                  <td className="px-2 py-1">{item.i_purchase_price}</td>
+                  <td className="px-2 py-1">{item.i_purchase_description}</td>
+                  <td className="px-2 py-1">{item.i_sales_price}</td>
+                  <td className="px-2 py-1">{item.i_sales_description}</td>
+                  <td className="px-2 py-1">{item.handsOnStock}</td>
                   <td className="px-2 py-1 flex gap-2 text-center">
                     <button
                       className="text-blue-500 hover:underline text-center text-xs cursor-pointer"
-                      onClick={() => handleEdit(item.ci_id)}
+                      onClick={() => handleEdit(item.i_id)}
                     >
                       Edit
                     </button>
+                    {/* <button
+                      className="text-red-500 hover:underline text-xs"
+                      onClick={() => handleDelete(item.id)}
+                    >
+                      Delete
+                    </button> */}
                   </td>
                 </tr>
               ))}

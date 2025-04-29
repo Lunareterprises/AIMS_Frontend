@@ -22,8 +22,8 @@ const AddModal = ({
         [labelKey]: inputValue.trim(),
         [valueKey]: inputValue.trim(),
       };
-      console.log("Submitted item:", item); // ✅ Log to console
-      //   onAdd(item);
+      console.log("Submitted item:", item); 
+        onAdd(item);
       setInputValue("");
       onClose();
     }

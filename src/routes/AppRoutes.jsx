@@ -16,6 +16,11 @@ import PriceList from "../pages/Items/priceList/PriceList";
 import InventoryAdjustmentList from "../pages/Items/InventoryAdjustmentList/InventoryAdjustmentList";
 import ItemsGroupList from "../pages/Items/itemsGroupList/itemsGroupList";
 import ItemGroupAdd from "../pages/Items/itemsGroupList/ItemGroupAdd";
+import CustomersList from "../pages/sales/CustomersList";
+import CustomersAdd from "../pages/sales/CustomersAdd";
+import CustomerView from "../pages/sales/CustomerView";
+import Addqoutes from "../pages/sales/quotes/Addqoutes";
+import CustomViewBuilder from "../component/items/itemslist/Custom_View";
 
 const AppRoutes = () => {
   return (
@@ -45,7 +50,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/ViewItems"
+        path="/detail_product"
         element={
           <MainLayout>
             <ViewItems />
@@ -71,10 +76,19 @@ const AppRoutes = () => {
       />
 
       <Route
-        path="/ViewCompositeitem"
+        path="/View_Composite_item"
         element={
           <MainLayout>
             <ViewCompositeitem />
+          </MainLayout>
+        }
+      />
+
+      <Route
+        path="/CustomViewBuilder"
+        element={
+          <MainLayout>
+            <CustomViewBuilder />
           </MainLayout>
         }
       />
@@ -120,6 +134,44 @@ const AppRoutes = () => {
         element={
           <MainLayout>
             <InventoryAdjustmentList />
+          </MainLayout>
+        }
+      />
+      {/* //-------sale-------------- */}
+
+      <Route
+        path="/CustomersList"
+        element={
+          <MainLayout>
+            <CustomersList />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/CustomersAdd_Details"
+        element={
+          <MainLayout>
+            <CustomersAdd />
+          </MainLayout>
+        }
+      />
+
+      <Route
+        path="/CustomerView"
+        element={
+          <MainLayout>
+            <CustomerView />
+          </MainLayout>
+        }
+      />
+
+      {/* //---------------------------Quotes-------------?? */}
+
+      <Route
+        path="/Addqoutes"
+        element={
+          <MainLayout>
+            <Addqoutes />
           </MainLayout>
         }
       />
