@@ -18,10 +18,8 @@ import {
   deleteitems,
   GET_ALL_ITEMS,
 } from "../../../api/services/authService";
-import Customlisttable from "./Customlisttable";
-import CsvToJsonConverter from "../../csvfileconvert/csvfileconvert";
 
-export default function Itemslistform() {
+export default function Customlisttable() {
   const Navi = useNavigate();
   const [sortField, setSortField] = useState("name");
   const [sortDirection, setSortDirection] = useState("asc");
@@ -35,6 +33,26 @@ export default function Itemslistform() {
   const [limit] = useState(10); // Can make this dynamic
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchItems();
+  }, [searchTerm, filters, page]);
+
+  const fetchItems = async (label) => {
+    try {
+      const body = {
+        search: searchTerm,
+        page,
+        limit,
+        filters: label,
+      };
+      const response = await GET_ALL_ITEMS(body);
+      setItems(response.list || []);
+      setTotalPages(response.totalPages || 1);
+    } catch (error) {
+      Swal.fire("Error", "Failed to fetch items", "error");
+    }
+  };
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -132,8 +150,6 @@ export default function Itemslistform() {
   const [itemsfilter, setItemsfilter] = useState([]);
   const [loadingfilter, setLoadingfilter] = useState(false);
   const dropdownRef = useRef(null);
-  const [showCsvConverter, setShowCsvConverter] = useState(false);
-
   const staticMenuItems = [
     { id: "all", label: "All", starred: false },
     { id: "active", label: "Active", starred: false },
@@ -236,15 +252,7 @@ export default function Itemslistform() {
 
   const handleSelect = (label) => {
     console.log("Selected:", label);
-
-    if (label === "Import Items") {
-      setShowCsvConverter(true);
-    }
-    setOpen(false); // Close the dropdown when an item is selected
-  };
-
-  const closeCsvConverter = () => {
-    setShowCsvConverter(false); // Close the CSV converter
+    setOpen(false);
   };
 
   const menuItemsd = [
@@ -273,47 +281,6 @@ export default function Itemslistform() {
     //   label: "Reset Column Width",
     // },
   ];
-
-  //---------------------------------------------------
-
-  useEffect(() => {
-    fetchItems();
-    fetchItemscustom();
-  }, [searchTerm, filters, page]);
-
-  const fetchItems = async (label) => {
-    try {
-      const body = {
-        search: searchTerm,
-        page,
-        limit,
-        filters: label,
-      };
-      const response = await GET_ALL_ITEMS(body);
-      setItems(response.list || []);
-      setTotalPages(response.totalPages || 1);
-    } catch (error) {
-      Swal.fire("Error", "Failed to fetch items", "error");
-    }
-  };
-
-  //------------------------------
-
-  const fetchItemscustom = async (label) => {
-    try {
-      const body = {
-        search: searchTerm,
-        page,
-        limit,
-        filters: label,
-      };
-      const response = await GET_ALL_ITEMS(body);
-      setItems(response.list || []);
-      setTotalPages(response.totalPages || 1);
-    } catch (error) {
-      Swal.fire("Error", "Failed to fetch items", "error");
-    }
-  };
 
   return (
     <div className="bg-white h-screen w-full">
@@ -436,8 +403,6 @@ export default function Itemslistform() {
                 </div>
               </div>
             )}
-
-{showCsvConverter && <CsvToJsonConverter onClose={closeCsvConverter} />}
           </div>
           {/* <button className="bg-orange-400 text-white px-2 rounded-md">
             <HelpCircle className="h-5 w-5" />
@@ -602,8 +567,6 @@ export default function Itemslistform() {
           </button>
         </div>
       </div>
-
-      {/* <Customlisttable/> */}
     </div>
   );
 }
