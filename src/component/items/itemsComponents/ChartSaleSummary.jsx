@@ -9,13 +9,18 @@ import {
   Legend,
 } from "chart.js";
 
-
+// Registering the necessary components for the chart
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-const BarChartComponent = ({ weeklyData, monthlyData, title = "Bar Chart" }) => {
+const BarChartComponent = ({
+  weeklyData,
+  monthlyData,
+  title = "Bar Chart",
+}) => {
   const [view, setView] = useState("weekly");
   const data = view === "weekly" ? weeklyData : monthlyData;
 
+  // Chart options to customize the bar chart
   const chartOptions = {
     responsive: true,
     plugins: {
@@ -31,6 +36,14 @@ const BarChartComponent = ({ weeklyData, monthlyData, title = "Bar Chart" }) => 
         ticks: { color: "#4B5563" },
       },
     },
+    elements: {
+      bar: {
+        // This controls the thickness of bars
+        barThickness: 20, // You can adjust this value
+      },
+    },
+    // Optional: to limit the maximum bar thickness
+    maxBarThickness: 30, // Adjust as needed to control the maximum bar size
   };
 
   return (
@@ -39,13 +52,21 @@ const BarChartComponent = ({ weeklyData, monthlyData, title = "Bar Chart" }) => 
         <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
         <div className="space-x-2">
           <button
-            variant={view === "weekly" ? "default" : "outline"}
+            className={
+              view === "weekly p-3"
+                ? "bg-blue-500 text-white p-3"
+                : "bg-transparent border border-blue-500 p-3 text-blue-500"
+            }
             onClick={() => setView("weekly")}
           >
             Weekly
           </button>
           <button
-            variant={view === "monthly" ? "default" : "outline"}
+            className={
+              view === "monthly"
+                ? "bg-blue-500 text-white p-3"
+                : "bg-transparent border p-3 border-blue-500 text-blue-500"
+            }
             onClick={() => setView("monthly")}
           >
             Monthly

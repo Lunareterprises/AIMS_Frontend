@@ -1,10 +1,31 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Select from "react-select";
 import { X, Plus, MoreVertical, Image } from "lucide-react";
 import Swal from "sweetalert2";
 
-const AssociateComponents = ({ products = [], onChange }) => {
+const EditAssociateComponents = ({
+  products = [],
+  onChange,
+  defaultItems = [],
+}) => {
   const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    if (defaultItems.length > 0) {
+      const mappedItems = defaultItems.map((item) => {
+        const product = products.find((p) => p.id === item.ic_item_id) || {};
+        return {
+          id: item.ic_item_id || null,
+          name: product.name || "",
+          image: product.image || "",
+          quantity: item.ic_quantity || 1,
+          sellingPrice: item.ic_sales_price || 0,
+          costPrice: item.ic_cost_price || 0,
+        };
+      });
+      setItems(mappedItems);
+    }
+  }, [defaultItems, products]);
 
   const handleSelectChange = (selectedOption, index) => {
     const selectedProduct = products.find((p) => p.id === selectedOption.value);
@@ -100,28 +121,37 @@ const AssociateComponents = ({ products = [], onChange }) => {
             {items.map((item, index) => (
               <tr key={index} className="border-b border-gray-200">
                 <td className="py-2 px-4">
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 border border-gray-200 rounded flex items-center justify-center mr-3 bg-gray-50">
-                      {item.image ? (
-                        <img
-                          src={`${import.meta.env.VITE_BASE_URL}/${item.image}`}
-                          alt={item.name}
-                          className="w-10 h-10 object-cover"
+                  <div>
+                    <div className="flex items-center">
+                      <div className="w-12 h-12 border border-gray-200 rounded flex items-center justify-center mr-3 bg-gray-50">
+                        {item.image ? (
+                          <img
+                            src={`${import.meta.env.VITE_BASE_URL}/${
+                              item.image
+                            }`}
+                            alt={item.name}
+                            className="w-10 h-10 object-cover"
+                          />
+                        ) : (
+                          <Image className="w-6 h-6 text-gray-400" />
+                        )}
+                      </div>
+                      <div className="w-full">
+                        <Select
+                          options={productOptions}
+                          onChange={(opt) => handleSelectChange(opt, index)}
+                          value={
+                            productOptions.find(
+                              (opt) => opt.value === item.id
+                            ) || null
+                          }
+                          placeholder="Select Product"
                         />
-                      ) : (
-                        <Image className="w-6 h-6 text-gray-400" />
-                      )}
+                      </div>
                     </div>
-                    <div className="w-full">
-                      <Select
-                        options={productOptions}
-                        onChange={(opt) => handleSelectChange(opt, index)}
-                        value={
-                          productOptions.find((opt) => opt.value === item.id) ||
-                          null
-                        }
-                        placeholder="Select Product"
-                      />
+                    <div>
+                      <p>Accounting Stock :5.00</p>
+                      <p>Physical Stock :2.00</p>
                     </div>
                   </div>
                 </td>
@@ -137,7 +167,6 @@ const AssociateComponents = ({ products = [], onChange }) => {
                     <MoreVertical className="w-5 h-5" />
                   </button>
                   <button
-
                     className="text-red-500 hover:text-red-700"
                     onClick={() => removeItem(index)}
                   >
@@ -150,17 +179,13 @@ const AssociateComponents = ({ products = [], onChange }) => {
               <td colSpan="2" className="py-3 px-4">
                 <div className="flex items-center space-x-4">
                   <button
-                  type="button"
+                    type="button"
                     className="flex items-center text-blue-500 hover:text-blue-700"
                     onClick={addNewRow}
                   >
                     <Plus className="w-5 h-5 mr-1" />
                     <span>Add New Row</span>
                   </button>
-                  {/* <button className="flex items-center text-blue-500 hover:text-blue-700">
-                    <Plus className="w-5 h-5 mr-1" />
-                    <span>Add Services</span>
-                  </button> */}
                 </div>
               </td>
               <td className="py-3 px-4 text-right font-medium">
@@ -176,4 +201,4 @@ const AssociateComponents = ({ products = [], onChange }) => {
   );
 };
 
-export default AssociateComponents;
+export default EditAssociateComponents;

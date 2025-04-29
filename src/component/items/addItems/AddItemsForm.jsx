@@ -1,16 +1,27 @@
 import React, { useEffect, useRef, useState } from "react";
-import Select, { components } from "react-select";
-import AddComponent from "../../modalComponents/modalComponents";
 import CustomDropdownSelect from "../../customDropdown/CustomDropdownSelect";
 import AddModal from "../../modalComponents/modalComponents";
 import ImageProps from "../../imageProp/imageProp";
+import {
+  ADD_BRAND,
+  ADD_ITEMS,
+  create_unit,
+  LIST_BRAND,
+  list_unit,
+  LISTMANUFACTURE,
+  MANUFACTURE,
+} from "../../../api/services/authService";
+import Swal from "sweetalert2";
 
 const AddItemForm = () => {
   const [trackInventory, setTrackInventory] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [image, setimage] = useState(null);
+  const [loading, setLoading] = useState(false);
+
   const [Unitlist, setUnitlist] = useState([]);
   const [showModalManufacture, setShowModalManufacture] = useState(false);
-  const [Manufacture, setManufacture] = useState([]);
+  const [ManufactureList, setManufacture] = useState([]);
   const [account, setAccount] = useState([]);
   const [showModalAccount, setShowModalAccount] = useState(false);
   const [tax, setTax] = useState([]);
@@ -35,10 +46,55 @@ const AddItemForm = () => {
   const [purchaseSelected, setPurchaseSelected] = useState(true);
   const [errors, setErrors] = useState({});
 
+  //--------------------------------------------------------------
+  const [unitselect, setUnitselect] = useState(null);
+  const handleChangeselectunitselect = (selected) => {
+    setUnitselect(selected);
+    console.log("Selected:", selected);
+  };
+  //--------------------------------------------------------------------
   const [selectedOption, setSelectedOption] = useState(null);
-
   const handleChangeselect = (selected) => {
     setSelectedOption(selected);
+    console.log("Selected:", selected);
+  };
+  //-----------------------------------------------------------
+  const [Brandoption, setBrandoption] = useState(null);
+  const handleChangeselectbrand = (selected) => {
+    setBrandoption(selected);
+    console.log("Selected:", selected);
+  };
+  //------------------------------------------------------------------
+  const [Accountoption, setAccountoption] = useState(null);
+  const handleChangeselectaccount = (selected) => {
+    setAccountoption(selected);
+    console.log("Selected:", selected);
+  };
+
+  //------------------------------------------------------------------
+  const [selectedOptionPur, setSelectedOptionpur] = useState(null);
+  const handleChangeselectpurchase = (selected) => {
+    setSelectedOptionpur(selected);
+    console.log("Selected:", selected);
+  };
+
+  //------------TAX------------------------
+  const [selectedOptiontax, setSelectedOptiontax] = useState(null);
+  const handleChangeselecttax = (selected) => {
+    setSelectedOptiontax(selected);
+    console.log("Selected:", selected);
+  };
+  //------------Vendor--------------------------------
+
+  const [selectedOptionVendor, setSelectedOptionVendor] = useState(null);
+  const handleChangeselectVendor = (selected) => {
+    setSelectedOptionVendor(selected);
+    console.log("Selected:", selected);
+  };
+  //------------------------Invento--------------------------------------------
+  const [selectedOptionInvento, setSelectedOptionInvento] = useState(null);
+  const handleChangeselectInvento = (selected) => {
+    setSelectedOptionInvento(selected);
     console.log("Selected:", selected);
   };
 
@@ -63,12 +119,27 @@ const AddItemForm = () => {
     mpn: "",
     ean: "",
     isbn: "",
+    selling_price: "",
+    sales_description: "",
+    purchase_cost_price: "",
+    purchase_description: "",
+    handsOnStock: "",
+    rate_per_unit: "",
+    reorder_point: "",
+    inventory_valuation_method: "",
   });
 
   const handleChange = (field, value) => {
     if (field === "name") {
-      // Allow only letters and spaces during typing
       if (!/^[a-zA-Z\s]*$/.test(value)) return;
+    }
+
+    if (
+      field === "weight" ||
+      field === "selling_price" ||
+      field === "purchase_cost_price"
+    ) {
+      if (!/^\d*\.?\d*$/.test(value)) return;
     }
 
     setFormData({
@@ -80,6 +151,11 @@ const AddItemForm = () => {
   };
 
   const handleDimensionChange = (field, value) => {
+    if (["length", "width", "height"].includes(field)) {
+      // Allow only numbers and optional single decimal point
+      if (!/^\d*\.?\d*$/.test(value)) return;
+    }
+
     setFormData({
       ...formData,
       dimensions: {
@@ -146,8 +222,6 @@ const AddItemForm = () => {
       tempErrors.name = "Name can only contain letters and spaces.";
     }
 
-    if (!formData.unit) tempErrors.unit = "Unit is required.";
-
     setErrors(tempErrors);
 
     return Object.keys(tempErrors).length === 0;
@@ -155,41 +229,63 @@ const AddItemForm = () => {
 
   //---------------------
 
+  const Manufacturers = async () => {
+    try {
+      const response = await LISTMANUFACTURE();
+      const data = await response.data;
+      const transformedManufactureOptions = data.map((item) => ({
+        value: item.m_id,
+        label: item.m_name,
+      }));
+      setManufacture(transformedManufactureOptions);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+  const Brand = async () => {
+    try {
+      const response = await LIST_BRAND();
+      const data = await response.data;
+      const transformedManufactureOptions = data.map((item) => ({
+        value: item.b_id,
+        label: item.b_name,
+      }));
+      setBrand(transformedManufactureOptions);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  const Unit = async () => {
+    try {
+      const response = await list_unit();
+      const data = await response.list;
+      const transformedManufactureOptions = data?.map((item) => ({
+        value: item.un_id,
+        label: item.un_name,
+      }));
+      setUnitlist(transformedManufactureOptions);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  const Vendor = async () => {
+    try {
+      const response = await fetch("/data/PrefferedVendor.json");
+      const data = await response.json();
+      setPrefferedvendor(data);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch("/data/Units.json");
-        const data = await response.json();
-        setUnitlist(data);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
-
-    const Manufacturers = async () => {
-      try {
-        const response = await fetch("/data/Manufacture.json");
-        const data = await response.json();
-        setManufacture(data);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
-
-    const Brand = async () => {
-      try {
-        const response = await fetch("/data/Brand.json");
-        const data = await response.json();
-        setBrand(data);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
-
     const Account = async () => {
       try {
         const response = await fetch("/data/Account.json");
         const data = await response.json();
+
         setAccount(data);
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -214,68 +310,218 @@ const AddItemForm = () => {
         console.error("Error fetching categories:", error);
       }
     };
-    const Inventopurchase = async () => {
+    const Inventory = async () => {
       try {
         const response = await fetch("/data/Inventory.json");
         const data = await response.json();
+
         setInvento(data);
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
     };
-
-    Inventopurchase();
+    Inventory();
+    Vendor();
     Accountpurchase();
     Tax();
     Account();
     Brand();
     Manufacturers();
 
-    fetchCategories();
+    Unit();
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validate()) {
-      console.log("Submitting:", {
-        ...formData,
-        unit: formData.unit?.value,
+
+    if (!validate()) return;
+
+    const formDataObj = new FormData();
+
+    // Append simple fields
+    formDataObj.append(
+      "type",
+      formData.type === "goods" ? "Goods" : "Services"
+    );
+    formDataObj.append("name", formData.name.trim());
+    formDataObj.append("sku", formData.sku);
+    formDataObj.append("unit", unitselect?.value || "");
+    formDataObj.append("selling_price", formData.selling_price);
+    formDataObj.append("sales_account", Accountoption.value);
+    formDataObj.append("sales_description", formData.sales_description);
+    formDataObj.append("purchase_cost_price", formData.purchase_cost_price);
+    formDataObj.append("purchase_account", selectedOptionPur.value);
+    formDataObj.append("purchase_description", formData.purchase_description);
+    formDataObj.append(
+      "preferred_vendor",
+      " preferred_vendor Api pending backend"
+    );
+    formDataObj.append("preferred_vendor_id", "5555555555555");
+    formDataObj.append("handsOnStock", formData.handsOnStock);
+    formDataObj.append("track_inventory", trackInventory ? 1 : 0);
+    formDataObj.append("inventory_account", selectedOptionInvento?.value || "");
+    formDataObj.append(
+      "inventory_valuation_method",
+      formData.inventory_valuation_method
+    );
+    formDataObj.append("rate_per_unit", formData.rate_per_unit);
+    formDataObj.append("returnable_item", formData.isReturnable ? 1 : 0);
+    formDataObj.append("excise_product", formData.isExciseProduct ? 1 : 0);
+    formDataObj.append("dimension_unit", formData.dimensionUnit);
+    formDataObj.append("weight_unit", formData.weightUnit);
+    formDataObj.append("weight_value", Number(formData.weight));
+    formDataObj.append("manufacture_id", selectedOption?.value || "");
+    formDataObj.append("brand_id", Brandoption?.value || "");
+    formDataObj.append("upc", formData.upc);
+    formDataObj.append("mpn", formData.mpn);
+    formDataObj.append("ean", formData.ean);
+    formDataObj.append("isbn", formData.isbn);
+    formDataObj.append("tax", selectedOptiontax?.value || "");
+    formDataObj.append("reorder_point", formData.reorder_point);
+
+    // Append dimension_value as separate fields or JSON
+    formDataObj.append(
+      "dimension_value",
+      JSON.stringify([
+        formData.dimensions.length,
+        formData.dimensions.width,
+        formData.dimensions.height,
+      ])
+    );
+
+    // Append image file(s)
+    if (image && image.length > 0) {
+      image.forEach((file, index) => {
+        formDataObj.append("image", file); // 'image' field name should match backend
       });
-      // proceed with API call or further logic
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await ADD_ITEMS(formDataObj); // make sure ADD_ITEMS supports FormData
+      if (response?.result === true) {
+        Swal.fire({
+          icon: "success",
+          title: "success!",
+          text: response.message,
+          timer: 3000,
+          timerProgressBar: true,
+        }).then(() => {
+          window.location.reload(); // Page reload after 3 seconds
+        });
+      } else {
+        Swal.fire(
+          "Failed!",
+          response.message || "Something went wrong",
+          "error"
+        );
+      }
+    } catch (err) {
+      console.error("❌ Error submitting item:", err);
+      Swal.fire("Error!", "Failed to submit item", "error");
+    } finally {
+      setLoading(false); // stop loader
     }
   };
 
-  //===============ADD Unit ++++++++++++++
+  //===============UNit Add<<<<<_-------------------- ++++++++++++++
 
-  const AddhandleSubmit = (e) => {
-    console.log("Received item:", item);
+  const Add__unit = async (item) => {
+    try {
+      const data = {
+        unit_name: item.label,
+      };
+
+      const res = await create_unit(data);
+
+      console.log("API raw response:", res);
+
+      Swal.fire({
+        icon: "success",
+        title: "Added!",
+        text: "Unit Created Successfully.",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      Unit();
+    } catch (err) {
+      console.error("API error:", err?.response?.data || err.message);
+
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: err?.response?.data?.message || "Something went wrong!",
+      });
+    }
   };
 
-  // Custom menu with "Add Unit" at the end
-  const MenuList = (props) => {
-    return (
-      <components.MenuList {...props}>
-        {props.children}
-        <div className="px-3 py-2 border-t border-gray-200">
-          <button
-            type="button"
-            onClick={() => setShowModal(true)}
-            className="text-blue-500 hover:underline text-sm w-full text-left"
-          >
-            + Add Unit
-          </button>
-        </div>
-      </components.MenuList>
-    );
+  //===============Add__Brand<<<<<_-------------------- ++++++++++++++
+
+  const Add__Brand = async (item) => {
+    try {
+      const data = {
+        name: item.label,
+      };
+
+      const res = await ADD_BRAND(data);
+
+      console.log("API raw response:", res);
+
+      Swal.fire({
+        icon: "success",
+        title: "Added!",
+        text: "Brand created successfully.",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      Brand();
+    } catch (err) {
+      console.error("API error:", err?.response?.data || err.message);
+
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: err?.response?.data?.message || "Something went wrong!",
+      });
+    }
+  };
+
+  //----->>>>>>AddMANUFACTURE<<<---------------------------
+
+  const AddManufactureSubmit = async (item) => {
+    console.log("Item received in submit:", item);
+    try {
+      const data = {
+        name: item.label, // or item.value
+      };
+      const res = await MANUFACTURE(data);
+      console.log("API response:", res.data);
+
+      Swal.fire({
+        icon: "success",
+        title: "Added!",
+        text: "Manufacturer added successfully.",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      Manufacturers();
+    } catch (err) {
+      console.error("API error:", err.response?.data || err.message);
+
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: err.response?.data?.message || "Something went wrong!",
+      });
+    }
   };
 
   return (
     <div className="bg-white min-h-screen">
       {/* Header */}
       <div className="flex justify-between items-center border-b p-4">
-        <h5 className="text-2xl font-medium flex items-center gap-2">
-          📦 Add Your Product
-        </h5>
+        <h2 className="  flex items-center gap-2">📦 Add Your Product</h2>
 
         {/* <button className="text-gray-600 hover:text-gray-800">
           <svg
@@ -349,13 +595,13 @@ const AddItemForm = () => {
               </div>
 
               {/* Name */}
-              <div className="mb-6">
-                <label className="block mb-2">
+              <div className="mb-2">
+                <label className="block mb-2 ">
                   <span className="text-red-500 font-medium">Name*</span>
                 </label>
                 <input
                   type="text"
-                  className={`w-full border ${
+                  className={`w-full border capitalize  ${
                     errors.name ? "border-red-500" : "border-gray-300"
                   } rounded px-3 py-2 focus:outline-none focus:ring-2 ${
                     errors.name ? "focus:ring-red-500" : "focus:ring-blue-500"
@@ -369,8 +615,8 @@ const AddItemForm = () => {
               </div>
 
               {/* SKU */}
-              <div className="mb-6">
-                <div className="flex items-center mb-2">
+              <div className="mb-2">
+                <div className="flex items-center mb-2 ">
                   <label className="text-gray-700 mr-2">SKU</label>
                   <div className="relative group">
                     <svg
@@ -391,14 +637,14 @@ const AddItemForm = () => {
                 </div>
                 <input
                   type="text"
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded h-10  focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={formData.sku}
                   onChange={(e) => handleChange("sku", e.target.value)}
                 />
               </div>
 
               {/* Unit */}
-              <div className="mb-6">
+              <div className="mb-2">
                 <div className="flex items-center mb-2">
                   <label className="text-red-500 font-medium mr-2">Unit*</label>
                   <div className="relative group">
@@ -419,18 +665,16 @@ const AddItemForm = () => {
                   </div>
                 </div>
                 <div className="">
-                  <Select
+                  <CustomDropdownSelect
                     options={Unitlist}
-                    value={formData.unit}
-                    onChange={(selected) => handleChange("unit", selected)}
-                    placeholder="Select or type to add"
-                    className="react-select-container"
-                    classNamePrefix="react-select"
-                    components={{ MenuList }}
+                    className=""
+                    value={unitselect}
+                    onChange={handleChangeselectunitselect}
+                    placeholder="Choose a Unit"
+                    onAddNewClick={() => setShowModal(true)}
+                    refreshOptions={Unit}
+                    deleteType="Unit"
                   />
-                  {errors.unit && (
-                    <p className="text-red-500 text-sm mt-1">{errors.unit}</p>
-                  )}
                 </div>
               </div>
 
@@ -660,13 +904,14 @@ const AddItemForm = () => {
               <div className="mb-6">
                 <ImageProps
                   accept="image,pdf,excel"
-                  multiple={true}
+                  multiple={false}
                   maxFiles={1}
                   maxSizeMB={5}
                   maxResolution={7000}
-                  onFilesSelected={(files) =>
-                    console.log("Final Files:", files)
-                  }
+                  onFilesSelected={(files) => {
+                    setimage(files);
+                    console.log("Final Files:", files);
+                  }}
                 />
               </div>
 
@@ -705,11 +950,13 @@ const AddItemForm = () => {
               <div className="mb-6">
                 <label className="block mb-2 text-gray-700">Manufacturer</label>
                 <CustomDropdownSelect
-                  options={Manufacture}
+                  options={ManufactureList}
                   value={selectedOption}
                   onChange={handleChangeselect}
                   placeholder="Choose a manufacturer"
                   onAddNewClick={() => setShowModalManufacture(true)}
+                  refreshOptions={Manufacturers}
+                  deleteType="manufacturer"
                 />
               </div>
 
@@ -718,10 +965,12 @@ const AddItemForm = () => {
                 <label className="block mb-2 text-gray-700">Brand</label>
                 <CustomDropdownSelect
                   options={brand}
-                  value={selectedOption}
-                  onChange={handleChangeselect}
+                  value={Brandoption}
+                  onChange={handleChangeselectbrand}
                   placeholder="Choose a Brand"
                   onAddNewClick={() => setShowModalbrand(true)}
+                  refreshOptions={Brand}
+                  deleteType="brand"
                 />
               </div>
 
@@ -816,6 +1065,10 @@ const AddItemForm = () => {
                       <input
                         type="text"
                         className="flex-grow border border-gray-300 rounded-r-md p-2"
+                        value={formData.selling_price}
+                        onChange={(e) =>
+                          handleChange("selling_price", e.target.value)
+                        }
                       />
                     </div>
                   </div>
@@ -826,8 +1079,8 @@ const AddItemForm = () => {
                     </label>
                     <CustomDropdownSelect
                       options={account}
-                      value={selectedOption}
-                      onChange={handleChangeselect}
+                      value={Accountoption}
+                      onChange={handleChangeselectaccount}
                       placeholder="Choose a Account"
                       onAddNewClick={() => setShowModalAccount(true)}
                     />
@@ -837,7 +1090,13 @@ const AddItemForm = () => {
                     <label className="block text-sm font-normal text-gray-700 mb-1">
                       Description
                     </label>
-                    <textarea className="w-full border border-gray-300 rounded-md p-2 h-24"></textarea>
+                    <textarea
+                      className="w-full border border-gray-300 rounded-md p-2 h-24"
+                      value={formData.sales_description}
+                      onChange={(e) =>
+                        handleChange("sales_description", e.target.value)
+                      }
+                    ></textarea>
                   </div>
 
                   <div>
@@ -847,8 +1106,8 @@ const AddItemForm = () => {
                     <div className="relative">
                       <CustomDropdownSelect
                         options={tax}
-                        value={selectedOption}
-                        onChange={handleChangeselect}
+                        value={selectedOptiontax}
+                        onChange={handleChangeselecttax}
                         placeholder="Choose a Tax"
                         onAddNewClick={() => setShowModalTax(true)}
                       />
@@ -889,6 +1148,10 @@ const AddItemForm = () => {
                       <input
                         type="text"
                         className="flex-grow border border-gray-300 rounded-r-md p-2"
+                        value={formData.purchase_cost_price}
+                        onChange={(e) =>
+                          handleChange("purchase_cost_price", e.target.value)
+                        }
                       />
                     </div>
                   </div>
@@ -899,8 +1162,8 @@ const AddItemForm = () => {
                     </label>
                     <CustomDropdownSelect
                       options={accountPurchase}
-                      value={selectedOption}
-                      onChange={handleChangeselect}
+                      value={selectedOptionPur}
+                      onChange={handleChangeselectpurchase}
                       placeholder="Choose Account"
                       onAddNewClick={() => setShowModalaccountPurchase(true)}
                     />
@@ -910,7 +1173,13 @@ const AddItemForm = () => {
                     <label className="block text-sm font-normal text-gray-700 mb-1">
                       Description
                     </label>
-                    <textarea className="w-full border border-gray-300 rounded-md p-2 h-24"></textarea>
+                    <textarea
+                      className="w-full border border-gray-300 rounded-md p-2 h-24"
+                      value={formData.purchase_description}
+                      onChange={(e) =>
+                        handleChange("purchase_description", e.target.value)
+                      }
+                    ></textarea>
                   </div>
 
                   <div>
@@ -918,9 +1187,9 @@ const AddItemForm = () => {
                       Preferred Vendor
                     </label>
                     <CustomDropdownSelect
-                      options={Manufacture}
-                      value={selectedOption}
-                      onChange={handleChangeselect}
+                      options={prefferedvendor}
+                      value={selectedOptionVendor}
+                      onChange={handleChangeselectVendor}
                       placeholder="Choose Preffered Vendor"
                       onAddNewClick={() => setShowModalPrefferedvendor(true)}
                     />
@@ -976,8 +1245,8 @@ const AddItemForm = () => {
                   </label>
                   <CustomDropdownSelect
                     options={Invento}
-                    value={selectedOption}
-                    onChange={handleChangeselect}
+                    value={selectedOptionInvento}
+                    onChange={handleChangeselectInvento}
                     placeholder="Choose a Inventory Account "
                     onAddNewClick={() => setShowModalInvento(true)}
                   />
@@ -988,12 +1257,17 @@ const AddItemForm = () => {
                     Inventory Valuation Method
                     <span className="text-red-500">*</span>
                   </label>
-                  <select className="w-full border border-gray-300 rounded-md p-2 bg-white">
-                    <option>Select the valuation method</option>
 
+                  <select
+                    className="w-full border border-gray-300 rounded-md p-2 bg-white"
+                    value={formData.inventory_valuation_method} // controlled value
+                    onChange={(e) =>
+                      handleChange("inventory_valuation_method", e.target.value)
+                    } // handler
+                  >
+                    <option value="">Select the valuation method</option>
                     <option value="FIFO">FIFO (FIRST IN FIRST OUT)</option>
-
-                    <option value="WAC">WAC(Weighted Average Costing )</option>
+                    <option value="WAC">WAC (Weighted Average Costing)</option>
                   </select>
                 </div>
 
@@ -1004,6 +1278,10 @@ const AddItemForm = () => {
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-md p-2"
+                    value={formData.handsOnStock}
+                    onChange={(e) =>
+                      handleChange("handsOnStock", e.target.value)
+                    }
                   />
                 </div>
 
@@ -1014,6 +1292,10 @@ const AddItemForm = () => {
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-md p-2"
+                    value={formData.rate_per_unit}
+                    onChange={(e) =>
+                      handleChange("rate_per_unit", e.target.value)
+                    }
                   />
                 </div>
 
@@ -1024,6 +1306,10 @@ const AddItemForm = () => {
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-md p-2"
+                    value={formData.reorder_point}
+                    onChange={(e) =>
+                      handleChange("reorder_point", e.target.value)
+                    }
                   />
                 </div>
               </div>
@@ -1033,9 +1319,36 @@ const AddItemForm = () => {
 
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2  p-4  *:rounded hover:bg-blue-700"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2 ml-5 w-100"
+          disabled={loading}
         >
-          Submit
+          {loading ? (
+            <>
+              <svg
+                className="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                ></path>
+              </svg>
+              Submitting...
+            </>
+          ) : (
+            "Submit"
+          )}
         </button>
       </form>
 
@@ -1043,14 +1356,14 @@ const AddItemForm = () => {
       <AddModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        onAdd={AddhandleSubmit}
+        onAdd={Add__unit}
         title="Add item"
         placeholder="Enter Unit"
       />
       <AddModal
         isOpen={showModalManufacture}
         onClose={() => setShowModalManufacture(false)}
-        onAdd={AddhandleSubmit}
+        onAdd={AddManufactureSubmit}
         title="Add Manufacturer"
         placeholder="Enter Manufacturer"
       />
@@ -1058,7 +1371,7 @@ const AddItemForm = () => {
       <AddModal
         isOpen={showModalbrand}
         onClose={() => setShowModalbrand(false)}
-        onAdd={AddhandleSubmit}
+        onAdd={Add__Brand}
         title="Add Brand"
         placeholder="Enter Brand"
       />

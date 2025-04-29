@@ -20,6 +20,7 @@ import CustomersList from "../pages/sales/CustomersList";
 import CustomersAdd from "../pages/sales/CustomersAdd";
 import CustomerView from "../pages/sales/CustomerView";
 import Addqoutes from "../pages/sales/quotes/Addqoutes";
+import CustomViewBuilder from "../component/items/itemslist/Custom_View";
 
 const AppRoutes = () => {
   return (
@@ -49,7 +50,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/ViewItems"
+        path="/detail_product"
         element={
           <MainLayout>
             <ViewItems />
@@ -75,10 +76,19 @@ const AppRoutes = () => {
       />
 
       <Route
-        path="/ViewCompositeitem"
+        path="/View_Composite_item"
         element={
           <MainLayout>
             <ViewCompositeitem />
+          </MainLayout>
+        }
+      />
+
+      <Route
+        path="/CustomViewBuilder"
+        element={
+          <MainLayout>
+            <CustomViewBuilder />
           </MainLayout>
         }
       />
