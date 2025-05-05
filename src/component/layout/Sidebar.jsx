@@ -284,14 +284,14 @@ export default function Sidebar() {
     : "bg-white text-slate-800";
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen text-base">
       <div
         className={`${baseClasses} ${
           collapsed ? "w-16" : "w-64"
         } transition-all duration-300 flex flex-col border-r shadow-sm`}
       >
         <div
-          className="p-4 flex items-center justify-between"
+          className="p-4 flex items-center justify-between text-sm"
           onClick={toggleSidebar}
         >
           <div className="flex items-center">
@@ -312,6 +312,7 @@ export default function Sidebar() {
           )}
 
           <NavItem
+            
             icon={<BarChart2 size={20} />}
             label="Dashboard"
             collapsed={collapsed}
@@ -483,14 +484,14 @@ function NavItem({
     if (hasChildren) setOpen(!open);
   };
 
-  const baseClass = `flex items-center px-2 py-2 pr-4 hover:text-white hover:bg-blue-500 dark:hover:bg-blue-700 cursor-pointer relative ${paddingLeft} rounded-lg`;
+  const baseClass = `flex  items-center px-2 py-2 pr-4 hover:text-white hover:bg-blue-500 dark:hover:bg-blue-700 cursor-pointer relative ${paddingLeft} rounded-lg`;
 
   if (to) {
     return (
       <Link to={to} className={baseClass}>
-        <div className="text-blue-500">{icon}</div>
+        <div className="text-blue-500 text-sm">{icon}</div>
         {!collapsed && (
-          <div className="flex items-center justify-between w-full ml-3">
+          <div className="flex items-center justify-between w-full ml-3 text-sm">
             <span>{label}</span>
             {badge && (
               <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
@@ -504,7 +505,7 @@ function NavItem({
   }
 
   return (
-    <div>
+    <div className="text-sm">
       <div className={baseClass} onClick={toggleOpen}>
         <div className="text-blue-500">{icon}</div>
         {notification && (
@@ -526,7 +527,7 @@ function NavItem({
         )}
       </div>
       {!collapsed && open && hasChildren && (
-        <div className="ml-6">
+        <div className="ml-6 text-sm">
           {children.map((child, idx) => (
             <NavItem
               key={idx}

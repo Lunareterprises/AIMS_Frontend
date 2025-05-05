@@ -1,5 +1,5 @@
 import React from 'react';
-import CustomersList from './CustomersLIst';
+import CustomersList from './CustomersList';
 
 export default function CustomersListIndex() {
   return (
