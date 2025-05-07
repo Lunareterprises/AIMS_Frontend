@@ -6,6 +6,7 @@ import FieldMappingPage from './FieldMappingPage';
 import PreviewPage from './PreviewPage';
 import CommonButton from '../../../../CommonUI/buttons/CommonButton';
 import { ChevronLeft } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 export default function ImportLayout() {
   const [step, setStep] = useState(1);
@@ -15,24 +16,35 @@ export default function ImportLayout() {
   const [successModalVisible, setSuccessModalVisible] = useState(false);
   const navigate = useNavigate();
 
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const importType = params.get('type') || 'customers';
+  console.log('Import Type;;;;;;;;;;;;;:', importType);
+
   const handleFileUpload = (file, headers = []) => {
     setSelectedFile(file);
     setCsvHeaders(headers);
   };
 
   const getHeading = () => {
-    switch (step) {
-      case 1: return 'Customers - Select File';
-      case 2: return 'Map Fields';
-      case 3: return 'Preview';
-      default: return '';
+    if (step === 1) {
+      return importType === 'contacts'
+        ? "Contact Persons - Select File"
+        : "Customers - Select File";
+    } else if (step === 2) {
+      return "Map Fields";
+    } else if (step === 3) {
+      return "Preview";
     }
+    return '';
   };
+  
 
   const renderStepContent = () => {
-    if (step === 1) return <CustomerFileImport onFileUpload={handleFileUpload} />;
+    if (step === 1) return <CustomerFileImport onFileUpload={handleFileUpload} importType={importType} /> ;
     if (step === 2) return (
       <FieldMappingPage
+        importType={importType}
         file={selectedFile}
         headers={csvHeaders}
         onValidationChange={setIsMappingValid}
@@ -62,7 +74,7 @@ export default function ImportLayout() {
         </button>
 
         <div className="px-6 pt-5 pb-4">
-          <h2 className="text-lg font-medium text-center">{getHeading()}</h2>
+          <h2 className="text-2xl font-semibold text-gray-800 text-center">{getHeading()}</h2>
         </div>
 
         <div className="px-6 py-4 border-b border-gray-300">

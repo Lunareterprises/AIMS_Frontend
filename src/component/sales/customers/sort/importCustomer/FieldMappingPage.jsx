@@ -1,29 +1,44 @@
 import React, { useEffect, useState } from 'react';
 import { FaPen } from 'react-icons/fa';
 
-export default function FieldMappingPage({ file, headers = [], onValidationChange }) {
+export default function FieldMappingPage({ file, headers = [], onValidationChange, importType }) {
+  console.log('====================================');
+  console.log("importType---------->",importType);
+  console.log('====================================');
   const [zohoFields, setZohoFields] = useState({
     contactDetails: [],
     taxDetails: [],
-    itemDetails: []
+    itemDetails: [],
+    contactPersonDetails:[],
   });
 
   const [mapping, setMapping] = useState({});
-
   useEffect(() => {
-    fetch('/data/zohoFields.json')
+    const jsonPath =
+      importType === 'contacts'
+        ? '/data/contactPersonImportFields.json'
+        : '/data/customerImportFields.json';
+  
+    fetch(jsonPath)
       .then(res => res.json())
       .then(data => {
-        setZohoFields({
-          contactDetails: data.contactDetails || [],
-          taxDetails: data.taxDetails || [],
-          itemDetails: data.itemDetails || []
-        });
+        if (importType === 'contacts') {
+          setZohoFields({
+            contactPersonDetails: data.contactPersonDetails || []
+          });
+        } else {
+          setZohoFields({
+            contactDetails: data.contactDetails || [],
+            taxDetails: data.taxDetails || [],
+            itemDetails: data.itemDetails || []
+          });
+        }
       })
       .catch(err => {
         console.error('Error loading Zoho fields:', err);
       });
-  }, []);
+  }, [importType]);
+  
 
   useEffect(() => {
     const isValid = mapping['Display Name'] && mapping['Display Name'] !== '';
@@ -77,44 +92,61 @@ export default function FieldMappingPage({ file, headers = [], onValidationChang
         </div>
       </div>
 
-      {/* Default Formats */}
-      <div className="bg-[#f9f9fb] rounded-md mb-8">
-        <div className="flex items-center justify-between px-4 py-3">
-          <h2 className="text-base font-semibold text-gray-800">Default Data Formats</h2>
-          <button className="flex items-center text-base">
-            <FaPen className="text-blue-500" />
-            <span className="ml-2 text-sm text-gray-800">Edit</span>
-          </button>
-        </div>
-        <div className="p-4">
-          <label className="block text-xs text-gray-500">Decimal Format</label>
-          <div className="text-gray-900 mt-2">1234567.89</div>
-        </div>
-      </div>
+      {/* Only for customers */}
+      {importType !== 'contacts' && (
+        <>
+          {/* Default Formats */}
+          <div className="bg-[#f9f9fb] rounded-md mb-8">
+            <div className="flex items-center justify-between px-4 py-3">
+              <h2 className="text-base font-semibold text-gray-800">Default Data Formats</h2>
+              <button className="flex items-center text-base">
+                <FaPen className="text-blue-500" />
+                <span className="ml-2 text-sm text-gray-800">Edit</span>
+              </button>
+            </div>
+            <div className="p-4">
+              <label className="block text-xs text-gray-500">Decimal Format</label>
+              <div className="text-gray-900 mt-2">1234567.89</div>
+            </div>
+          </div>
 
-      {/* Contact Details */}
-      <div className="bg-white rounded-md mb-8">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <h2 className="text-base font-semibold text-gray-900">Contact Details</h2>
-        </div>
-        {renderFieldRows(zohoFields.contactDetails, 'contact')}
-      </div>
+          {/* Contact Details */}
+          <div className="bg-white rounded-md mb-8">
+            <div className="px-4 py-3 border-b border-gray-200">
+              <h2 className="text-base font-semibold text-gray-900">Contact Details</h2>
+            </div>
+            {renderFieldRows(zohoFields.contactDetails, 'contact')}
+          </div>
 
-      {/* Tax Details */}
-      <div className="bg-white rounded-md mb-8">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <h2 className="text-base font-semibold text-gray-900">Tax Details</h2>
-        </div>
-        {renderFieldRows(zohoFields.taxDetails, 'tax')}
-      </div>
+          {/* Tax Details */}
+          <div className="bg-white rounded-md mb-8">
+            <div className="px-4 py-3 border-b border-gray-200">
+              <h2 className="text-base font-semibold text-gray-900">Tax Details</h2>
+            </div>
+            {renderFieldRows(zohoFields.taxDetails, 'tax')}
+          </div>
 
-      {/* Item Details */}
-      <div className="bg-white rounded-md mb-8">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <h2 className="text-base font-semibold text-gray-900">Item Details</h2>
+          {/* Item Details */}
+          <div className="bg-white rounded-md mb-8">
+            <div className="px-4 py-3 border-b border-gray-200">
+              <h2 className="text-base font-semibold text-gray-900">Item Details</h2>
+            </div>
+            {renderFieldRows(zohoFields.itemDetails, 'item')}
+          </div>
+        </>
+      )}
+
+      {/* Only for contacts */}
+      {importType === 'contacts' && (
+        <div className="bg-white rounded-md mb-8">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <h2 className="text-base font-semibold text-gray-900">Contact Person Details</h2>
+          </div>
+          {renderFieldRows(zohoFields.contactPersonDetails || [], 'contactPerson')}
         </div>
-        {renderFieldRows(zohoFields.itemDetails, 'item')}
-      </div>
+      )}
+
+
 
       <div className="p-4">
         <label className="flex items-center">
