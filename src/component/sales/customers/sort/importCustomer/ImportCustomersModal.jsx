@@ -15,12 +15,12 @@ export default function ImportCustomersModal({
 
   const handleContinue = () => {
     if (selectedOption === 'customers') {
-      navigate('/import/customers');
+      navigate('/import/customers?type=customers');
     } else if (selectedOption === 'contacts') {
-      navigate('/import/contacts');
+      navigate('/import/customers?type=contacts');
     }
   };
-
+  
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 bg-opacity-30 z-50">
       <div className="bg-white rounded-md shadow-lg w-full max-w-md mx-4">

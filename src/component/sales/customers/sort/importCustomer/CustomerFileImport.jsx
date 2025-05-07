@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { Upload, ChevronDown, HelpCircle, Lightbulb } from 'lucide-react';
 import Papa from 'papaparse';
 
-function CustomerFileImport({ onFileUpload }) {
+function CustomerFileImport({ onFileUpload, importType }) {
+  console.log('====================================');
+  console.log("importType*******>>",importType);
+  console.log('====================================');
   const [duplicateHandling, setDuplicateHandling] = useState('skip');
   const [encoding, setEncoding] = useState('UTF-8 (Unicode)');
   const [isEncodingOpen, setIsEncodingOpen] = useState(false);
@@ -92,38 +95,40 @@ function CustomerFileImport({ onFileUpload }) {
       </div>
 
       {/* Duplicate Handling */}
-      <div className="mt-10 flex flex-row gap-8">
-        <div className="flex items-start mb-2">
-          <span className="text-sm font-medium text-[#d6141d]">Duplicate Handling</span>
-          <span className="text-[#d6141d] ml-1">*</span>
-          <HelpCircle size={16} className="text-gray-400 ml-1" />
-        </div>
+      {importType !== 'contacts' && (
+        <div className="mt-10 flex flex-row gap-8">
+          <div className="flex items-start mb-2">
+            <span className="text-sm font-medium text-[#d6141d]">Duplicate Handling</span>
+            <span className="text-[#d6141d] ml-1">*</span>
+            <HelpCircle size={16} className="text-gray-400 ml-1" />
+          </div>
 
-        <div>
-          {['skip', 'overwrite', 'add'].map((value) => (
-            <label key={value} className="flex items-start mb-3">
-              <input
-                type="radio"
-                name="duplicateHandling"
-                value={value}
-                checked={duplicateHandling === value}
-                onChange={() => setDuplicateHandling(value)}
-                className="mt-1"
-              />
-              <div className="ml-2">
-                <div className="text-sm capitalize">{value} Duplicates</div>
-                <div className="text-xs text-gray-500">
-                  {value === 'skip'
-                    ? 'Skips duplicates from import.'
-                    : value === 'overwrite'
-                    ? 'Overwrites existing customers.'
-                    : 'Adds duplicates as new customers.'}
+          <div>
+            {['skip', 'overwrite', 'add'].map((value) => (
+              <label key={value} className="flex items-start mb-3">
+                <input
+                  type="radio"
+                  name="duplicateHandling"
+                  value={value}
+                  checked={duplicateHandling === value}
+                  onChange={() => setDuplicateHandling(value)}
+                  className="mt-1"
+                />
+                <div className="ml-2">
+                  <div className="text-sm capitalize">{value} Duplicates</div>
+                  <div className="text-xs text-gray-500">
+                    {value === 'skip'
+                      ? 'Skips duplicates from import.'
+                      : value === 'overwrite'
+                      ? 'Overwrites existing customers.'
+                      : 'Adds duplicates as new customers.'}
+                  </div>
                 </div>
-              </div>
-            </label>
-          ))}
+              </label>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Character Encoding */}
       <div className="mt-10 flex flex-row w-full gap-8">

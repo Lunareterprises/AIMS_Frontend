@@ -1,0 +1,17 @@
+{
+
+    "contactPersonDetails": [
+        "Salutation",
+        "First Name",
+        "Last Name",
+        "Skype",
+        "EmailID",
+        "Phone",
+        "MobilePhone",
+        "Display Name",
+        "Department",
+        "Designation"
+    ]
+    
+  }
+  
