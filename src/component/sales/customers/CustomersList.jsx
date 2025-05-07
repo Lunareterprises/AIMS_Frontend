@@ -1,9 +1,14 @@
 import { useState } from 'react';
-import { ChevronDown, Plus, MoreVertical, HelpCircle, Download, Upload, RefreshCw, Settings, RotateCcw,  ChevronRight } from 'lucide-react';
+import {
+  ChevronDown, Plus, MoreVertical, HelpCircle
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import FilterModal from './FilterModal';
 import CommonButton from '../../CommonUI/buttons/CommonButton';
 import CustomerTable from './CustomerTable';
+import SortOptionsDropdown from './sort/importCustomer/SortOptionsDropdown';
+import ImportCustomersModal from './sort/importCustomer/ImportCustomersModal';
+
 
 const initialCustomers = [
   { id: 1, name: 'ASK', companyName: 'ASK PORTAL - FZCO', email: '', workPhone: '', receivables: 'AED0.00', unusedCredits: 'AED0.00' },
@@ -33,16 +38,6 @@ const allColumns = [
   { label: 'Website', accessor: 'website', key: 'website' },
 ];
 
-const menuItems = [
-  { icon: <Upload size={18} className="text-blue-500" />, label: "Import Customers", color: "text-blue-500" },
-  { icon: <Download size={18} />, label: "Export Customers" },
-  { icon: <Download size={18} />, label: "Export Current View" },
-  { icon: <Settings size={18} />, label: "Preferences" },
-  { icon: <RefreshCw size={18} />, label: "Refresh List" },
-  { icon: <RotateCcw size={18} />, label: "Reset Column Width" }
-];
-
-
 export default function CustomersList() {
   const navigate = useNavigate();
   const [customers] = useState(initialCustomers);
@@ -50,7 +45,17 @@ export default function CustomersList() {
   const [selectedRows, setSelectedRows] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+
+
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importOption, setImportOption] = useState('customers');
+
+  const handleMenuSelect = (label) => {
+    if (label === 'Import Customers') {
+      setShowImportModal(true);
+    }
+  };
+
 
   const [filterFields, setFilterFields] = useState({
     name: true,
@@ -85,87 +90,24 @@ export default function CustomersList() {
 
   return (
     <div className="w-full bg-white">
-      <div className="flex items-center justify-between p-4 border-b ">
+      <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center">
           <h1 className="text-2xl font-semibold text-gray-800">Active Customers</h1>
           <ChevronDown className="ml-2 text-blue-500" size={20} />
         </div>
-        <div className="flex items-center gap-2 ">
+        <div className="flex items-center gap-2">
           <CommonButton
             label={<div className="flex items-center"><Plus size={20} className="mr-1" /> New</div>}
             onClick={() => navigate('/CustomersAdd_Details')}
             className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
           />
-          {/* <CommonButton
-            label="Filter"
-            onClick={() => setIsFilterModalOpen(true)}
-            className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded"
-          /> */}
-          {/* <CommonButton
-            label={<MoreVertical size={20} />}
-            className="p-2 text-gray-600 hover:bg-gray-100 rounded"
-            onClick={() => setIsOpen(!isOpen)} 
+          <SortOptionsDropdown onMenuSelect={handleMenuSelect} />
+          <ImportCustomersModal
+            isOpen={showImportModal}
+            onClose={() => setShowImportModal(false)}
+            selectedOption={importOption}
+            setSelectedOption={setImportOption}
           />
-
-        {isOpen && (
-          <div className="absolute right-0 w-64 bg-white shadow-lg rounded-md border border-gray-200 z-10">
-            <div className="p-3 border-b border-gray-200">
-              <div className="flex items-center justify-between text-gray-600">
-                <span>Sort by</span>
-                <ChevronRight size={18} />
-              </div>
-            </div>
-            
-            <div className="py-1">
-              {menuItems.map((item, index) => (
-                <div 
-                  key={index} 
-                  className={`flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer ${
-                    index === 0 ? "text-blue-500" : "text-gray-700"
-                  }`}
-                >
-                  <span className="mr-3">{item.icon}</span>
-                  <span>{item.label}</span>
-                  {index % 2 === 1 && <span className="ml-auto text-gray-500">A</span>}
-                </div>
-              ))}
-            </div>
-          </div>
-        )} */}
-
-          <div className="relative">
-            <CommonButton
-              label={<MoreVertical size={20} />}
-              className="p-2 text-gray-600 hover:bg-gray-100 rounded"
-              onClick={() => setIsOpen(!isOpen)} 
-            />
-            {isOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-md border border-gray-200 z-10">
-                <div className="p-3 border-b border-gray-200">
-                  <div className="flex items-center justify-between text-gray-600">
-                    <span>Sort by</span>
-                    <ChevronRight size={18} />
-                  </div>
-                </div>
-                
-                <div className="py-1">
-                  {menuItems.map((item, index) => (
-                    <div 
-                      key={index} 
-                      className={`flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer ${
-                        index === 0 ? "text-blue-500" : "text-gray-700"
-                      }`}
-                    >
-                      <span className="mr-3">{item.icon}</span>
-                      <span>{item.label}</span>
-                      {index % 2 === 1 && <span className="ml-auto text-gray-500">A</span>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
           <CommonButton
             label={<HelpCircle size={20} />}
             className="p-2 text-white bg-orange-500 hover:bg-orange-600 rounded"
@@ -173,24 +115,20 @@ export default function CustomersList() {
         </div>
       </div>
 
-      
-
-
-      <div className="w-full">
-        <div className="overflow-x-auto">
+      <div className="w-full overflow-x-auto">
         <CustomerTable
-              columns={visibleColumns}
-              data={customers}
-              onRowClick={handleRowClick}
-              selectedRows={selectedRows}
-              onRowSelect={handleRowSelect}
-              selectAll={selectAll}
-              onSelectAll={handleSelectAll}
-              rowHighlightKey={selectedCustomerId}
-              onFilterClick={() => setIsFilterModalOpen(true)}
-            />
-        </div>
+          columns={visibleColumns}
+          data={customers}
+          onRowClick={handleRowClick}
+          selectedRows={selectedRows}
+          onRowSelect={handleRowSelect}
+          selectAll={selectAll}
+          onSelectAll={handleSelectAll}
+          rowHighlightKey={selectedCustomerId}
+          onFilterClick={() => setIsFilterModalOpen(true)}
+        />
       </div>
+
       {isFilterModalOpen && (
         <FilterModal
           filterFields={filterFields}

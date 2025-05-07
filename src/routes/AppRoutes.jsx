@@ -21,6 +21,9 @@ import CustomersAdd from "../pages/sales/CustomersAdd";
 import CustomerView from "../pages/sales/CustomerView";
 import Addqoutes from "../pages/sales/quotes/Addqoutes";
 import CustomViewBuilder from "../component/items/itemslist/Custom_View";
+import CustomerFileImport from "../component/sales/customers/sort/importCustomer/CustomerFileImport";
+import ImportLayout from "../component/sales/customers/sort/importCustomer/ImportLayout";
+import FieldMappingPage from "../component/sales/customers/sort/importCustomer/FieldMappingPage";
 
 const AppRoutes = () => {
   return (
@@ -138,13 +141,28 @@ const AppRoutes = () => {
         }
       />
       {/* //-------sale-------------- */}
-
+      <Route
+        path="/import/map-fields"
+        element={
+          <MainLayout>
+            <FieldMappingPage />
+          </MainLayout>
+        }
+      />
       <Route
         path="/CustomersList"
         element={
           <MainLayout>
             <CustomersList />
           </MainLayout>
+        }
+      />
+      <Route
+        path="/import/customers"
+        element={
+          // <MainLayout>
+            <ImportLayout />
+          // </MainLayout>
         }
       />
       <Route
