@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import {
   Upload, Download, Settings, RefreshCw, RotateCcw
 } from 'lucide-react';
-import CommonButton from '../../../../CommonUI/buttons/CommonButton';
+import CommonButton from '../../../CommonUI/buttons/CommonButton';
 
 const menuItems = [
-  { icon: <Upload size={18} className="text-blue-500" />, label: "Import Customers", color: "text-blue-500" },
-  { icon: <Download size={18} />, label: "Export Customers" },
-  { icon: <Download size={18} />, label: "Export Current View" },
-  { icon: <Settings size={18} />, label: "Preferences" },
-  { icon: <RefreshCw size={18} />, label: "Refresh List" },
-  { icon: <RotateCcw size={18} />, label: "Reset Column Width" }
+  { icon: <Upload size={18} className="text-blue-500" />, label: "Import Customers" },
+  { icon: <Download size={18} className="text-blue-500" />, label: "Export Customers" },
+  { icon: <Download size={18} className="text-blue-500"/>, label: "Export Current View" },
+  { icon: <Settings size={18} className="text-blue-500"/>, label: "Preferences" },
+  { icon: <RefreshCw size={18} className="text-blue-500"/>, label: "Refresh List" },
+  { icon: <RotateCcw size={18} className="text-blue-500"/>, label: "Reset Column Width" }
 ];
 
 export default function SortOptionsDropdown({ onMenuSelect }) {
@@ -34,12 +34,12 @@ export default function SortOptionsDropdown({ onMenuSelect }) {
      
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-md border border-gray-200 z-10">
+        <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-md border border-gray-200 z-50">
           <div className="py-1">
             {menuItems.map((item, index) => (
               <div
                 key={index}
-                className={`flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer ${
+                className={`flex items-center px-4 py-3 hover:text-blue-500 cursor-pointer ${
                   item.color || 'text-gray-700'
                 }`}
                 onClick={() => handleSelect(item.label)}

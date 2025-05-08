@@ -1,0 +1,74 @@
+[
+    {
+      "main": "Sales",
+      "subs": [
+        "Quotes",
+        "Sales Order",
+        "Packages",
+        "Shipments",
+        "Invoices",
+        "Invoice Payments",
+        "Delivery Challans",
+        "Recurring Invoices",
+        "Credit Notes",
+        "Credit Notes Applied to Invoices",
+        "Refunds",
+        "Sales Return Receive",
+        "Sales Returns"
+
+
+      ]
+    },
+    {
+      "main": "Purchase",
+      "subs": [
+        "Expenses",
+        "Recurring Expenses",
+        "Receives",
+        "Bills",
+        "Receives",
+        "ANGAL",
+        "Bill Payments",
+        "Recurring Bills",
+        "Vendor Credits",
+        "Applied Vendor Credits",
+        "Vendor Credit Refunds"
+        
+      ]
+    },
+    {
+        "main": "Timesheet",
+        "subs": [
+          "Projects",
+          "Timesheet",
+          "Project Tasks"
+          
+        ]
+      },
+      {
+        "main": "Others",
+        "subs": [
+            "Customers",
+            "Vendors",
+            "Item Groups",
+            "Tasks",
+            "Items",
+            "Composite Items",
+            "Assemblies",
+            "Inventory Adjustments",
+            "Exchange Rates",
+            "Users",
+            "Chart of Accounts",
+            "Manual Journals",
+            "Documents"
+          
+        ]
+      }
+  ]
+  
+
+
+
+        
+
+        

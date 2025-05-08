@@ -15,71 +15,64 @@ export default function CustomerTable({
 }) {
   return (
     <div className="w-full overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200 text-sm">
-        <thead className="bg-gray-50">
-          <tr>
-            {/* Filter Button Column */}
-            <th className="px-3 py-3">
-              <CommonButton
-                label={<FiFilter size={18} />}
-                onClick={onFilterClick}
-                className="text-sm text-blue-500  px-2 py-1 rounded"
-              />
-            </th>
-
-            {/* Select All Checkbox Column */}
-            <th className="px-3 py-3">
-              <input
-                type="checkbox"
-                checked={selectAll}
-                onChange={onSelectAll}
-                className="w-4 h-4 text-blue-500 border-gray-300 rounded"
-              />
-            </th>
-
-            {/* Dynamic Column Headers */}
-            {columns.map(col => (
-              <th
-                key={col.accessor}
-                className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap"
-              >
-                {col.label}
+      <div className="max-h-[500px] overflow-auto">
+        <table className="min-w-full table-fixed text-sm">
+          <thead className="bg-gray-50 sticky top-0 z-10">
+            <tr>
+              <th className="px-3 py-3 bg-gray-50">
+                <CommonButton
+                  label={<FiFilter size={18} />}
+                  onClick={onFilterClick}
+                  className="text-sm text-blue-500 px-2 py-1 rounded"
+                />
               </th>
-            ))}
-          </tr>
-        </thead>
-
-        <tbody className="bg-white divide-y divide-gray-100">
-          {data.map((row) => (
-            <tr
-              key={row.id}
-              className={`hover:bg-gray-50 cursor-pointer ${row.id === rowHighlightKey ? 'bg-blue-50' : ''}`}
-              onClick={() => onRowClick(row.id)}
-            >
-              {/* Empty cell for filter button column */}
-              <td className="px-3 py-4" />
-
-              {/* Row Select Checkbox */}
-              <td className="px-3 py-4">
+              <th className="px-3 py-3 bg-gray-50">
                 <input
                   type="checkbox"
-                  checked={selectedRows.includes(row.id)}
-                  onChange={() => onRowSelect(row.id)}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-4 h-4 border-gray-300 rounded"
+                  checked={selectAll}
+                  onChange={onSelectAll}
+                  className="w-4 h-4 text-blue-500 border-gray-300 rounded"
                 />
-              </td>
-
-              {/* Row Data Columns */}
+              </th>
               {columns.map(col => (
-                <td key={col.accessor} className="px-3 py-4 whitespace-nowrap text-xs">
-                  {row[col.accessor]}
-                </td>
+                <th
+                  key={col.accessor}
+                  className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap bg-gray-50"
+                >
+                  {col.label}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-100">
+            {data.map((row) => (
+              <tr
+                key={row.id}
+                className={`hover:bg-gray-50 cursor-pointer ${row.id === rowHighlightKey ? 'bg-blue-50' : ''}`}
+                onClick={() => onRowClick(row.id)}
+              >
+                <td className="px-3 py-4" />
+                <td className="px-3 py-4">
+                  <input
+                    type="checkbox"
+                    checked={selectedRows.includes(row.id)}
+                    onChange={() => onRowSelect(row.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-4 h-4 border-gray-300 rounded"
+                  />
+                </td>
+                {columns.map(col => (
+                  <td key={col.accessor} className="px-3 py-4 whitespace-nowrap text-xs">
+                    {row[col.accessor]}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
+
+
