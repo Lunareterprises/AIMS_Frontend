@@ -21,8 +21,11 @@ export default function CustomerTable({
             <tr>
               <th className="px-3 py-3 bg-gray-50">
                 <CommonButton
-                  label={<FiFilter size={18} />}
-                  onClick={onFilterClick}
+                  // label={<FiFilter size={18} />}
+                  label={
+                    <img src='/Images/commonIcons/filter.svg' className='w-6 h-6'/>
+                  }
+                                    onClick={onFilterClick}
                   className="text-sm text-blue-500 px-2 py-1 rounded"
                 />
               </th>
