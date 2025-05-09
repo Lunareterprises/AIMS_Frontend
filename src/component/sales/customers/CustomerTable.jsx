@@ -1,6 +1,6 @@
 import React from 'react';
 import CommonButton from '../../CommonUI/buttons/CommonButton';
-import { FiFilter } from 'react-icons/fi';
+// import { FiFilter } from 'react-icons/fi';
 
 export default function CustomerTable({
   columns = [],

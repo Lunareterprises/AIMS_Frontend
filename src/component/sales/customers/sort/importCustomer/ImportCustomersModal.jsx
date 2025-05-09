@@ -24,7 +24,7 @@ export default function ImportCustomersModal({
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 bg-opacity-30 z-50">
       <div className="bg-white rounded-md shadow-lg w-full max-w-md mx-4">
-        <div className="flex justify-between items-center p-4 border-b">
+        <div className="flex justify-between items-center p-4 bg-gray-100">
           <h2 className="text-xl font-medium text-gray-800">Import Customers</h2>
           <button onClick={onClose} className="text-red-500 hover:bg-gray-100 p-1 rounded-full">
             <X size={20} />
