@@ -31,8 +31,6 @@ export default function SortOptionsDropdown({ onMenuSelect }) {
         className="p-2 hover:bg-gray-100 rounded" 
       />
         
-     
-
       {isOpen && (
         <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-md border border-gray-200 z-50">
           <div className="py-1">

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Info, ChevronDown, Check } from 'lucide-react';
+import CommonButton from '../../../../CommonUI/buttons/CommonButton';
 
 export default function ExportCustomersModal({ onClose }) {
   const [module] = useState('Customers');
@@ -54,7 +55,7 @@ export default function ExportCustomersModal({ onClose }) {
     <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto flex items-center justify-center p-4">
       <div className="bg-white rounded w-full max-w-2xl max-h-[95vh] flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center py-3 px-4 ">
+        <div className="flex justify-between items-center py-3 px-4 bg-gray-100">
           <h2 className="text-base font-medium text-gray-800">Export Customers</h2>
           <button onClick={onClose} className="text-red-600 hover:text-gray-700">
             <X size={18} />
@@ -330,18 +331,20 @@ export default function ExportCustomersModal({ onClose }) {
 
         {/* Footer */}
         <div className="flex justify-end px-6 py-4 bg-gray-50">
-          <button
+          <CommonButton
+            label="Cancel"
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded mr-3 hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
+          />
+            
+         
+          <CommonButton
+            label="Export"
             onClick={handleExport}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-500 border border-transparent rounded hover:bg-blue-600"
-          >
-            Export
-          </button>
+          />
+            
+          
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ import CustomerTable from './CustomerTable';
 import ImportCustomersModal from './sort/importCustomer/ImportCustomersModal';
 import ExportCustomersModal from './sort/exportCustomer/ExportCustomersModal'
 import SortOptionsDropdown from './sort/SortOptionsDropdown';
+import ExportCurrentView from './sort/exportCurrentView/ExportCurrentView';
 
 const initialCustomers = [
   { id: 1, name: 'ASK', companyName: 'ASK PORTAL - FZCO', email: '', workPhone: '', receivables: 'AED0.00', unusedCredits: 'AED0.00' },
@@ -46,6 +47,7 @@ export default function CustomersList() {
   const [selectAll, setSelectAll] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showExportCurrentView, setShowExportCurrentView] = useState(false);
 
   const [showImportModal, setShowImportModal] = useState(false);
   const [importOption, setImportOption] = useState('customers');
@@ -56,6 +58,9 @@ export default function CustomersList() {
     }
     else if (label === 'Export Customers') {
       setShowExportModal(true);
+    }
+    else if (label === 'Export Current View') {
+      setShowExportCurrentView(true);
     }
   };
 
@@ -121,8 +126,13 @@ export default function CustomersList() {
               <ExportCustomersModal
                 isOpen={showExportModal}
                 onClose={() => setShowExportModal(false)}
-                // selectedOption={selectedOption}
-                // setSelectedOption={setSelectedOption}
+              />
+            )}
+
+            {showExportCurrentView && (
+              <ExportCurrentView 
+              isOpen={showExportCurrentView}
+              onClose={() => setShowExportCurrentView(false)}
               />
             )}
 
