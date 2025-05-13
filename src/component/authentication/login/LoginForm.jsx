@@ -17,7 +17,7 @@ import { login } from "../../../api/services/authService";
 import ForgotPasswordModal from "./ForgotPassword";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
-import Loader from "../../CommonUI/buttons/Loader/Loader";
+import Loader from "../../CommonUI/Loader/Loader";
 
 const LoginForm = () => {
   const [loading, setLoading] = useState(false);

@@ -24,6 +24,8 @@ import CustomViewBuilder from "../component/items/itemslist/Custom_View";
 import CustomerFileImport from "../component/sales/customers/sort/importCustomer/CustomerFileImport";
 import ImportLayout from "../component/sales/customers/sort/importCustomer/ImportLayout";
 import FieldMappingPage from "../component/sales/customers/sort/importCustomer/FieldMappingPage";
+import SettingsIndex from "../pages/settings/SettingsIndex";
+import CustomersAndVendorsIndex from "../pages/settings/customersAndVendors/CustomersAndVendorsIndex";
 
 const AppRoutes = () => {
   return (
@@ -193,7 +195,30 @@ const AppRoutes = () => {
           </MainLayout>
         }
       />
+
+
+
+      {/*//---------------------------settings-------------??  */}
+      <Route
+        path="/settings"
+        element={
+          // <MainLayout>
+            <SettingsIndex />
+          // </MainLayout>
+        }
+      />
+
+      <Route
+        path="/customers-vendors"
+        element={
+          <MainLayout>
+            <CustomersAndVendorsIndex />
+          </MainLayout>
+        }
+      />
     </Routes>
+
+    
   );
 };
 
