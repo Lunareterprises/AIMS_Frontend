@@ -13,7 +13,7 @@ export default function ExportCurrentView({ isOpen, onClose }) {
     <>
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-md shadow-lg w-full max-w-xl">
+          <div className="bg-white rounded-md shadow-lg w-full max-w-2xl">
             {/* Header */}
             <div className="flex justify-between items-center p-4 bg-gray-100">
               <h2 className="text-xl font-medium text-gray-800">Export Current View</h2>
@@ -43,7 +43,7 @@ export default function ExportCurrentView({ isOpen, onClose }) {
                 <label className="block text-red-500 mb-2">
                   Decimal Format<span className="text-red-500">*</span>
                 </label>
-                <div className="relative">
+                <div className="relative w-1/2">
                   <select className="w-full border border-gray-300 rounded px-3 py-2 appearance-none pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option>12345.67.89</option>
                   </select>
@@ -98,7 +98,7 @@ export default function ExportCurrentView({ isOpen, onClose }) {
               </div>
               
               {/* Password Protection */}
-              <div className="mb-5 text-sm">
+              <div className="mb-5 text-sm w-1/2">
                 <label className="block text-gray-700 mb-2">File Protection Password</label>
                 <input
                   type="password"
@@ -113,7 +113,7 @@ export default function ExportCurrentView({ isOpen, onClose }) {
                   <span className="font-medium text-gray-700 mr-2">Note:</span>
                   <span className="text-gray-600">
                     You can export only the first 10,000 rows. If you have more rows, please initiate a backup for the data in your Zoho Books organization, and download it.{" "}
-                    <a href="#" className="text-blue-500 hover:underline">Backup Your Data</a>
+                    {/* <a href="#" className="text-blue-500 hover:underline">Backup Your Data</a> */}
                   </span>
                 </div>
               </div>

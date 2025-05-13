@@ -1,0 +1,164 @@
+[
+    {
+      "title": "Organization",
+      "icon": "Users",
+      "items": [
+        { "label": "Profile", "link": "/settings/profile" },
+        { "label": "Plan/Product", "link": "/settings/plan" },
+        { "label": "Branding", "link": "/settings/branding" },
+        { "label": "Custom Domain", "link": "/settings/custom-domain" },
+        { "label": "Defaults", "link": "/settings/defaults" },
+        { "label": "Countries", "link": "/settings/countries" },
+        { "label": "Operating Statements", "link": "/settings/statements" },
+        { "label": "Manage Subscription", "link": "/settings/subscription" }
+      ]
+    },
+    {
+      "title": "",
+      "icon": "",
+      "items": [
+        {
+          "title": "Taxes & Compliance",
+          "icon": "FileText",
+          "items": [
+            { "label": "General", "link": "/settings/taxes/general" },
+            { "label": "Taxes", "link": "/settings/taxes" }
+          ]
+        },
+        {
+          "title": "Users & Roles",
+          "icon": "Users",
+          "items": [
+            { "label": "Users", "link": "/settings/users" },
+            { "label": "Roles", "link": "/settings/roles" },
+            { "label": "User Preferences", "link": "/settings/user-preferences" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Preferences",
+      "icon": "Award",
+      "items": [
+        { "label": "General", "link": "/settings/preferences/general" },
+        { "label": "Document Recognition", "link": "/settings/preferences/doc-recognition" },
+        { "label": "Customers and Vendors", "link": "/customers-vendors" },
+        { "label": "Accountant", "link": "/settings/preferences/accountant" },
+        { "label": "Projects", "link": "/settings/preferences/projects" },
+        { "label": "Financials", "link": "/settings/preferences/financials" },
+        { "label": "Customer Portal", "link": "/settings/preferences/customer-portal" },
+        { "label": "Vendor Portal", "link": "/settings/preferences/vendor-portal" }
+      ]
+    },
+    {
+      "title": "Sales",
+      "icon": "ShoppingCart",
+      "items": [
+        [
+          { "label": "Quotes", "link": "/settings/sales/quotes" },
+          { "label": "Packing Slip", "link": "/settings/sales/packing-slip" }
+        ],
+        { "label": "Sales Orders", "link": "/settings/sales/orders" },
+        { "label": "Packages", "link": "/settings/sales/packages" },
+        { "label": "Shipments", "link": "/settings/sales/shipments" },
+        { "label": "Delivery Challan", "link": "/settings/sales/delivery-challan" },
+        { "label": "Invoices", "link": "/settings/sales/invoices" },
+        { "label": "Recurring Invoices", "link": "/settings/sales/recurring-invoices" },
+        { "label": "Payments Received", "link": "/settings/sales/payments" },
+        { "label": "Sales Returns", "link": "/settings/sales/returns" },
+        { "label": "Credit Notes", "link": "/settings/sales/credit-notes" },
+        { "label": "Delivery Notes", "link": "/settings/sales/delivery-notes" }
+      ]
+    },
+    {
+      "title": "Purchases",
+      "icon": "ShoppingCart",
+      "items": [
+        { "label": "Expenses", "link": "/settings/purchases/expenses" },
+        { "label": "Recurring Expenses", "link": "/settings/purchases/recurring-expenses" },
+        { "label": "Bills", "link": "/settings/purchases/bills" },
+        { "label": "Recurring Bills", "link": "/settings/purchases/recurring-bills" },
+        { "label": "Payment Made", "link": "/settings/purchases/payment-made" },
+        { "label": "Purchase Returns", "link": "/settings/purchases/returns" },
+        { "label": "Vendor Credits", "link": "/settings/purchases/vendor-credits" }
+      ]
+    },
+    {
+      "title": "Items",
+      "icon": "ShoppingCart",
+      "items": [
+        { "label": "Items", "link": "/settings/items/list" },
+        { "label": "Units of Measurement", "link": "/settings/items/uom" },
+        { "label": "Inventory Adjustments", "link": "/settings/items/adjustments" }
+      ]
+    },
+    {
+      "title": "Online Payments",
+      "icon": "CreditCard",
+      "items": [
+        { "label": "Payment Gateways", "link": "/settings/payments/gateways" }
+      ]
+    },
+    {
+      "title": "Customization",
+      "icon": "Settings",
+      "items": [
+        { "label": "Reporting Tags", "link": "/settings/customization/reporting-tags" },
+        { "label": "Web Tabs", "link": "/settings/customization/web-tabs" },
+        { "label": "Transaction Number Series", "link": "/settings/customization/transaction-series" },
+        { "label": "PDF Templates", "link": "/settings/customization/pdf-templates" }
+      ]
+    },
+    {
+      "title": "Reminders & Notifications",
+      "icon": "Bell",
+      "items": [
+        { "label": "Reminders", "link": "/settings/reminders" },
+        { "label": "Email Notifications", "link": "/settings/notifications" }
+      ]
+    },
+    {
+      "title": "Automation",
+      "icon": "Zap",
+      "items": [
+        { "label": "Workflow Rules", "link": "/settings/automation/rules" },
+        { "label": "Workflow Actions", "link": "/settings/automation/actions" },
+        { "label": "Workflow Logs", "link": "/settings/automation/logs" },
+        { "label": "Schedules", "link": "/settings/automation/schedules" }
+      ]
+    },
+    {
+      "title": "Custom Modules",
+      "icon": "Code",
+      "items": [
+        { "label": "Overview", "link": "/settings/custom-modules" }
+      ]
+    },
+    {
+      "title": "Developer & Data",
+      "icon": "Code",
+      "items": [
+        { "label": "Incoming Webhooks", "link": "/settings/developer/webhooks" },
+        { "label": "Connections", "link": "/settings/developer/connections" },
+        { "label": "API Usage", "link": "/settings/developer/api-usage" },
+        { "label": "Signals", "link": "/settings/developer/signals" },
+        { "label": "Data Backup", "link": "/settings/developer/backup" },
+        { "label": "Debug Component Usage", "link": "/settings/developer/debug" }
+      ]
+    },
+    {
+      "title": "Integrations & Marketplace",
+      "icon": "Share2",
+      "items": [
+        { "label": "Shipping", "link": "/settings/integrations/shipping" },
+        { "label": "Shipping Cart & POS", "link": "/settings/integrations/pos" },
+        { "label": "EDI", "link": "/settings/integrations/edi" },
+        { "label": "CRM Integrations", "link": "/settings/integrations/crm" },
+        { "label": "Zapier Apps", "link": "/settings/integrations/zapier" },
+        { "label": "Other Apps", "link": "/settings/integrations/other" },
+        { "label": "WhatsApp", "link": "/settings/integrations/whatsapp" },
+        { "label": "Marketplace", "link": "/settings/integrations/marketplace" }
+      ]
+    }
+  ]
+  
