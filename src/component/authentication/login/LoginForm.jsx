@@ -131,20 +131,20 @@ const LoginForm = () => {
         <div className="w-full lg:w-1/2 p-8">
           {/* BizFlow logo */}
           <div className="mb-6 flex justify-between items-center">
-            <img
+            {/* <img
               src="/AuthicationImage/avatar.jpg"
               alt="BizFlow"
               className="h-8"
-            />
+            /> */}
 
             {/* Smart sign-in button */}
-            <button className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-full">
+            {/* <button className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-full">
               <span className="text-lg">
                 {" "}
                 <FaQrcode />
               </span>
               <span>Try smart sign-in</span>
-            </button>
+            </button> */}
           </div>
 
           {/* Sign in heading */}

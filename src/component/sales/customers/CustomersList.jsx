@@ -62,6 +62,9 @@ export default function CustomersList() {
     else if (label === 'Export Current View') {
       setShowExportCurrentView(true);
     }
+    else if (label === 'Preferences') {
+      navigate('/customers-vendors'); 
+    }
   };
 
 

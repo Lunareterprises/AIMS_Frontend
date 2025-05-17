@@ -26,6 +26,9 @@ import ImportLayout from "../component/sales/customers/sort/importCustomer/Impor
 import FieldMappingPage from "../component/sales/customers/sort/importCustomer/FieldMappingPage";
 import SettingsIndex from "../pages/settings/SettingsIndex";
 import CustomersAndVendorsIndex from "../pages/settings/customersAndVendors/CustomersAndVendorsIndex";
+import NewCustomFieldContacts from "../pages/settings/customersAndVendors/NewCustomFieldContacts";
+import CustomFieldsSettings from "../pages/settings/customersAndVendors/CustomFieldsSettings";
+import CustomLinkForm from "../pages/settings/customersAndVendors/CustomLinkForm";
 
 const AppRoutes = () => {
   return (
@@ -213,6 +216,30 @@ const AppRoutes = () => {
         element={
           <MainLayout>
             <CustomersAndVendorsIndex />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/customers-feild-settings"
+        element={
+          <MainLayout>
+            <CustomFieldsSettings />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/New-Custom-Field-Contacts"
+        element={
+          <MainLayout>
+            <NewCustomFieldContacts />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/New-Custom-LinkForm"
+        element={
+          <MainLayout>
+            <CustomLinkForm />
           </MainLayout>
         }
       />
