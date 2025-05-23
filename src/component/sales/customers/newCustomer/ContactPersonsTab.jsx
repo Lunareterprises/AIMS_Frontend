@@ -11,7 +11,7 @@ const initialContact = {
   skype: "",
   designation: "",
   department: "",
-  showMore: false, // controls visibility of extra fields
+  showMore: false,
 };
 
 export default function ContactPersonsTab() {
@@ -39,110 +39,137 @@ export default function ContactPersonsTab() {
     setContacts(updated);
   };
 
-  return (  
-    <div className="space-y-4 ">
-      <div className="border border-gray-200 rounded">
-        <div
-          className={`grid ${
-            contacts.some((c) => c.showMore)
-              ? "grid-cols-10"
-              : "grid-cols-7"
-          } bg-gray-100 text-xs font-semibold px-4 py-2`}
-        >
-          <div>SALUTATION</div>
-          <div>FIRST NAME</div>
-          <div>LAST NAME</div>
-          <div>EMAIL ADDRESS</div>
-          <div>WORK PHONE</div>
-          <div>MOBILE</div>
-          {contacts.some((c) => c.showMore) && (
-            <>
-              <div>SKYPE NAME/NUMBER</div>
-              <div>DESIGNATION</div>
-              <div>DEPARTMENT</div>
-            </>
-          )}
-          <div></div>
-        </div>
+  const hasMoreFieldsVisible = contacts.some((c) => c.showMore);
 
-        {contacts.map((contact, index) => (
-          <div
-            key={index}
-            className={`grid ${
-              contact.showMore ? "grid-cols-10" : "grid-cols-7"
-            } items-center border-t border-gray-200 px-4 py-2 gap-2 `}
-          >
-            <select
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-              value={contact.salutation}
-              onChange={(e) => handleChange(index, "salutation", e.target.value)}
-            >
-              <option value="">Select</option>
-              <option value="Mr.">Mr.</option>
-              <option value="Mrs.">Mrs.</option>
-              <option value="Ms.">Ms.</option>
-            </select>
-
-            <input
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-              value={contact.firstName}
-              onChange={(e) => handleChange(index, "firstName", e.target.value)}
-            />
-            <input
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-              value={contact.lastName}
-              onChange={(e) => handleChange(index, "lastName", e.target.value)}
-            />
-            <input
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-              value={contact.email}
-              onChange={(e) => handleChange(index, "email", e.target.value)}
-            />
-            <input
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-              value={contact.workPhone}
-              onChange={(e) => handleChange(index, "workPhone", e.target.value)}
-            />
-            <input
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-              value={contact.mobile}
-              onChange={(e) => handleChange(index, "mobile", e.target.value)}
-            />
-
-            {contact.showMore && (
-              <>
-                <input
-                  className="border border-gray-300 rounded px-2 py-1 text-sm"
-                  value={contact.skype}
-                  onChange={(e) => handleChange(index, "skype", e.target.value)}
-                />
-                <input
-                  className="border border-gray-300 rounded px-2 py-1 text-sm"
-                  value={contact.designation}
-                  onChange={(e) =>
-                    handleChange(index, "designation", e.target.value)
-                  }
-                />
-                <input
-                  className="border border-gray-300 rounded px-2 py-1 text-sm"
-                  value={contact.department}
-                  onChange={(e) =>
-                    handleChange(index, "department", e.target.value)
-                  }
-                />
-              </>
-            )}
-
-            <div className="flex items-center space-x-2">
-              <button type="button" onClick={() => toggleMoreFields(index)}>
-                <MoreVertical className="text-gray-500" size={18} />
-              </button>
-              <button type="button" onClick={() => removeContact(index)}>
-                <X className="text-red-500" size={18} />
-              </button>
-            </div>
-          </div>
-        ))}
+  return (
+    <div className="space-y-4">
+      <div className="overflow-x-auto border border-gray-300 rounded">
+        <table className="min-w-full text-sm border-collapse table-fixed">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="border border-gray-300 px-1 py-1 font-medium">SALUTATION</th>
+              <th className="border border-gray-300 px-1 py-1 font-medium">FIRST NAME</th>
+              <th className="border border-gray-300 px-1 py-1 font-medium">LAST NAME</th>
+              <th className="border border-gray-300 px-1 py-1 font-medium">EMAIL</th>
+              <th className="border border-gray-300 px-1 py-1 font-medium">WORK PHONE</th>
+              <th className="border border-gray-300 px-1 py-1 font-medium">MOBILE</th>
+              {hasMoreFieldsVisible && (
+                <>
+                  <th className="border border-gray-300 px-1 py-1 font-medium">SKYPE</th>
+                  <th className="border border-gray-300 px-1 py-1 font-medium">DESIGNATION</th>
+                  <th className="border border-gray-300 px-1 py-1 font-medium">DEPARTMENT</th>
+                </>
+              )}
+              <th className="border border-gray-300 px-1 py-1"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {contacts.map((contact, index) => (
+              <tr key={index}>
+                <td className="border border-gray-300 px-1 py-1">
+                  <select
+                    className="w-full border-none outline-none bg-transparent"
+                    value={contact.salutation}
+                    onChange={(e) =>
+                      handleChange(index, "salutation", e.target.value)
+                    }
+                  >
+                    <option value="">Select</option>
+                    <option value="Mr.">Mr.</option>
+                    <option value="Mrs.">Mrs.</option>
+                    <option value="Ms.">Ms.</option>
+                  </select>
+                </td>
+                <td className="border border-gray-300 px-1 py-1">
+                  <input
+                    className="w-full border-none outline-none bg-transparent"
+                    value={contact.firstName}
+                    onChange={(e) =>
+                      handleChange(index, "firstName", e.target.value)
+                    }
+                  />
+                </td>
+                <td className="border border-gray-300 px-1 py-1">
+                  <input
+                    className="w-full border-none outline-none bg-transparent"
+                    value={contact.lastName}
+                    onChange={(e) =>
+                      handleChange(index, "lastName", e.target.value)
+                    }
+                  />
+                </td>
+                <td className="border border-gray-300 px-1 py-1">
+                  <input
+                    className="w-full border-none outline-none bg-transparent"
+                    value={contact.email}
+                    onChange={(e) =>
+                      handleChange(index, "email", e.target.value)
+                    }
+                  />
+                </td>
+                <td className="border border-gray-300 px-1 py-1">
+                  <input
+                    className="w-full border-none outline-none bg-transparent"
+                    value={contact.workPhone}
+                    onChange={(e) =>
+                      handleChange(index, "workPhone", e.target.value)
+                    }
+                  />
+                </td>
+                <td className="border border-gray-300 px-1 py-1">
+                  <input
+                    className="w-full border-none outline-none bg-transparent"
+                    value={contact.mobile}
+                    onChange={(e) =>
+                      handleChange(index, "mobile", e.target.value)
+                    }
+                  />
+                </td>
+                {hasMoreFieldsVisible && (
+                  <>
+                    <td className="border border-gray-300 px-1 py-1">
+                      <input
+                        className="w-full border-none outline-none bg-transparent"
+                        value={contact.skype}
+                        onChange={(e) =>
+                          handleChange(index, "skype", e.target.value)
+                        }
+                      />
+                    </td>
+                    <td className="border border-gray-300 px-1 py-1">
+                      <input
+                        className="w-full border-none outline-none bg-transparent"
+                        value={contact.designation}
+                        onChange={(e) =>
+                          handleChange(index, "designation", e.target.value)
+                        }
+                      />
+                    </td>
+                    <td className="border border-gray-300 px-1 py-1">
+                      <input
+                        className="w-full border-none outline-none bg-transparent"
+                        value={contact.department}
+                        onChange={(e) =>
+                          handleChange(index, "department", e.target.value)
+                        }
+                      />
+                    </td>
+                  </>
+                )}
+                <td className="border border-gray-300 px-1 py-1 text-center">
+                  <div className="flex justify-center items-center gap-2">
+                    <button type="button" onClick={() => toggleMoreFields(index)}>
+                      <MoreVertical className="text-gray-500" size={18} />
+                    </button>
+                    <button type="button" onClick={() => removeContact(index)}>
+                      <X className="text-red-500" size={18} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       <button
