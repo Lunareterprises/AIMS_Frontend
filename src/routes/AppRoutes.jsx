@@ -29,6 +29,7 @@ import CustomersAndVendorsIndex from "../pages/settings/customersAndVendors/Cust
 import NewCustomFieldContacts from "../pages/settings/customersAndVendors/NewCustomFieldContacts";
 import CustomFieldsSettings from "../pages/settings/customersAndVendors/CustomFieldsSettings";
 import CustomLinkForm from "../pages/settings/customersAndVendors/CustomLinkForm";
+import CustomerDeatilesPage from "../component/sales/customers/customerDetailedPage/CustomerDeatilesPage";
 
 const AppRoutes = () => {
   return (
@@ -151,6 +152,14 @@ const AppRoutes = () => {
         element={
           <MainLayout>
             <FieldMappingPage />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/CustomerDetailedPage/:id"
+        element={
+          <MainLayout>
+            <CustomerDeatilesPage />
           </MainLayout>
         }
       />

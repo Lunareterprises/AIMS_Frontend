@@ -88,8 +88,9 @@ export default function CustomersList() {
 
   const visibleColumns = allColumns.filter(col => filterFields[col.key]);
 
-  const handleRowClick = (id) => setSelectedCustomerId(id);
-
+  const handleRowClick = (id) => {
+    navigate(`/CustomerDetailedPage/${id}`);
+  };
   const handleRowSelect = (id) => {
     setSelectedRows(prev =>
       prev.includes(id) ? prev.filter(row => row !== id) : [...prev, id]
@@ -100,6 +101,7 @@ export default function CustomersList() {
     setSelectAll(!selectAll);
     setSelectedRows(!selectAll ? customers.map(c => c.id) : []);
   };
+
 
   return (
     <div >

@@ -8,12 +8,13 @@ import ContactPersonsTab from './ContactPersonsTab';
 import CustomFields from './CustomFields';
 import ReportingTags from './ReportingTags';
 import RemarksTab from './RemarksTab';
+import { useNavigate } from 'react-router-dom';
 
 const CustomersAddForm = () => {
   const [activeTab, setActiveTab] = useState('Other Details');
   const [customerType, setCustomerType] = useState('Business');
   const [contactPersons, setContactPersons] = useState([]);
-
+  const navigate = useNavigate();
   const tabs = [
     'Other Details',
     'Address', 
@@ -79,7 +80,7 @@ const CustomersAddForm = () => {
   };
 
   return (
-    <div className="max-w-5xl">
+    <div className="max-w-5xl  flex flex-col min-h-screen">
       <div className="p-6">
         <h1 className="text-xl font-semibold text-gray-900 mb-6">New Customer</h1>
         
@@ -242,13 +243,9 @@ const CustomersAddForm = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-start space-x-3 mt-6 pt-4 border-t border-gray-200">
-          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 focus:outline-none focus:ring-0">
-            Save
-          </button>
-          <button className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
-            Cancel
-          </button>
+        <div className="bg-white border-t border-gray-200 p-4 sticky bottom-0 left-0 w-full flex justify-start space-x-3 z-10">
+          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</button>
+          <button onClick={() => navigate("/CustomersList")} className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
         </div>
       </div>
     </div>
