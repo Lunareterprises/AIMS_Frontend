@@ -30,6 +30,7 @@ import NewCustomFieldContacts from "../pages/settings/customersAndVendors/NewCus
 import CustomFieldsSettings from "../pages/settings/customersAndVendors/CustomFieldsSettings";
 import CustomLinkForm from "../pages/settings/customersAndVendors/CustomLinkForm";
 import CustomerDeatilesPage from "../component/sales/customers/customerDetailedPage/CustomerDeatilesPage";
+import HomeIndex from "../component/home/HomeIndex";
 
 const AppRoutes = () => {
   return (
@@ -41,7 +42,22 @@ const AppRoutes = () => {
       {/* Protected Routes */}
       <Route path="/LandingPage" element={<LandingPage />} />
       <Route path="/OrganizationProfile" element={<OrganizationProfile />} />
-
+      <Route
+        path="/home"
+        element={
+          <MainLayout>
+            <HomeIndex />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/ItemList"
+        element={
+          <MainLayout>
+            <ItemList />
+          </MainLayout>
+        }
+      />
       <Route
         path="/ItemList"
         element={

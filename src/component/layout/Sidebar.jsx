@@ -314,9 +314,9 @@ export default function Sidebar() {
           <NavItem
             
             icon={<BarChart2 size={20} />}
-            label="Dashboard"
+            label="Home"
             collapsed={collapsed}
-            to="/dashboard"
+            to="/home"
           />
           <NavItem
             icon={<Package size={20} />}
