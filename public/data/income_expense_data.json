@@ -1,0 +1,40 @@
+{
+  "This Fiscal Year": {
+    "chartData": [
+      { "month": "Jan", "year": "2025", "income": 10000, "expense": 7500 },
+      { "month": "Feb", "year": "2025", "income": 0, "expense": 0 },
+      { "month": "Mar", "year": "2025", "income": 0, "expense": 0 },
+      { "month": "Apr", "year": "2025", "income": 0, "expense": 0 },
+      { "month": "May", "year": "2025", "income": 0, "expense": 0 },
+      { "month": "Jun", "year": "2025", "income": 0, "expense": 0 },
+      { "month": "Jul", "year": "2025", "income": 0, "expense": 0 },
+      { "month": "Aug", "year": "2025", "income": 0, "expense": 0 },
+      { "month": "Sep", "year": "2025", "income": 0, "expense": 0 },
+      { "month": "Oct", "year": "2025", "income": 0, "expense": 0 },
+      { "month": "Nov", "year": "2025", "income": 0, "expense": 0 },
+      { "month": "Dec", "year": "2025", "income": 0, "expense": 0 }
+    ],
+    "totalIncome": "AED10,000.00",
+    "totalExpenses": "AED7,576.39",
+    "showAccrualCash": true
+  },
+  "Previous Fiscal Year": {
+    "chartData": [
+      { "month": "Jan", "year": "2024", "income": 100000, "expense": 50000 },
+      { "month": "Feb", "year": "2024", "income": 150000, "expense": 30000 },
+      { "month": "Mar", "year": "2024", "income": 150000, "expense": 40000 },
+      { "month": "Apr", "year": "2024", "income": 80000, "expense": 20000 },
+      { "month": "May", "year": "2024", "income": 200000, "expense": 60000 },
+      { "month": "Jun", "year": "2024", "income": -500000, "expense": 100000 },
+      { "month": "Jul", "year": "2024", "income": 140000, "expense": 30000 },
+      { "month": "Aug", "year": "2024", "income": 200000, "expense": 50000 },
+      { "month": "Sep", "year": "2024", "income": 100000, "expense": 40000 },
+      { "month": "Oct", "year": "2024", "income": 120000, "expense": 35000 },
+      { "month": "Nov", "year": "2024", "income": 300000, "expense": 80000 },
+      { "month": "Dec", "year": "2024", "income": 250000, "expense": 70000 }
+    ],
+    "totalIncome": "AED1,131,833.33",
+    "totalExpenses": "AED99,245.84",
+    "showAccrualCash": true
+  }
+}

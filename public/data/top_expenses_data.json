@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Employee's VISA",
+    "amount": "AED7,200.00",
+    "color": "bg-green-500",
+    "percentage": 95
+  },
+  {
+    "name": "DEWA",
+    "amount": "AED376.16",
+    "color": "bg-orange-500",
+    "percentage": 3
+  },
+  {
+    "name": "Office & Administration Ex...",
+    "amount": "AED147.00",
+    "color": "bg-blue-500",
+    "percentage": 1.5
+  },
+  {
+    "name": "Office Supplies",
+    "amount": "AED63.54",
+    "color": "bg-yellow-500",
+    "percentage": 0.3
+  },
+  {
+    "name": "Client Refreshments",
+    "amount": "AED25.74",
+    "color": "bg-purple-500",
+    "percentage": 0.2
+  }
+]

@@ -135,7 +135,7 @@ export default function PreviewPage() {
             {unmappedDetailsVisible && (
                 <div className="px-4 py-3">
                 <p className="text-gray-600 mb-4">
-                    The following fields in your import file have not been mapped to any Zoho Books field.
+                    The following fields in your import file have not been mapped to any zeluna field.
                     The data in these fields will be ignored during the import.
                 </p>
                 <ul className="list-disc pl-5 py-2">

@@ -320,7 +320,7 @@ export default function ExportCustomersModal({ onClose }) {
             <div className="text-sm text-gray-600 pt-2">
               <p>
                 Note: You can export only the first 25,000 rows. If you have more rows, please initiate a backup for the
-                data in your Zoho Books organization, and download it.{' '}
+                data in your  Books organization, and download it.{' '}
                 <a href="#" className="text-blue-500 hover:underline">
                   Backup Your Data
                 </a>

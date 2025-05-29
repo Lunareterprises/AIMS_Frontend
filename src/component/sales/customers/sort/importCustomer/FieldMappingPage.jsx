@@ -35,7 +35,7 @@ export default function FieldMappingPage({ file, headers = [], onValidationChang
         }
       })
       .catch(err => {
-        console.error('Error loading Zoho fields:', err);
+        console.error('Error loading zeluna fields:', err);
       });
   }, [importType]);
   

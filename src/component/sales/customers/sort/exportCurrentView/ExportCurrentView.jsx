@@ -112,7 +112,7 @@ export default function ExportCurrentView({ isOpen, onClose }) {
                 <div className="flex">
                   <span className="font-medium text-gray-700 mr-2">Note:</span>
                   <span className="text-gray-600">
-                    You can export only the first 10,000 rows. If you have more rows, please initiate a backup for the data in your Zoho Books organization, and download it.{" "}
+                    You can export only the first 10,000 rows. If you have more rows, please initiate a backup for the data in your zeluna organization, and download it.{" "}
                     {/* <a href="#" className="text-blue-500 hover:underline">Backup Your Data</a> */}
                   </span>
                 </div>

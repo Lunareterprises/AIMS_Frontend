@@ -8,13 +8,13 @@ const AccountingDashboard = () => {
   const [openPayables, setOpenPayables] = useState(false)
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-6xl mx-auto">
+    <div className="p-6 bg-gray-50 ">
+      <div className=" mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Total Receivables Section */}
           <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 relative">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Total Receivables</h2>
+              <h2 className="text-lg font-medium text-gray-900">Total Receivables</h2>
               <div className="relative">
                 <button 
                   onClick={() => setReceivablesDropdown(!receivablesDropdown)}
@@ -52,7 +52,7 @@ const AccountingDashboard = () => {
             <div className="flex justify-between items-end">
               <div >
                 <p className="text-sm text-blue-500 font-medium mb-1">CURRENT</p>
-                <p className="text-2xl font-medium text-gray-900">AED0.00</p>
+                <p className="text-xl font-medium text-gray-900">AED0.00</p>
               </div>
                 <div className="flex justify-between items-end">
                 
@@ -62,7 +62,7 @@ const AccountingDashboard = () => {
                             className="flex items-center gap-1 cursor-pointer"
                             onClick={() => setOpenPayables(!openPayables)}
                         >
-                            <p className="text-2xl font-medium text-gray-900">AED0.00</p>
+                            <p className="text-xl font-medium text-gray-900">AED0.00</p>
                             <ChevronDown size={16} className="text-gray-400" />
                         </div>
 
@@ -84,7 +84,7 @@ const AccountingDashboard = () => {
           {/* Total Payables Section */}
           <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 relative">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Total Payables</h2>
+              <h2 className="text-lg font-medium text-gray-900">Total Payables</h2>
               <div className="relative">
                 <button 
                   onClick={() => setPayablesDropdown(!payablesDropdown)}
@@ -122,7 +122,7 @@ const AccountingDashboard = () => {
             <div className="flex justify-between items-end">
               <div>
                 <p className="text-sm text-blue-500 font-medium mb-1">CURRENT</p>
-                <p className="text-2xl font-medium text-gray-900">AED0.00</p>
+                <p className="text-xl font-medium text-gray-900">AED0.00</p>
               </div>
                 <div className="relative text-right">
                     <p className="text-sm text-red-500 font-medium mb-1">OVERDUE</p>
@@ -130,7 +130,7 @@ const AccountingDashboard = () => {
                         className="flex items-center gap-1 cursor-pointer"
                         onClick={() => setOpen(!open)}
                     >
-                        <p className="text-2xl font-medium text-gray-900">AED0.00</p>
+                        <p className="text-xl font-medium text-gray-900">AED0.00</p>
                         <ChevronDown size={16} className="text-gray-400" />
                     </div>
 
