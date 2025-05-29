@@ -102,7 +102,6 @@ export default function CustomersList() {
     setSelectedRows(!selectAll ? customers.map(c => c.id) : []);
   };
 
-
   return (
     <div >
       {/* Header section */}
