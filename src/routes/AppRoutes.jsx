@@ -31,6 +31,7 @@ import CustomFieldsSettings from "../pages/settings/customersAndVendors/CustomFi
 import CustomLinkForm from "../pages/settings/customersAndVendors/CustomLinkForm";
 import CustomerDeatilesPage from "../component/sales/customers/customerDetailedPage/CustomerDeatilesPage";
 import HomeIndex from "../component/home/HomeIndex";
+import BankingIndex from "../component/banking/BankingIndex";
 
 const AppRoutes = () => {
   return (
@@ -47,6 +48,14 @@ const AppRoutes = () => {
         element={
           <MainLayout>
             <HomeIndex />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/banking"
+        element={
+          <MainLayout>
+            <BankingIndex />
           </MainLayout>
         }
       />
