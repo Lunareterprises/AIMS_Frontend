@@ -18,27 +18,33 @@ export default function ImportLayout() {
 
   const location = useLocation();
   const params = new URLSearchParams(location.search);
-  const importType = params.get('type') || 'customers';
+  // const importType = params.get('type') || 'customers';
+  const importType = params.get('heading');
   console.log('Import Type;;;;;;;;;;;;;:', importType);
 
   const handleFileUpload = (file, headers = []) => {
     setSelectedFile(file);
     setCsvHeaders(headers);
   };
+  // if (step === 1 && customHeading) {
+  //   return customHeading; 
+  // }
+const getHeading = () => {
+  if (step === 1) {
+     
+   
+    if (importType === 'contacts') return "Contact Persons - Select File";
+    if (importType === 'customers') return "Customers - Select File";
+    if (importType) return importType;
+    return "Select File";
+  } else if (step === 2) {
+    return "Map Fields";
+  } else if (step === 3) {
+    return "Preview";
+  }
+  return '';
+};
 
-  const getHeading = () => {
-    if (step === 1) {
-      return importType === 'contacts'
-        ? "Contact Persons - Select File"
-        : "Customers - Select File";
-    } else if (step === 2) {
-      return "Map Fields";
-    } else if (step === 3) {
-      return "Preview";
-    }
-    return '';
-  };
-  
 
   const renderStepContent = () => {
     if (step === 1) return <CustomerFileImport onFileUpload={handleFileUpload} importType={importType} /> ;

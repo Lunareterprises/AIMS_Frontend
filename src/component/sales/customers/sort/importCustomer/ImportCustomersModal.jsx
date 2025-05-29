@@ -15,9 +15,9 @@ export default function ImportCustomersModal({
 
   const handleContinue = () => {
     if (selectedOption === 'customers') {
-      navigate('/import/customers?type=customers');
+      navigate('/import/customers?heading=customers');
     } else if (selectedOption === 'contacts') {
-      navigate('/import/customers?type=contacts');
+      navigate('/import/customers?heading=contacts');
     }
   };
   

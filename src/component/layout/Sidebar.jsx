@@ -2,7 +2,7 @@
 import { useState } from "react";
 import {
   ChevronRight,
-  PiggyBank,
+  BanknoteX,
   ChevronDown,
   BarChart2,
   Map,
@@ -78,7 +78,7 @@ export default function Sidebar() {
           />
           <NavItem
             
-            icon={<PiggyBank size={20} />}
+            icon={<BanknoteX size={20} />}
             label="Banking"
             collapsed={collapsed}
             to="/banking"
