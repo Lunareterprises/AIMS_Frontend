@@ -17,7 +17,7 @@ import { login } from "../../../api/services/authService";
 import ForgotPasswordModal from "./ForgotPassword";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
-import Loader from "../../CommonUI/buttons/Loader/Loader";
+import Loader from "../../CommonUI/Loader/Loader";
 
 const LoginForm = () => {
   const [loading, setLoading] = useState(false);
@@ -131,20 +131,20 @@ const LoginForm = () => {
         <div className="w-full lg:w-1/2 p-8">
           {/* BizFlow logo */}
           <div className="mb-6 flex justify-between items-center">
-            <img
+            {/* <img
               src="/AuthicationImage/avatar.jpg"
               alt="BizFlow"
               className="h-8"
-            />
+            /> */}
 
             {/* Smart sign-in button */}
-            <button className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-full">
+            {/* <button className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-full">
               <span className="text-lg">
                 {" "}
                 <FaQrcode />
               </span>
               <span>Try smart sign-in</span>
-            </button>
+            </button> */}
           </div>
 
           {/* Sign in heading */}

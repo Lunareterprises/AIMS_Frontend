@@ -21,6 +21,17 @@ import CustomersAdd from "../pages/sales/CustomersAdd";
 import CustomerView from "../pages/sales/CustomerView";
 import Addqoutes from "../pages/sales/quotes/Addqoutes";
 import CustomViewBuilder from "../component/items/itemslist/Custom_View";
+import CustomerFileImport from "../component/sales/customers/sort/importCustomer/CustomerFileImport";
+import ImportLayout from "../component/sales/customers/sort/importCustomer/ImportLayout";
+import FieldMappingPage from "../component/sales/customers/sort/importCustomer/FieldMappingPage";
+import SettingsIndex from "../pages/settings/SettingsIndex";
+import CustomersAndVendorsIndex from "../pages/settings/customersAndVendors/CustomersAndVendorsIndex";
+import NewCustomFieldContacts from "../pages/settings/customersAndVendors/NewCustomFieldContacts";
+import CustomFieldsSettings from "../pages/settings/customersAndVendors/CustomFieldsSettings";
+import CustomLinkForm from "../pages/settings/customersAndVendors/CustomLinkForm";
+import CustomerDeatilesPage from "../component/sales/customers/customerDetailedPage/CustomerDeatilesPage";
+import HomeIndex from "../component/home/HomeIndex";
+import BankingIndex from "../component/banking/BankingIndex";
 
 const AppRoutes = () => {
   return (
@@ -32,7 +43,30 @@ const AppRoutes = () => {
       {/* Protected Routes */}
       <Route path="/LandingPage" element={<LandingPage />} />
       <Route path="/OrganizationProfile" element={<OrganizationProfile />} />
-
+      <Route
+        path="/home"
+        element={
+          <MainLayout>
+            <HomeIndex />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/banking"
+        element={
+          <MainLayout>
+            <BankingIndex />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/ItemList"
+        element={
+          <MainLayout>
+            <ItemList />
+          </MainLayout>
+        }
+      />
       <Route
         path="/ItemList"
         element={
@@ -138,13 +172,36 @@ const AppRoutes = () => {
         }
       />
       {/* //-------sale-------------- */}
-
+      <Route
+        path="/import/map-fields"
+        element={
+          <MainLayout>
+            <FieldMappingPage />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/CustomerDetailedPage/:id"
+        element={
+          <MainLayout>
+            <CustomerDeatilesPage />
+          </MainLayout>
+        }
+      />
       <Route
         path="/CustomersList"
         element={
           <MainLayout>
             <CustomersList />
           </MainLayout>
+        }
+      />
+      <Route
+        path="/import/customers"
+        element={
+          // <MainLayout>
+            <ImportLayout />
+          // </MainLayout>
         }
       />
       <Route
@@ -175,7 +232,54 @@ const AppRoutes = () => {
           </MainLayout>
         }
       />
+
+
+
+      {/*//---------------------------settings-------------??  */}
+      <Route
+        path="/settings"
+        element={
+          // <MainLayout>
+            <SettingsIndex />
+          // </MainLayout>
+        }
+      />
+
+      <Route
+        path="/customers-vendors"
+        element={
+          <MainLayout>
+            <CustomersAndVendorsIndex />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/customers-feild-settings"
+        element={
+          <MainLayout>
+            <CustomFieldsSettings />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/New-Custom-Field-Contacts"
+        element={
+          <MainLayout>
+            <NewCustomFieldContacts />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/New-Custom-LinkForm"
+        element={
+          <MainLayout>
+            <CustomLinkForm />
+          </MainLayout>
+        }
+      />
     </Routes>
+
+    
   );
 };
 

@@ -1,8 +1,10 @@
 import React from 'react';
-
-function CommonButton({ label, ...props }) {
+function CommonButton({ label, className = '', ...props }) {
   return (
-    <button style={{ cursor: 'pointer' }} {...props}>
+    <button
+      {...props}
+      className={`cursor-pointer ${className}`.trim()}
+    >
       {label}
     </button>
   );

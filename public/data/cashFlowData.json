@@ -1,0 +1,72 @@
+{
+  "This Fiscal Year": {
+    "cashStart": "AED512,623.65",
+    "startDate": "01 Jan 2025",
+    "incoming": "AED10,000.00",
+    "outgoing": "AED7,812.44",
+    "cashEnd": "AED514,811.21",
+    "endDate": "31 Dec 2025",
+    "chartData": [
+      { "month": "Jan", "year": "2025", "value": 500 },
+      { "month": "Feb", "year": "2025", "value": 500 },
+      { "month": "Mar", "year": "2025", "value": 500 },
+      { "month": "Apr", "year": "2025", "value": 500 },
+      { "month": "May", "year": "2025", "value": 500 },
+      { "month": "Jun", "year": "2025", "value": 500 },
+      { "month": "Jul", "year": "2025", "value": 500 },
+      { "month": "Aug", "year": "2025", "value": 500 },
+      { "month": "Sep", "year": "2025", "value": 500 },
+      { "month": "Oct", "year": "2025", "value": 500 },
+      { "month": "Nov", "year": "2025", "value": 500 },
+      { "month": "Dec", "year": "2025", "value": 500 }
+    ],
+    "isFlat": true
+  },
+  "Previous Fiscal Year": {
+    "cashStart": "AED1,886,875.00",
+    "startDate": "01 Jan 2024",
+    "incoming": "AED1,886,875.00",
+    "outgoing": "AED1,598,205.77",
+    "cashEnd": "AED512,623.65",
+    "endDate": "31 Dec 2024",
+    "chartData": [
+      { "month": "Jan", "year": "2024", "value": 200 },
+      { "month": "Feb", "year": "2024", "value": 300 },
+      { "month": "Mar", "year": "2024", "value": 450 },
+      { "month": "Apr", "year": "2024", "value": 600 },
+      { "month": "May", "year": "2024", "value": 700 },
+      { "month": "Jun", "year": "2024", "value": 850 },
+      { "month": "Jul", "year": "2024", "value": -350 },
+      { "month": "Aug", "year": "2024", "value": -150 },
+      { "month": "Sep", "year": "2024", "value": -50 },
+      { "month": "Oct", "year": "2024", "value": 0 },
+      { "month": "Nov", "year": "2024", "value": 250 },
+      { "month": "Dec", "year": "2024", "value": 500 }
+    ],
+    "isFlat": false
+  },
+  "Last 12 Months": {
+    "cashStart": "AED682,973.94",
+    "startDate": "01 May 2024",
+    "incoming": "AED1,409,975.00",
+    "outgoing": "AED1,578,137.73",
+    "cashEnd": "AED514,811.21",
+    "endDate": "27 May 2025",
+    "chartData": [
+      { "month": "May", "year": "2024", "value": 700 },
+      { "month": "Jun", "year": "2024", "value": 850 },
+      { "month": "Jul", "year": "2024", "value": -300 },
+      { "month": "Aug", "year": "2024", "value": -150 },
+      { "month": "Sep", "year": "2024", "value": -100 },
+      { "month": "Oct", "year": "2024", "value": 0 },
+      { "month": "Nov", "year": "2024", "value": 300 },
+      { "month": "Dec", "year": "2024", "value": 500 },
+      { "month": "Jan", "year": "2025", "value": 520 },
+      { "month": "Feb", "year": "2025", "value": 530 },
+      { "month": "Mar", "year": "2025", "value": 540 },
+      { "month": "Apr", "year": "2025", "value": 520 },
+      { "month": "May", "year": "2025", "value": 540 }
+    ],
+    "isFlat": false
+  }
+}

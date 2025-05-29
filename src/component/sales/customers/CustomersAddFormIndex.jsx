@@ -1,5 +1,5 @@
 import React from 'react';
-import CustomersAddForm from './CustomersAddForm';
+import CustomersAddForm from './newCustomer/CustomersAddForm';
 
 export default function CustomersAddFormIndex() {
   return (

@@ -7,7 +7,7 @@ export default function CustomerViewForm() {
   const [detailsExpanded, setDetailsExpanded] = useState(true);
 
   return (
-    <div className="w-full bg-white border border-gray-200 rounded shadow">
+    <div className="w-full bg-white border border-gray-200 rounded shadow ">
       {/* Header Section */}
       <div className="flex justify-between items-center p-4 border-b border-gray-200">
         <h1 className="text-xl font-bold">ASK</h1>

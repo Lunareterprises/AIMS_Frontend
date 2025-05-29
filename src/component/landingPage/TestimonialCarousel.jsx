@@ -87,7 +87,7 @@ const TestimonialCarousel = () => {
                     <h2 className="text-5xl font-bold">
                       I TRUST
                       <br />
-                      <span className="text-6xl">ZOHO BOOKS</span>
+                      <span className="text-6xl">zeluna</span>
                       <br />
                       FOR MY
                       <br />
