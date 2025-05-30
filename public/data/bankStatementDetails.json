@@ -1,0 +1,10 @@
+{
+    "bankingStatement": [
+        "Date*",
+        "Description",
+        "Payee",
+        "Reference Number",
+        "Withdrawals*",
+        "Deposits*"
+    ]
+}

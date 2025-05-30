@@ -3,47 +3,99 @@ import { FaPen } from 'react-icons/fa';
 
 export default function FieldMappingPage({ file, headers = [], onValidationChange, importType }) {
   console.log('====================================');
-  console.log("importType---------->",importType);
+  console.log("importType-------+++--->",importType);
   console.log('====================================');
   const [zohoFields, setZohoFields] = useState({
     contactDetails: [],
     taxDetails: [],
     itemDetails: [],
     contactPersonDetails:[],
+    bankingStatement:[]
   });
 
   const [mapping, setMapping] = useState({});
+  const [dateFormat, setDateFormat] = useState('');
+
+
   useEffect(() => {
-    const jsonPath =
-      importType === 'contacts'
-        ? '/data/contactPersonImportFields.json'
-        : '/data/customerImportFields.json';
-  
+    let jsonPath = '';
+
+    switch (importType) {
+      case 'contacts':
+        jsonPath = '/data/contactPersonImportFields.json';
+        break;
+      case 'customers':
+        jsonPath = '/data/customerImportFields.json';
+        break;
+      case 'Import Statements':
+        jsonPath = '/data/bankStatementDetails.json';
+        break;
+      case 'employees':
+        jsonPath = '/data/employeeImportFields.json';
+        break;
+      
+      default:
+        jsonPath = '/data/defaultImportFields.json';
+    }
+
     fetch(jsonPath)
       .then(res => res.json())
       .then(data => {
-        if (importType === 'contacts') {
-          setZohoFields({
-            contactPersonDetails: data.contactPersonDetails || []
-          });
-        } else {
-          setZohoFields({
-            contactDetails: data.contactDetails || [],
-            taxDetails: data.taxDetails || [],
-            itemDetails: data.itemDetails || []
-          });
+        switch (importType) {
+          case 'contacts':
+            setZohoFields(prev => ({
+              ...prev,
+              contactPersonDetails: data.contactPersonDetails || []
+            }));
+            break;
+          case 'customers':
+            setZohoFields(prev => ({
+              ...prev,
+              contactDetails: data.contactDetails || [],
+              taxDetails: data.taxDetails || [],
+              itemDetails: data.itemDetails || []
+            }));
+            break;
+          case 'Import Statements':
+            setZohoFields(prev => ({
+              ...prev,
+              bankingStatement: data.bankingStatement || [],
+              
+            }));
+            break;
+          case 'employees':
+            setZohoFields(prev => ({
+              ...prev,
+              employeeDetails: data.employeeDetails || [],
+              salaryDetails: data.salaryDetails || []
+            }));
+            break;
+          default:
+            setZohoFields({});
+
         }
       })
       .catch(err => {
-        console.error('Error loading zeluna fields:', err);
+        console.error('Error loading import fields:', err);
       });
   }, [importType]);
+
   
 
-  useEffect(() => {
-    const isValid = mapping['Display Name'] && mapping['Display Name'] !== '';
-    onValidationChange?.(isValid);
-  }, [mapping, onValidationChange]);
+    useEffect(() => {
+      let isValid = true;
+
+      if (importType === 'Import Statements') {
+        const requiredFields = ['Date*', 'Withdrawals*', 'Deposits*'];
+        isValid = requiredFields.every(field => mapping[field] && mapping[field].trim() !== '');
+      } else if (importType === 'customers' || importType === 'contacts') {
+        isValid = mapping['Display Name'] && mapping['Display Name'].trim() !== '';
+      }
+
+      onValidationChange?.(isValid);
+    }, [mapping, onValidationChange, importType]);
+
+
 
   const handleMappingChange = (field, value) => {
     setMapping(prev => ({
@@ -52,25 +104,47 @@ export default function FieldMappingPage({ file, headers = [], onValidationChang
     }));
   };
 
-  const renderFieldRows = (fields, section) =>
+  const renderFieldRows = (fields = [], section) =>
     fields.map((field, index) => (
-      <div key={`${section}-${index}`} className="flex flex-row items-center">
+      <div key={`${section}-${index}`} className="flex flex-col sm:flex-row sm:items-center mb-2">
         <div className="py-1 px-4 w-60">
-          <label className={`block text-sm font-medium ${field === "Display Name" ? "text-red-600" : "text-gray-900"}`}>
-            {field === "Display Name" ? "Display Name*" : field}
+          <label
+            className={`block text-sm font-medium ${
+              (field === "Display Name" && (importType === 'customers' || importType === 'contacts')) ||
+              (importType === 'Import Statements' && ['Date*', 'Withdrawals*', 'Deposits*'].includes(field))
+                ? "text-red-600"
+                : "text-gray-900"
+            }`}
+          >
+            {field}
           </label>
         </div>
-        <div className="p-2">
-          
-            <select className="px-2 py-2 border border-gray-300 rounded-md w-64 text-sm cursor-pointer focus:outline-none focus:ring-0 focus:ring-gray-300 focus:border-gray-300"
-                value={mapping[field] || ''}
-                onChange={(e) => handleMappingChange(field, e.target.value)}
-             >
+
+        <div className="flex gap-2 items-center">
+          <select
+            className="px-2 py-2 border border-gray-300 rounded-md w-64 text-sm cursor-pointer"
+            value={mapping[field] || ''}
+            onChange={(e) => handleMappingChange(field, e.target.value)}
+          >
             <option value="" disabled>Select</option>
             {headers.map((header, i) => (
               <option key={i} value={header}>{header}</option>
             ))}
           </select>
+
+          {/* Dropdown next to Date* */}
+          {importType === 'Import Statements' && field === 'Date*' && (
+            <select
+              value={dateFormat}
+              onChange={(e) => setDateFormat(e.target.value)}
+              className="px-2 py-2 border border-gray-300 rounded-md w-52 text-sm focus:outline-none focus:ring-0"
+            >
+              <option value="">Select Date Format</option>
+              <option value="DD-MM-YYYY">DD-MM-YYYY</option>
+              <option value="MM-DD-YYYY">MM-DD-YYYY</option>
+              <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+            </select>
+          )}
         </div>
       </div>
     ));
@@ -93,7 +167,7 @@ export default function FieldMappingPage({ file, headers = [], onValidationChang
       </div>
 
       {/* Only for customers */}
-      {importType !== 'contacts' && (
+      {importType === 'customers' && (
         <>
           {/* Default Formats */}
           <div className="bg-[#f9f9fb] rounded-md mb-8">
@@ -145,6 +219,16 @@ export default function FieldMappingPage({ file, headers = [], onValidationChang
           {renderFieldRows(zohoFields.contactPersonDetails || [], 'contactPerson')}
         </div>
       )}
+
+      {importType === 'Import Statements' && (
+        <div className="bg-white rounded-md mb-8">
+          <div className="px-4 py-3 border-b border-gray-200 mb-6">
+            <h2 className="text-base font-semibold text-gray-900 ">Bank Statement Details</h2>
+          </div>
+          {renderFieldRows(zohoFields.bankingStatement || [], 'contactPerson')}
+        </div>
+      )}
+
 
 
 
