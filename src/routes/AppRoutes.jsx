@@ -32,6 +32,7 @@ import CustomLinkForm from "../pages/settings/customersAndVendors/CustomLinkForm
 import CustomerDeatilesPage from "../component/sales/customers/customerDetailedPage/CustomerDeatilesPage";
 import HomeIndex from "../component/home/HomeIndex";
 import BankingIndex from "../component/banking/BankingIndex";
+import QuoteForm from "../component/sales/quotes/createNew/QuoteForm";
 
 const AppRoutes = () => {
   return (
@@ -232,7 +233,14 @@ const AppRoutes = () => {
           </MainLayout>
         }
       />
-
+      <Route
+        path="/QuotesForm"
+        element={
+          <MainLayout>
+            <QuoteForm />
+          </MainLayout>
+        }
+      />
 
 
       {/*//---------------------------settings-------------??  */}

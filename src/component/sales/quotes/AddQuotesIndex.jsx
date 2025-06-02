@@ -1,10 +1,10 @@
 import React from 'react';
-import AddQuotesForm from './AddQuotesForm';
+import QuotesLayout from './QuotesLayout';
 
 export default function AddQuotesIndex() {
   return (
     <div>
-      <AddQuotesForm/>
+     <QuotesLayout />
     </div>
   );
 }
