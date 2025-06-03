@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronDown, Search, Plus, X, Upload, HelpCircle,Settings, Edit } from 'lucide-react';
 import CommonButton from '../../../CommonUI/buttons/CommonButton';
 import BillingAddressFormModal from './BillingAddressFormModal';
+import TaxPreferencesDialog from './TaxPreferencesDialog';
 
 export default function QuoteForm() {
   const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
@@ -12,8 +13,8 @@ export default function QuoteForm() {
   const [currency] = useState('AED');
   const [selectedPlaceOfSupply, setSelectedPlaceOfSupply] = useState('Dubai');
   const [placeOfSupplyDropdownOpen, setPlaceOfSupplyDropdownOpen] = useState(false);
-  const [showModal, setShowModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showTaxTooltip, setShowTaxTooltip] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState('billing'); // 'billing' or 'shipping'
@@ -51,6 +52,13 @@ export default function QuoteForm() {
     { id: 3, name: 'Sharjah' },
     { id: 4, name: 'Ajman' }
   ];
+
+  const toggleTaxTooltip = () => {
+    setShowTaxTooltip((prev) => !prev);
+  };
+  const closeTaxTooltip = () => {
+    setShowTaxTooltip(false);
+  };
 
   return (
     <div className="bg-white min-h-screen w-3/4 text-gray-700">
@@ -173,13 +181,45 @@ export default function QuoteForm() {
                       />
                     </div>
                     {/* Tax Treatment */}
-                    <div className="mt-8 flex items-center space-x-2">
+                    {/* <div className="mt-8 flex items-center space-x-2">
                       <span className="text-gray-600 text-sm">Tax Treatment:</span>
                       <span className="text-gray-900 font-medium text-sm">Non VAT Registered</span>
-                      <button className="text-blue-500 hover:text-blue-700 transition-colors">
-                        <Edit className="w-4 h-4" />
-                      </button>
+                      <CommonButton label={<Edit className="w-4 h-4" />} className="text-blue-500 hover:text-blue-700 transition-colors" />
+                    </div> */}
+
+                    {/* Tax Treatment */}
+                    <div className="mt-8 relative inline-block">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-gray-600 text-sm">Tax Treatment:</span>
+                        <h1 className="text-gray-900 font-medium text-sm focus:outline-none">
+                          Non VAT Registered
+                        </h1>
+                        <CommonButton
+                          label={<Edit className="w-4 h-4" />}
+                          className="text-blue-500 hover:text-blue-700 transition-colors"
+                          onClick={toggleTaxTooltip}
+                        />
+                      </div>
+
+                      {/* Tooltip on click */}
+                      {showTaxTooltip && (
+                        // <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-md p-3 z-50">
+                        //   <p className="text-sm text-gray-700">
+                        //     This customer is marked as <strong>Non VAT Registered</strong>. You can edit this setting by clicking the pencil icon.
+                        //   </p>
+                        //   <div className="text-right mt-2">
+                        //     <button
+                        //       onClick={() => setShowTaxTooltip(false)}
+                        //       className="text-xs text-blue-500 hover:underline"
+                        //     >
+                        //       Close
+                        //     </button>
+                        //   </div>
+                        // </div>
+                        <TaxPreferencesDialog onClose={closeTaxTooltip} />
+                      )}
                     </div>
+
                   </div>
 
                   {/* Place of Supply */}
