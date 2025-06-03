@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ChevronDown, Search, Plus, X, Upload, HelpCircle,Settings } from 'lucide-react';
+import { ChevronDown, Search, Plus, X, Upload, HelpCircle,Settings, Edit } from 'lucide-react';
 import CommonButton from '../../../CommonUI/buttons/CommonButton';
+import BillingAddressFormModal from './BillingAddressFormModal';
 
 export default function QuoteForm() {
   const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
@@ -8,7 +9,27 @@ export default function QuoteForm() {
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState('');
   const [selectedSalesperson, setSelectedSalesperson] = useState('');
-  
+  const [currency] = useState('AED');
+  const [selectedPlaceOfSupply, setSelectedPlaceOfSupply] = useState('Dubai');
+  const [placeOfSupplyDropdownOpen, setPlaceOfSupplyDropdownOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState('billing'); // 'billing' or 'shipping'
+
+  const handleSaveBilling = (data) => {
+    console.log('Billing address saved:', data);
+    // call billing API here
+  };
+
+  const handleSaveShipping = (data) => {
+    console.log('Shipping address saved:', data);
+    // call shipping API here
+  };
+
+  const getSaveHandler = () =>
+    modalType === 'billing' ? handleSaveBilling : handleSaveShipping;
   const customers = [
     { id: 1, name: '2070 VACATION HOME', company: '2070 VACATION HOME RENTAL CO. LLC', initial: '2' },
     { id: 2, name: 'AIMTU', company: 'A I M T U REAL ESTATE L.L.C', initial: 'A' },
@@ -16,8 +37,19 @@ export default function QuoteForm() {
     { id: 4, name: 'Arshad', company: 'Arshad', initial: 'A' }
   ];
 
+    const filteredCustomers = customers.filter((customer) =>
+    customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    customer.company.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const salespersons = [
     { id: 1, name: 'Sales person 1' }
+  ];
+    const placesOfSupply = [
+    { id: 1, name: 'Dubai' },
+    { id: 2, name: 'Abu Dhabi' },
+    { id: 3, name: 'Sharjah' },
+    { id: 4, name: 'Ajman' }
   ];
 
   return (
@@ -25,68 +57,172 @@ export default function QuoteForm() {
 
       <div className="p-6 space-y-6">
         {/* Customer Name */}
-        <div className="flex items-center space-x-2">
-          <label className="text-red-500 font-medium w-32">Customer Name*</label>
-          <div className="relative flex-1">
-            <div 
-              className="border border-gray-300 rounded px-3 py-2 cursor-pointer flex items-center justify-between bg-white"
-              onClick={() => setCustomerDropdownOpen(!customerDropdownOpen)}
-            >
-              <span className="text-gray-500">
-                {selectedCustomer || 'Select or add a customer'}
-              </span>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
-            </div>
-            <button className="absolute right-1 top-1 bottom-1 bg-blue-500 text-white px-3 rounded">
-              <Search className="w-4 h-4" />
-            </button>
-            
-            {customerDropdownOpen && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded shadow-lg z-10">
-                <div className="p-2">
-                  <div className="relative">
-                    <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
-                    <input 
-                      type="text" 
-                      placeholder="Search"
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                </div>
-                <div className="max-h-48 overflow-y-auto">
-                  {customers.map((customer) => (
-                    <div 
-                      key={customer.id}
-                      className="flex items-center space-x-3 p-3 hover:bg-blue-50 cursor-pointer"
-                      onClick={() => {
-                        setSelectedCustomer(customer.name);
-                        setCustomerDropdownOpen(false);
-                      }}
-                    >
-                      <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                        {customer.initial}
-                      </div>
-                      <div>
-                        <div className="font-medium text-blue-600">{customer.name}</div>
-                        <div className="text-sm text-gray-500">{customer.company}</div>
-                      </div>
-                    </div>
-                  ))}
-                  <div className="p-3 border-t">
-                    <button className="flex items-center space-x-2 text-blue-500">
-                      <Plus className="w-4 h-4" />
-                      <span>New Customer</span>
-                    </button>
-                  </div>
-                </div>
+        <div className="flex items-center space-x-2 ">
+          <label className="text-red-500 font-medium w-32 text-sm">Customer Name*</label>
+            <div className="relative flex-1">
+              <div 
+                className="border border-gray-300 rounded px-3 py-2 cursor-pointer flex items-center justify-between bg-white text-sm"
+                onClick={() => setCustomerDropdownOpen(!customerDropdownOpen)}
+              >
+                <span className="text-gray-500">
+                  {selectedCustomer || 'Select or add a customer'}
+                </span>
+                <ChevronDown className="w-4 h-4 text-gray-400" />
               </div>
-            )}
-          </div>
+
+              {customerDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded shadow-lg z-10 text-sm">
+                  <div className="p-2">
+                    <div className="relative">
+                      <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                      <input 
+                        type="text" 
+                        placeholder="Search"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="max-h-48 overflow-y-auto">
+                    {filteredCustomers.length > 0 ? (
+                      filteredCustomers.map((customer) => (
+                        <div 
+                          key={customer.id}
+                          className="flex items-center space-x-3 p-3 hover:bg-blue-50 cursor-pointer"
+                          onClick={() => {
+                            setSelectedCustomer(customer.name);
+                            setCustomerDropdownOpen(false);
+                            setSearchQuery('');
+                          }}
+                        >
+                          <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                            {customer.initial}
+                          </div>
+                          <div>
+                            <div className="font-medium text-blue-600">{customer.name}</div>
+                            <div className="text-sm text-gray-500">{customer.company}</div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-3 text-sm text-gray-500 text-center">No customers found</div>
+                    )}
+
+                    <div className="p-3 border-t">
+                      <button className="flex items-center space-x-2 text-blue-500">
+                        <Plus className="w-4 h-4" />
+                        <span>New Customer</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+          {/* Currency Display */}
+          {selectedCustomer && (
+            <div className="flex items-center justify-end mt-2">
+              <div className="flex items-center space-x-2 bg-gray-100 px-3 py-2 rounded-lg">
+                <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+                <span className="text-gray-700 font-medium text-sm">{currency}</span>
+              </div>
+            </div>
+          )}
+            
         </div>
+
+            {selectedCustomer && (
+                <>
+                  {/* Address Section */}
+                  <div className='ml-36'>
+                    <div className="mt-4 grid grid-cols-2 gap-6">
+                      {/* Billing Section */}
+                      <div>
+                        <h4 className="text-gray-600 font-medium mb-2 text-sm">BILLING ADDRESS</h4>
+                        <CommonButton
+                          onClick={() => {
+                            setModalType('billing');
+                            setModalOpen(true);
+                          }}
+                          label="New Address"
+                          className="text-blue-500 text-sm hover:text-blue-700 transition-colors"
+                        />
+                      </div>
+
+                      {/* Shipping Section */}
+                      <div>
+                        <h4 className="text-gray-600 font-medium mb-2 text-sm">SHIPPING ADDRESS</h4>
+                        <CommonButton
+                          onClick={() => {
+                            setModalType('shipping');
+                            setModalOpen(true);
+                          }}
+                          label="New Address"
+                          className="text-blue-500 text-sm hover:text-blue-700 transition-colors"
+                        />
+                      </div>
+
+                      {/* Modal */}
+                      <BillingAddressFormModal
+                        isOpen={modalOpen}
+                        onClose={() => setModalOpen(false)}
+                        addressType={modalType}
+                        onSave={getSaveHandler()}
+                      />
+                    </div>
+                    {/* Tax Treatment */}
+                    <div className="mt-8 flex items-center space-x-2">
+                      <span className="text-gray-600 text-sm">Tax Treatment:</span>
+                      <span className="text-gray-900 font-medium text-sm">Non VAT Registered</span>
+                      <button className="text-blue-500 hover:text-blue-700 transition-colors">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Place of Supply */}
+                  <div className="flex items-center space-x-2 text-sm">
+                    <label className="text-red-500 font-medium w-32 text-sm">Place of Supply*</label>
+                    <div className="relative w-1/2">
+                      <div 
+                        className="border border-gray-300 rounded px-3 py-2 cursor-pointer flex items-center justify-between bg-white "
+                        onClick={() => setPlaceOfSupplyDropdownOpen(!placeOfSupplyDropdownOpen)}
+                      >
+                        <span className="text-gray-900 font-medium">
+                          {selectedPlaceOfSupply || 'Select place of supply'}
+                        </span>
+                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                      </div>
+
+                      {placeOfSupplyDropdownOpen && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-xl z-10">
+                          <div className="max-h-48 overflow-y-auto">
+                            {placesOfSupply.map((place) => (
+                              <div 
+                                key={place.id}
+                                className="p-3 hover:bg-blue-50 cursor-pointer transition-colors"
+                                onClick={() => {
+                                  setSelectedPlaceOfSupply(place.name);
+                                  setPlaceOfSupplyDropdownOpen(false);
+                                }}
+                              >
+                                <div className="font-medium text-gray-900">{place.name}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
 
         {/* Quote# */}
         <div className="flex items-center space-x-2 ">
-          <label className="text-red-500 font-medium w-32">Quote*</label>
+          <label className="text-red-500 font-medium w-32 text-sm">Quote*</label>
           <div className="relative  w-1/2">
             <input 
               type="text" 
@@ -108,7 +244,7 @@ export default function QuoteForm() {
 
         {/* Reference# */}
         <div className="flex items-center space-x-2">
-          <label className="text-gray-900 font-medium w-32">Reference#</label>
+          <label className="text-gray-900 font-medium w-32 text-sm">Reference#</label>
           <input 
             type="text" 
             className="border border-gray-300 rounded px-3 py-2 w-1/2 focus:outline-none"
@@ -117,13 +253,13 @@ export default function QuoteForm() {
 
         {/* Quote Date */}
         <div className="flex items-center space-x-2 ">
-          <label className="text-red-500 font-medium w-32">Quote Date*</label>
+          <label className="text-red-500 font-medium w-32 text-sm">Quote Date*</label>
           <input 
             type="date" 
             
             className="border border-gray-300 rounded px-3 py-2 w-1/4 focus:outline-none"
           />
-          <span className="text-gray-900 font-medium w-32 ml-20">Expiry Date</span>
+          <span className="text-gray-900 font-medium w-32 text-sm ml-20">Expiry Date</span>
           <input 
             type="date" 
             placeholder="dd MMM yyyy"
@@ -133,7 +269,7 @@ export default function QuoteForm() {
 
         {/* Salesperson */}
         <div className="flex items-center space-x-2 ">
-          <label className="text-gray-900 font-medium w-32">Salesperson</label>
+          <label className="text-gray-900 font-medium w-32 text-sm">Salesperson</label>
           <div className="relative w-1/2">
             <div 
               className="border border-gray-300 rounded px-3 py-2 cursor-pointer flex items-center justify-between bg-white "
@@ -177,7 +313,7 @@ export default function QuoteForm() {
 
         {/* Project Name */}
         <div className="flex items-center space-x-2">
-          <label className="text-gray-900 font-medium w-32">Project Name</label>
+          <label className="text-gray-900 font-medium w-32 text-sm">Project Name</label>
           <div className="relative w-1/2">
             <div 
               className="border border-gray-300 rounded px-3 py-2 cursor-pointer flex items-center justify-between bg-white"
@@ -194,7 +330,7 @@ export default function QuoteForm() {
 
         {/* Subject */}
             <div className="flex items-start space-x-2">
-                <div className="flex items-center space-x-1 w-32">
+                <div className="flex items-center space-x-1 w-32 text-sm">
                     <label className="text-gray-900 font-medium">Subject</label>
                     <div className="relative group">
                     <CommonButton label={<HelpCircle className="w-4 h-4 text-gray-400" />} />
