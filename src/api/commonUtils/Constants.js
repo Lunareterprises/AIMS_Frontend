@@ -50,6 +50,12 @@ export const API_ENDPOINTS = {
   LIST_VENDOR: "/crm/list/vendors",
 
 
+  //----------->>>>>> Sales -  Customer <<<<<<------------------------------
+
+  CREATE_CUSTOMER : "/crm/add-customer",
+  
+
+
   
 
 };

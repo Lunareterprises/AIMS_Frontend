@@ -3,6 +3,7 @@ import { ChevronDown, Search, Plus, X, Upload, HelpCircle,Settings, Edit } from 
 import CommonButton from '../../../CommonUI/buttons/CommonButton';
 import BillingAddressFormModal from './BillingAddressFormModal';
 import TaxPreferencesDialog from './TaxPreferencesDialog';
+import QuoteNumberPreferences from './QuoteNumberPreferences';
 
 export default function QuoteForm() {
   const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
@@ -18,6 +19,7 @@ export default function QuoteForm() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState('billing'); // 'billing' or 'shipping'
+  const [configureModalOpen, setConfigureModalOpen] = useState(false);
 
   const handleSaveBilling = (data) => {
     console.log('Billing address saved:', data);
@@ -181,13 +183,6 @@ export default function QuoteForm() {
                       />
                     </div>
                     {/* Tax Treatment */}
-                    {/* <div className="mt-8 flex items-center space-x-2">
-                      <span className="text-gray-600 text-sm">Tax Treatment:</span>
-                      <span className="text-gray-900 font-medium text-sm">Non VAT Registered</span>
-                      <CommonButton label={<Edit className="w-4 h-4" />} className="text-blue-500 hover:text-blue-700 transition-colors" />
-                    </div> */}
-
-                    {/* Tax Treatment */}
                     <div className="mt-8 relative inline-block">
                       <div className="flex items-center space-x-2">
                         <span className="text-gray-600 text-sm">Tax Treatment:</span>
@@ -203,19 +198,6 @@ export default function QuoteForm() {
 
                       {/* Tooltip on click */}
                       {showTaxTooltip && (
-                        // <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-md p-3 z-50">
-                        //   <p className="text-sm text-gray-700">
-                        //     This customer is marked as <strong>Non VAT Registered</strong>. You can edit this setting by clicking the pencil icon.
-                        //   </p>
-                        //   <div className="text-right mt-2">
-                        //     <button
-                        //       onClick={() => setShowTaxTooltip(false)}
-                        //       className="text-xs text-blue-500 hover:underline"
-                        //     >
-                        //       Close
-                        //     </button>
-                        //   </div>
-                        // </div>
                         <TaxPreferencesDialog onClose={closeTaxTooltip} />
                       )}
                     </div>
@@ -271,14 +253,17 @@ export default function QuoteForm() {
               
             />
             <div className=" group">
-                <CommonButton label={<Settings className='text-gray-700 w-5' />} className="absolute right-1 top-1 bottom-1 px-2" />
-
+                <CommonButton label={<Settings className='text-blue-700 w-5' />} onClick={() => { setConfigureModalOpen(true);  }} className="absolute right-1 top-1 bottom-1 px-2" />
                 <div className="absolute w-1/2 -top-8 right-0 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 z-10">
                     Click here to enable or disable auto-generation of Quote numbers.
                 </div>
 
             </div>
-                           
+              <QuoteNumberPreferences 
+                isOpen={configureModalOpen}
+                onClose={() => setConfigureModalOpen(false)}
+                onSave={getSaveHandler()}
+              />          
           </div>
         </div>
 
@@ -287,7 +272,7 @@ export default function QuoteForm() {
           <label className="text-gray-900 font-medium w-32 text-sm">Reference#</label>
           <input 
             type="text" 
-            className="border border-gray-300 rounded px-3 py-2 w-1/2 focus:outline-none"
+            className="border text-sm border-gray-300 rounded px-3 py-2 w-1/2 focus:outline-none"
           />
         </div>
 
@@ -297,13 +282,13 @@ export default function QuoteForm() {
           <input 
             type="date" 
             
-            className="border border-gray-300 rounded px-3 py-2 w-1/4 focus:outline-none"
+            className="border text-sm border-gray-300 rounded px-3 py-2 w-1/4 focus:outline-none"
           />
           <span className="text-gray-900 font-medium w-32 text-sm ml-20">Expiry Date</span>
           <input 
             type="date" 
             placeholder="dd MMM yyyy"
-            className="border border-gray-300 rounded px-3 py-2 w-1/4 focus:outline-none"
+            className="border text-sm border-gray-300 rounded px-3 py-2 w-1/4 focus:outline-none"
           />
         </div>
 
@@ -312,7 +297,7 @@ export default function QuoteForm() {
           <label className="text-gray-900 font-medium w-32 text-sm">Salesperson</label>
           <div className="relative w-1/2">
             <div 
-              className="border border-gray-300 rounded px-3 py-2 cursor-pointer flex items-center justify-between bg-white "
+              className="border text-sm border-gray-300 rounded px-3 py-2 cursor-pointer flex items-center justify-between bg-white "
               onClick={() => setSalespersonDropdownOpen(!salespersonDropdownOpen)}
             >
               <span className="text-gray-500">
