@@ -1,21 +1,21 @@
 import React, { useState } from "react";
 import { X, MoreVertical } from "lucide-react";
 
-const initialContact = {
-  salutation: "",
-  firstName: "",
-  lastName: "",
-  email: "",
-  workPhone: "",
-  mobile: "",
-  skype: "",
-  designation: "",
-  department: "",
-  showMore: false,
-};
 
-export default function ContactPersonsTab() {
-  const [contacts, setContacts] = useState([{ ...initialContact }]);
+export default function ContactPersonsTab({ contacts, setContacts }) {
+  const initialContact = {
+      salutation: '',
+      firstName: '',
+      lastName: '',
+      email: '',
+      workPhone: '',
+      mobile: '',
+      skype: '',
+      designation: '',
+      department: '',
+      showMore: false,
+    };
+
 
   const addContact = () => {
     setContacts([...contacts, { ...initialContact }]);
@@ -43,27 +43,27 @@ export default function ContactPersonsTab() {
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto border border-gray-300 rounded">
+      <div className="overflow-x-auto border border-gray-100 rounded">
         <table className="min-w-full text-sm border-collapse table-fixed">
-          <thead className="bg-gray-100">
+          <thead className="bg-gray-50 whitespace-nowrap">
             <tr>
-              <th className="border border-gray-300 px-1 py-1 font-medium">SALUTATION</th>
-              <th className="border border-gray-300 px-1 py-1 font-medium">FIRST NAME</th>
-              <th className="border border-gray-300 px-1 py-1 font-medium">LAST NAME</th>
-              <th className="border border-gray-300 px-1 py-1 font-medium">EMAIL</th>
-              <th className="border border-gray-300 px-1 py-1 font-medium">WORK PHONE</th>
-              <th className="border border-gray-300 px-1 py-1 font-medium">MOBILE</th>
+              <th className="border border-gray-300 px-3 py-2 text-sm font-medium">SALUTATION</th>
+              <th className="border border-gray-300 px-3 py-2 text-sm font-medium">FIRST NAME</th>
+              <th className="border border-gray-300 px-3 py-2 text-sm font-medium">LAST NAME</th>
+              <th className="border border-gray-300 px-3 py-2 text-sm font-medium">EMAIL</th>
+              <th className="border border-gray-300 px-3 py-2 text-sm font-medium">WORK PHONE</th>
+              <th className="border border-gray-300 px-3 py-2 text-sm font-medium">MOBILE</th>
               {hasMoreFieldsVisible && (
                 <>
-                  <th className="border border-gray-300 px-1 py-1 font-medium">SKYPE</th>
-                  <th className="border border-gray-300 px-1 py-1 font-medium">DESIGNATION</th>
-                  <th className="border border-gray-300 px-1 py-1 font-medium">DEPARTMENT</th>
+                  <th className="border border-gray-300 px-3 py-2 text-sm font-medium">SKYPE</th>
+                  <th className="border border-gray-300 px-3 py-2 text-sm font-medium">DESIGNATION</th>
+                  <th className="border border-gray-300 px-3 py-2 text-sm font-medium">DEPARTMENT</th>
                 </>
               )}
-              <th className="border border-gray-300 px-1 py-1"></th>
+              <th className="border border-gray-300 px-3 py-2 text-sm"></th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="text-sm">
             {contacts.map((contact, index) => (
               <tr key={index}>
                 <td className="border border-gray-300 px-1 py-1">

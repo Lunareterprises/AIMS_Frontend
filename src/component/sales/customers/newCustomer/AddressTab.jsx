@@ -2,22 +2,12 @@ import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import { Country, State } from 'country-state-city';
 
-const initialAddress = {
-  attention: '',
-  country: null,
-  state: null,
-  address1: '',
-  address2: '',
-  city: '',
-  zip: '',
-  phone: '',
-  fax: '',
-};
 
-const AddressTab = () => {
-  const [billing, setBilling] = useState({ ...initialAddress });
-  const [shipping, setShipping] = useState({ ...initialAddress });
+
+const AddressTab = ({ billing, setBilling, shipping, setShipping }) => {
+
   const [countries, setCountries] = useState([]);
+
 
   useEffect(() => {
     const countryOptions = Country.getAllCountries().map((c) => ({
@@ -38,6 +28,11 @@ const AddressTab = () => {
     const updated = { ...billing, [field]: value };
     if (field === 'country') updated.state = null;
     setBilling(updated);
+  };
+  const handleChange = (type, field, value) => {
+    const updated = { ...data[type], [field]: value };
+    if (field === 'country') updated.state = null;
+    onChange(type, updated);
   };
 
   const handleShippingChange = (field, value) => {
@@ -68,14 +63,14 @@ const AddressTab = () => {
               type="text"
               value={data[key]}
               onChange={(e) => onChange(key, e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-0"
+              className="w-full border text-sm border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-0"
             />
           </div>
         ))}
 
         <div className="flex items-center gap-4">
           <label className="w-40 text-sm font-medium text-gray-700">Country/Region</label>
-          <div className="w-full">
+          <div className="w-full text-sm">
             <Select
               value={data.country}
               options={countries}
@@ -88,7 +83,7 @@ const AddressTab = () => {
 
         <div className="flex items-center gap-4">
           <label className="w-40 text-sm font-medium text-gray-700">State</label>
-          <div className="w-full">
+          <div className="w-full text-sm">
             <Select
               value={data.state}
               options={data.country ? getStates(data.country.value) : []}

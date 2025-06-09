@@ -16,6 +16,36 @@ const CustomersAddForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [formErrors, setFormErrors] = useState({});
+  const [contacts, setContacts] = useState([
+    {
+      salutation: "",
+      firstName: "",
+      lastName: "",
+      email: "",
+      workPhone: "",
+      mobile: "",
+      skype: "",
+      designation: "",
+      department: "",
+      showMore: false,
+    }
+  ]);
+  const initialAddress = {
+    attention: '',
+    country: null,
+    state: null,
+    address1: '',
+    address2: '',
+    city: '',
+    zip: '',
+    phone: '',
+    fax: '',
+  };
+  const [billingAddress, setBillingAddress] = useState({ ...initialAddress });
+  const [shippingAddress, setShippingAddress] = useState({ ...initialAddress });
+
+ 
+
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -49,7 +79,7 @@ const CustomersAddForm = () => {
     facebook: '',
   });
 
-  const tabs = ['Other Details', 'Address', 'Contact Persons'];
+  const tabs = ['Other Details', 'Address', 'Contact Persons', 'Remark'];
 
   useEffect(() => {
     const { salutation, firstName, lastName } = formData;
@@ -85,45 +115,45 @@ const CustomersAddForm = () => {
     setError('');
 
     const payload = {
-      cu_salutation: formData.salutation,
-      cu_first_name: formData.firstName,
-      cu_last_name: formData.lastName,
-      cu_company_name: formData.companyName,
-      cu_display_name: formData.displayName,
-      cu_email: formData.email,
-      cu_phone: formData.workPhone,
-      cu_mobile: formData.mobile,
-      cu_pan_no: '',
-      cu_opening_balance: otherDetailsData.openingBalance,
-      cu_website: otherDetailsData.website,
-      cu_designation: otherDetailsData.designation,
-      cu_department: otherDetailsData.department,
-      cu_type: formData.customerType,
-      cu_currency: otherDetailsData.currency,
-      cu_payment_terms: otherDetailsData.paymentTerms,
-      cu_portal_language: otherDetailsData.portalLanguage,
-      cu_portal_access: otherDetailsData.enablePortal,
-      cu_remarks: "qqq",
+        cu_salutation: formData.salutation,
+        cu_first_name: formData.firstName,
+        cu_last_name: formData.lastName,
+        cu_company_name: formData.companyName,
+        cu_display_name: formData.displayName,
+        cu_email: formData.email,
+        cu_phone: formData.workPhone,
+        cu_mobile: formData.mobile,
+        cu_pan_no: '',
+        cu_opening_balance: otherDetailsData.openingBalance,
+        cu_website: otherDetailsData.website,
+        cu_designation: otherDetailsData.designation,
+        cu_department: otherDetailsData.department,
+        cu_type: formData.customerType,
+        cu_currency: otherDetailsData.currency,
+        cu_payment_terms: otherDetailsData.paymentTerms,
+        cu_portal_language: otherDetailsData.portalLanguage,
+        cu_portal_access: otherDetailsData.enablePortal,
+        cu_remarks: "qqq",
+        image:otherDetailsData.documents,
+        cu_b_addr_attention: billingAddress.attention,
+        cu_b_addr_country: billingAddress.country?.label || '',
+        cu_b_addr_address: billingAddress.address1,
+        cu_b_addr_city: billingAddress.city,
+        cu_b_addr_state: billingAddress.state?.label || '',
+        cu_b_addr_pincode: billingAddress.zip,
+        cu_b_addr_phone: billingAddress.phone,
+        cu_b_addr_fax_number: billingAddress.fax,
 
-      cu_b_addr_attention: "attention",
-      cu_b_addr_country: "country",
-      cu_b_addr_address: "address",
-      cu_b_addr_city: "city",
-      cu_b_addr_state: "state",
-      cu_b_addr_pincode: "pincode",
-      cu_b_addr_phone: "phone",
-      cu_b_addr_fax_number: "fax",
+        cu_s_addr_attention: shippingAddress.attention,
+        cu_s_addr_country: shippingAddress.country?.label || '',
+        cu_s_addr_address: shippingAddress.address1,
+        cu_s_addr_city: shippingAddress.city,
+        cu_s_addr_state: shippingAddress.state?.label || '',
+        cu_s_addr_pincode: shippingAddress.zip,
+        cu_s_addr_phone: shippingAddress.phone,
+        cu_s_addr_fax_number: shippingAddress.fax,
 
-      cu_s_addr_attention: ".attention",
-      cu_s_addr_country: ".country",
-      cu_s_addr_address: ".address",
-      cu_s_addr_city: ".city",
-      cu_s_addr_state: ".state",
-      cu_s_addr_pincode: ".pincode",
-      cu_s_addr_phone: ".phone",
-      cu_s_addr_fax_number: ".fax",
-
-      contact_person: "qqq",
+      contact_person: "",
       cu_tax_treatment: otherDetailsData.taxTreatment,
       cu_place_supply: otherDetailsData.placeOfSupply,
       cu_tax_preference: '',
@@ -145,9 +175,14 @@ const CustomersAddForm = () => {
       case 'Other Details':
         return <OtherDetails data={otherDetailsData} onChange={setOtherDetailsData} />;
       case 'Address':
-        return <AddressTab />;
+        return <AddressTab 
+                  billing={billingAddress}
+                  setBilling={setBillingAddress}
+                  shipping={shippingAddress}
+                  setShipping={setShippingAddress}
+                />;
       case 'Contact Persons':
-        return <ContactPersonsTab />;
+        return <ContactPersonsTab contacts={contacts} setContacts={setContacts}/>;
       case 'Custom Fields':
         return <CustomFields />;
       case 'Reporting Tags':
@@ -333,7 +368,7 @@ const CustomersAddForm = () => {
         <div className="bg-white border-t border-gray-200 p-4 sticky bottom-0 left-0 w-full flex justify-start space-x-3 z-10">
           <CommonButton
             onClick={handleSubmit}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 z-20"
             label={loading ? 'Saving...' : 'Save'}
             disabled={loading}
           />
