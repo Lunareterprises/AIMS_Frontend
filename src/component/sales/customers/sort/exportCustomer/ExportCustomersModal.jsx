@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { X, Info, ChevronDown, Check } from 'lucide-react';
 import CommonButton from '../../../../CommonUI/buttons/CommonButton';
 
-export default function ExportCustomersModal({ onClose }) {
+export default function ExportCustomersModal({ onClose, defaultModule }) {
   const [module] = useState('Customers');
-  const [dropdownSelection, setDropdownSelection] = useState('Customers');
-  const [moduleOption, setModuleOption] = useState('Customers');
+  const [dropdownSelection, setDropdownSelection] = useState(defaultModule);
+  const [moduleOption, setModuleOption] = useState(defaultModule);
   const [exportType, setExportType] = useState('All Customers');
   const [decimalFormat] = useState('12345678.9');
   const [fileFormat, setFileFormat] = useState('CSV');
@@ -57,9 +57,7 @@ export default function ExportCustomersModal({ onClose }) {
         {/* Header */}
         <div className="flex justify-between items-center py-3 px-4 bg-gray-100">
           <h2 className="text-base font-medium text-gray-800">Export Customers</h2>
-          <button onClick={onClose} className="text-red-600 hover:text-gray-700">
-            <X size={18} />
-          </button>
+          <CommonButton label={<X size={18} />} onClick={onClose} className="text-red-600 hover:text-gray-700" />
         </div>
 
         {/* Content */}

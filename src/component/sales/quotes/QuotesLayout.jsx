@@ -271,6 +271,7 @@ const [filterFields, setFilterFields] = useState({
               <ExportCustomersModal
                 isOpen={showExportModal}
                 onClose={() => setShowExportModal(false)}
+                 defaultModule="Quotes"
               />
             )}
 

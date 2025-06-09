@@ -19,6 +19,9 @@ export default function ImportCustomersModal({
     } else if (selectedOption === 'contacts') {
       navigate('/import/customers?heading=contacts');
     }
+    else if (selectedOption === 'Quotes') {
+      navigate('/import/customers?heading=contacts');
+    }
   };
   
   return (

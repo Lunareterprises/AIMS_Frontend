@@ -130,6 +130,7 @@ export default function CustomersList() {
               <ExportCustomersModal
                 isOpen={showExportModal}
                 onClose={() => setShowExportModal(false)}
+                 defaultModule="Customers"
               />
             )}
 
