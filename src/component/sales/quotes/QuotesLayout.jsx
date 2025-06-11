@@ -179,7 +179,6 @@ const allColumns = [
   { label: 'Sub Total', accessor: 'subTotal', key: 'subTotal' }
 ];
 
-
 export default function QuotesLayout() {
   const navigate = useNavigate();
   const [customers] = useState(initialCustomers);
@@ -189,7 +188,6 @@ export default function QuotesLayout() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showExportCurrentView, setShowExportCurrentView] = useState(false);
-
   const [showImportModal, setShowImportModal] = useState(false);
   const [importOption, setImportOption] = useState('customers');
 
@@ -208,30 +206,31 @@ export default function QuotesLayout() {
     }
   };
 
-
-  
-
-const [filterFields, setFilterFields] = useState({
-  date: true,
-  quoteNumber: true,
-  referenceNumber: true,
-  customerName: true,
-  status: true,
-  amount: true,
-  acceptedDate: false,
-  companyName: false,
-  declinedDate: false,
-  expiryDate: false,
-  salesPerson: false,
-  subTotal: false,
-});
-
+  const [filterFields, setFilterFields] = useState({
+    date: true,
+    quoteNumber: true,
+    referenceNumber: true,
+    customerName: true,
+    status: true,
+    amount: true,
+    acceptedDate: false,
+    companyName: false,
+    declinedDate: false,
+    expiryDate: false,
+    salesPerson: false,
+    subTotal: false,
+  });
 
   const visibleColumns = allColumns.filter(col => filterFields[col.key]);
 
+  // Updated handleRowClick to pass the entire row data
   const handleRowClick = (id) => {
-    navigate(`/CustomerDetailedPage/${id}`);
+    const selectedQuote = customers.find(customer => customer.id === id);
+    navigate(`/QuotesDetailedPage/${id}`, { 
+      state: { quoteData: selectedQuote }
+    });
   };
+
   const handleRowSelect = (id) => {
     setSelectedRows(prev =>
       prev.includes(id) ? prev.filter(row => row !== id) : [...prev, id]
@@ -244,10 +243,10 @@ const [filterFields, setFilterFields] = useState({
   };
 
   return (
-    <div >
+    <div>
       {/* Header section */}
-      <div className=" w-full bg-white ">
-        <div className="flex items-center w-full justify-between p-4 border-b ">
+      <div className="w-full bg-white">
+        <div className="flex items-center w-full justify-between p-4 border-b">
           <div className="flex items-center">
             <h1 className="text-2xl font-semibold text-gray-800">All Quotes</h1>
             <ChevronDown className="ml-2 text-blue-500" size={20} />
@@ -271,18 +270,17 @@ const [filterFields, setFilterFields] = useState({
               <ExportCustomersModal
                 isOpen={showExportModal}
                 onClose={() => setShowExportModal(false)}
-                 defaultModule="Quotes"
+                defaultModule="Quotes"
               />
             )}
 
             {showExportCurrentView && (
               <ExportCurrentView 
-              isOpen={showExportCurrentView}
-              onClose={() => setShowExportCurrentView(false)}
+                isOpen={showExportCurrentView}
+                onClose={() => setShowExportCurrentView(false)}
               />
             )}
 
-          
             <CommonButton
               label={<HelpCircle size={20} />}
               className="p-2 text-white bg-orange-500 hover:bg-orange-600 rounded"
@@ -290,11 +288,12 @@ const [filterFields, setFilterFields] = useState({
           </div>
         </div>
       </div>
+      
       {/* table */}
       <div className="w-full overflow-x-auto">
         <div className="w-full">
           <div className="overflow-x-auto">
-            <div className="min-w-[1000px]"> {/* optional: set a min-width */}
+            <div className="min-w-[1000px]">
               <CustomerTable
                 columns={visibleColumns}
                 data={customers}
@@ -310,10 +309,6 @@ const [filterFields, setFilterFields] = useState({
           </div>
         </div>
 
-
-
-      
-
         {isFilterModalOpen && (
           <FilterModal
             filterFields={filterFields}
@@ -323,8 +318,5 @@ const [filterFields, setFilterFields] = useState({
         )}
       </div>
     </div>
-
   );
 }
-
-

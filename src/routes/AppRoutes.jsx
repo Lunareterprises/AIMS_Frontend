@@ -33,6 +33,7 @@ import CustomerDeatilesPage from "../component/sales/customers/customerDetailedP
 import HomeIndex from "../component/home/HomeIndex";
 import BankingIndex from "../component/banking/BankingIndex";
 import QuoteForm from "../component/sales/quotes/createNew/QuoteForm";
+import QuotesDetailedPage from "../component/sales/quotes/QuotesDetailedPage";
 
 const AppRoutes = () => {
   return (
@@ -238,6 +239,14 @@ const AppRoutes = () => {
         element={
           <MainLayout>
             <QuoteForm />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/QuotesDetailedPage/:id"
+        element={
+          <MainLayout>
+            <QuotesDetailedPage />
           </MainLayout>
         }
       />
