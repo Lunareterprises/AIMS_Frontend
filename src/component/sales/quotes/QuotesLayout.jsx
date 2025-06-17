@@ -227,7 +227,7 @@ export default function QuotesLayout() {
   const handleRowClick = (id) => {
     const selectedQuote = customers.find(customer => customer.id === id);
     navigate(`/QuotesDetailedPage/${id}`, { 
-      state: { quoteData: selectedQuote }
+      state: { quoteData: selectedQuote , title: "Quote",backToPath :"/Addqoutes", editForm:"/QuotesForm"}
     });
   };
 

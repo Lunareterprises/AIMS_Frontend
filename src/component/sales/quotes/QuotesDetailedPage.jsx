@@ -1,12 +1,34 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import CommonButton from '../../CommonUI/buttons/CommonButton';
+import * as html2pdf from 'html2pdf.js';
 
 export default function QuotesDetailedPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const quoteData = location.state?.quoteData;
+  const title = location.state?.title || "Quote";
+  const backToPath = location.state?.backToPath ;
+  const editForm = location.state?.editForm;
+
+  const printRef = useRef();
+
+  const handlePrint = () => {
+    window.print();
+  };
+  const handleDownloadPDF = () => {
+    const element = printRef.current;
+    const opt = {
+      margin: 0.5,
+      filename: `${title}_${quoteData?.quoteNumber || 'Quote'}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+  };
+
 
   // Handle case where no data is passed (direct URL access)
   if (!quoteData) {
@@ -24,31 +46,34 @@ export default function QuotesDetailedPage() {
   return (
 
     <div>
-      <header className="flex items-center justify-start mb-10">
-  <div>
-    <CommonButton 
-      label={
-        <>
-          <ArrowLeft size={16} className="mr-2" />
-          Back to Quotes
-        </>
-      }
-      onClick={() => navigate('/quotes')}
-      className="hover:text-blue-600 text-blue-500 px-4 py-2 rounded flex items-center cursor-pointer"
-    />
-  </div>
-  
-  <CommonButton 
-    label="Edit" 
-    className="bg-gray-200 rounded-xl px-5 py-2 text-gray-900 hover:bg-gray-300"
-    onClick={()=>navigate("/QuotesForm")}
-  />
-</header>
+      <header className="flex items-center justify-start mb-10 gap-3">
+        <div>
+          <CommonButton 
+            label={
+              <>
+                <ArrowLeft size={16} className="mr-2" />
+                Back to Quotes
+              </>
+            }
+            onClick={() => navigate(backToPath)}
+            className="hover:text-blue-600 text-blue-500 px-4 py-2 rounded flex items-center cursor-pointer"
+          />
+        </div>
+        
+        <CommonButton 
+          label="Edit" 
+          className="bg-gray-200 rounded-md px-5 py-2 text-gray-900 hover:bg-gray-300"
+          onClick={()=>navigate(editForm)}
+        />
+        <CommonButton onClick={handleDownloadPDF}  label="PDF" className="bg-gray-200 rounded-md px-5 py-2 text-gray-900 hover:bg-gray-300"/>
+        <CommonButton onClick={handlePrint} label="Print" className="bg-gray-200 rounded-md px-5 py-2 text-gray-900 hover:bg-gray-300"/>
+
+      </header>
 
       
 
     
-    <div className="max-w-4xl mx-auto bg-gray-50  p-8 shadow-xl">
+    <div ref={printRef} className="max-w-4xl mx-auto bg-gray-50  p-8 shadow-xl">
       {/* Back Button */}
       <div className="mb-6">
         {/* <button 
@@ -90,7 +115,7 @@ export default function QuotesDetailedPage() {
         
         {/* Quote Header */}
         <div className="text-right">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">QUOTE</h1>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">{title}</h1>
           <p className="text-sm text-gray-600"># {quoteData.quoteNumber}</p>
           <p className="text-sm text-gray-600">Ref: {quoteData.referenceNumber}</p>
         </div>
@@ -99,7 +124,7 @@ export default function QuotesDetailedPage() {
       {/* Quote Details Section */}
       <div className="grid grid-cols-2 gap-8 mb-8 p-6 bg-gray-50 rounded-lg">
         <div>
-          <h3 className="font-semibold text-gray-800 mb-4">Quote Information</h3>
+          <h3 className="font-semibold text-gray-800 mb-4">{title} Information</h3>
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-gray-600">Date:</span>
@@ -152,7 +177,7 @@ export default function QuotesDetailedPage() {
             <p className="text-gray-600">{quoteData.companyName}</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-gray-600">Quote Date: {quoteData.date}</p>
+            <p className="text-sm text-gray-600">{title} Date: {quoteData.date}</p>
           </div>
         </div>
       </div>

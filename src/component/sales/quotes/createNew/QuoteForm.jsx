@@ -263,6 +263,7 @@ export default function QuoteForm() {
                 isOpen={configureModalOpen}
                 onClose={() => setConfigureModalOpen(false)}
                 onSave={getSaveHandler()}
+                source="quote"
               />          
           </div>
         </div>
@@ -508,9 +509,9 @@ export default function QuoteForm() {
         </div>
 
         {/* Footer Note */}
-        <div className="text-sm text-gray-500 mt-4">
+        {/* <div className="text-sm text-gray-500 mt-4">
           Here is your Smart Chat (Ctrl+Space)
-        </div>
+        </div> */}
       </div>
     </div>
   );

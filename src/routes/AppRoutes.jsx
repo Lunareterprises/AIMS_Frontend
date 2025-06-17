@@ -34,6 +34,8 @@ import HomeIndex from "../component/home/HomeIndex";
 import BankingIndex from "../component/banking/BankingIndex";
 import QuoteForm from "../component/sales/quotes/createNew/QuoteForm";
 import QuotesDetailedPage from "../component/sales/quotes/QuotesDetailedPage";
+import InvoicesLayout from "../component/sales/invoices/InvoicesLayout";
+import InvoiceForm from "../component/sales/invoices/createNew/InvoiceForm";
 
 const AppRoutes = () => {
   return (
@@ -294,8 +296,26 @@ const AppRoutes = () => {
           </MainLayout>
         }
       />
+      {/*//---------------------------InvoicesLayout-------------??  */}
+      <Route
+        path="/invoicesLayout"
+        element={
+          <MainLayout>
+            <InvoicesLayout />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/InvoiceForm"
+        element={
+          <MainLayout>
+            <InvoiceForm />
+          </MainLayout>
+        }
+      />
     </Routes>
 
+      
     
   );
 };

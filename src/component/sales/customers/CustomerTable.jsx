@@ -12,6 +12,7 @@ export default function CustomerTable({
   onSelectAll = () => {},
   rowHighlightKey = null,
   onFilterClick = () => {},
+   
 }) {
   return (
     <div className="w-full overflow-x-auto">
@@ -34,7 +35,7 @@ export default function CustomerTable({
                   type="checkbox"
                   checked={selectAll}
                   onChange={onSelectAll}
-                  className="w-4 h-4 text-blue-500 border-gray-300 rounded"
+                  className="w-4 h-4 text-blue-500 border-gray-300 rounded -ml-5"
                 />
               </th>
               {columns.map(col => (

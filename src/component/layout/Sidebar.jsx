@@ -62,7 +62,7 @@ export default function Sidebar() {
           </div>
         </div>
 
-        <div className="flex-1 p-4 overflow-y-auto">
+        <div className="flex-1 p-4 overflow-y-auto whitespace-nowrap">
           {!collapsed && (
             <div className="px-4 py-2 text-xs uppercase tracking-wider text-slate-500">
               General
@@ -147,6 +147,7 @@ export default function Sidebar() {
               {
                 icon: <Receipt size={18} />,
                 label: "Invoices",
+                to:"/invoicesLayout"
               },
               {
                 icon: <DollarSign size={18} />,

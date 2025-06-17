@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Info, Plus } from 'lucide-react';
 import CommonButton from '../../../CommonUI/buttons/CommonButton';
 
-const QuoteNumberPreferences = ({ isOpen, onClose }) => {
+const QuoteNumberPreferences = ({ isOpen, onClose, source }) => {
   const [autoGenerate, setAutoGenerate] = useState(true);
   const [prefix, setPrefix] = useState('QT-');
   const [nextNumber, setNextNumber] = useState('000004');
@@ -12,6 +12,15 @@ const QuoteNumberPreferences = ({ isOpen, onClose }) => {
   const [showYearDropdown, setShowYearDropdown] = useState(false);
   const [selectedOption, setSelectedOption] = useState('');
   const [selectedYearFormat, setSelectedYearFormat] = useState('');
+  const [labelName, setLabelName] = useState('');
+
+    useEffect(() => {
+    if (source === 'invoice') {
+      setLabelName('Invoice');
+    } else if(source === 'quote'){
+      setLabelName('Quote');
+    }
+  }, [source]);
 
   if (!isOpen) return null;
 
@@ -45,7 +54,7 @@ const QuoteNumberPreferences = ({ isOpen, onClose }) => {
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Configure Quote Number Preferences</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Configure {labelName} Number Preferences</h2>
           <CommonButton label={<X size={24} />} className="text-gray-400 hover:text-gray-600" onClick={onClose} />
         </div>
 
@@ -69,7 +78,7 @@ const QuoteNumberPreferences = ({ isOpen, onClose }) => {
           {/* Warning Message */}
           <div className="bg-gray-50 p-4 rounded-lg">
             <p className="text-gray-700">
-              Your quote numbers are set on auto-generate mode to save your time. Are you sure about changing this setting?
+              Your {labelName} numbers are set on auto-generate mode to save your time. Are you sure about changing this setting?
             </p>
           </div>
 
@@ -85,7 +94,7 @@ const QuoteNumberPreferences = ({ isOpen, onClose }) => {
                 className="w-4 h-4 text-blue-600"
               />
               <label htmlFor="auto-generate" className="text-gray-900 font-medium">
-                Continue auto-generating quote numbers
+                Continue auto-generating {labelName} numbers
               </label>
               <div className="relative ">
                 <button
@@ -97,7 +106,7 @@ const QuoteNumberPreferences = ({ isOpen, onClose }) => {
                 </button>
                 {showTooltip && (
                   <div className=" absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg w-96 z-10">
-                    The edited prefix and next number will be updated in the transaction number series associated with your quote.
+                    The edited prefix and next number will be updated in the transaction number series associated with your {labelName}.
                   </div>
                 )}
               </div>
@@ -145,7 +154,7 @@ const QuoteNumberPreferences = ({ isOpen, onClose }) => {
                   />
                   <div className="flex-1">
                     <label htmlFor="restart-numbering" className="text-gray-700">
-                      Restart numbering for quotes at the start of each fiscal year.
+                      Restart numbering for {labelName} at the start of each fiscal year.
                     </label>
                     
                     {restartNumbering && (
@@ -209,7 +218,7 @@ const QuoteNumberPreferences = ({ isOpen, onClose }) => {
                 className="w-4 h-4 text-blue-600"
               />
               <label htmlFor="manual-entry" className="text-gray-900 font-medium">
-                Enter quote numbers manually
+                Enter {labelName} numbers manually
               </label>
             </div>
           </div>
