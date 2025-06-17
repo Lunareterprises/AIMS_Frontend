@@ -152,6 +152,7 @@ export default function Sidebar() {
               {
                 icon: <DollarSign size={18} />,
                 label: "Payment Received",
+                to:"/payemntReceived"
               },
               {
                 icon: <Repeat size={18} />,

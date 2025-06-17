@@ -117,7 +117,7 @@ export default function InvoiceForm() {
           <label className="text-red-500 font-medium w-32 text-sm">Customer Name*</label>
           <div className="relative flex-1">
             <div 
-              className="border border-gray-300 rounded px-3 py-2 cursor-pointer flex items-center justify-between bg-white text-sm"
+              className="border focus:outline-none border-gray-300 rounded px-3 py-2 cursor-pointer flex items-center justify-between bg-white text-sm"
               onClick={() => setCustomerDropdownOpen(!customerDropdownOpen)}
             >
               <span className="text-gray-500">
@@ -136,7 +136,7 @@ export default function InvoiceForm() {
                       placeholder="Search"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded"
+                      className="w-full focus:outline-none pl-10 pr-3 py-2 border border-gray-300 rounded"
                     />
                   </div>
                 </div>
@@ -146,7 +146,7 @@ export default function InvoiceForm() {
                     filteredCustomers.map((customer) => (
                       <div 
                         key={customer.id}
-                        className="flex items-center space-x-3 p-3 hover:bg-blue-50 cursor-pointer"
+                        className="flex items-center space-x-3 p-3 hover:bg-blue-50 cursor-pointer focus:outline-none"
                         onClick={() => {
                           setSelectedCustomer(customer.name);
                           setCustomerDropdownOpen(false);
@@ -261,7 +261,7 @@ export default function InvoiceForm() {
                       {placesOfSupply.map((place) => (
                         <div 
                           key={place.id}
-                          className="p-3 hover:bg-blue-50 cursor-pointer transition-colors"
+                          className="p-3 hover:bg-blue-50 cursor-pointer transition-colors focus:outline-none"
                           onClick={() => {
                             setSelectedPlaceOfSupply(place.name);
                             setPlaceOfSupplyDropdownOpen(false);

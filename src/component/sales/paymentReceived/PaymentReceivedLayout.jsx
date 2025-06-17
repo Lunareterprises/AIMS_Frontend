@@ -13,173 +13,69 @@ import SortOptionsDropdown from '../customers/sort/SortOptionsDropdown';
 
 const initialCustomers = [
   {
-    id: 1,
-    date: '2025-05-30',
-    quoteNumber: 'Q1001',
-    referenceNumber: 'REF123',
-    customerName: 'ASK',
-    status: 'Open',
-    amount: 'AED 500.00',
-    acceptedDate: '2025-06-01',
-    companyName: 'ASK PORTAL - FZCO',
-    declinedDate: '',
-    expiryDate: '2025-06-15',
-    salesPerson: 'John Doe',
-    subTotal: 'AED 450.00'
+    id:"1",
+    date: '29 May 2025',
+    paymentNumber: '919',
+    referenceNumber: 'asdas',
+    customerName: 'Arefad',
+    invoiceNumber: 'INV-000039',
+    mode: 'Cash',
+    amount: 10000.00,
+    unusedAmount: 0.00,
+    paymentType: 'Customer Payment'
   },
   {
-    id: 2,
-    date: '2025-05-28',
-    quoteNumber: 'Q1002',
-    referenceNumber: 'REF124',
-    customerName: 'Tech Solutions',
-    status: 'Sent',
-    amount: 'AED 1,250.00',
-    acceptedDate: '',
-    companyName: 'Tech Solutions LLC',
-    declinedDate: '',
-    expiryDate: '2025-06-10',
-    salesPerson: 'Jane Smith',
-    subTotal: 'AED 1,100.00'
+    id:"2",
+    date: '29 May 2025',
+    paymentNumber: '920',
+    referenceNumber: 'asdas',
+    customerName: 'Arefad',
+    invoiceNumber: 'INV-000078',
+    mode: 'Cash',
+    amount: 10000.00,
+    unusedAmount: 0.00,
+    paymentType: 'Customer Payment'
   },
   {
-    id: 3,
-    date: '2025-05-27',
-    quoteNumber: 'Q1003',
-    referenceNumber: 'REF125',
-    customerName: 'Future Works',
-    status: 'Accepted',
-    amount: 'AED 2,300.00',
-    acceptedDate: '2025-05-29',
-    companyName: 'Future Works Ltd.',
-    declinedDate: '',
-    expiryDate: '2025-06-12',
-    salesPerson: 'Michael Lee',
-    subTotal: 'AED 2,000.00'
+    id:"3",
+    date: '28 May 2025',
+    paymentNumber: '918',
+    referenceNumber: 'REF12345',
+    customerName: 'Global Traders',
+    invoiceNumber: 'INV-000034',
+    mode: 'Bank Transfer',
+    amount: 15000.00,
+    unusedAmount: 0.00,
+    paymentType: 'Advance Payment'
   },
   {
-    id: 4,
-    date: '2025-05-25',
-    quoteNumber: 'Q1004',
-    referenceNumber: 'REF126',
-    customerName: 'VisionTech',
-    status: 'Declined',
-    amount: 'AED 780.00',
-    acceptedDate: '',
-    companyName: 'VisionTech Co.',
-    declinedDate: '2025-05-30',
-    expiryDate: '2025-06-05',
-    salesPerson: 'Sara Ali',
-    subTotal: 'AED 700.00'
-  },
-  {
-    id: 5,
-    date: '2025-05-22',
-    quoteNumber: 'Q1005',
-    referenceNumber: 'REF127',
-    customerName: 'GreenSoft',
-    status: 'Expired',
-    amount: 'AED 1,000.00',
-    acceptedDate: '',
-    companyName: 'GreenSoft Inc.',
-    declinedDate: '',
-    expiryDate: '2025-05-30',
-    salesPerson: 'David Kim',
-    subTotal: 'AED 950.00'
-  },
-  {
-    id: 6,
-    date: '2025-05-20',
-    quoteNumber: 'Q1006',
-    referenceNumber: 'REF128',
-    customerName: 'ByteStream',
-    status: 'Open',
-    amount: 'AED 3,200.00',
-    acceptedDate: '',
-    companyName: 'ByteStream Ltd.',
-    declinedDate: '',
-    expiryDate: '2025-06-07',
-    salesPerson: 'Zahra Hassan',
-    subTotal: 'AED 2,800.00'
-  },
-  {
-    id: 7,
-    date: '2025-05-19',
-    quoteNumber: 'Q1007',
-    referenceNumber: 'REF129',
-    customerName: 'NovaTech',
-    status: 'Accepted',
-    amount: 'AED 4,000.00',
-    acceptedDate: '2025-05-21',
-    companyName: 'NovaTech Pvt Ltd',
-    declinedDate: '',
-    expiryDate: '2025-06-01',
-    salesPerson: 'Ali Rehman',
-    subTotal: 'AED 3,500.00'
-  },
-  {
-    id: 8,
-    date: '2025-05-18',
-    quoteNumber: 'Q1008',
-    referenceNumber: 'REF130',
-    customerName: 'SmartSys',
-    status: 'Sent',
-    amount: 'AED 950.00',
-    acceptedDate: '',
-    companyName: 'SmartSys Solutions',
-    declinedDate: '',
-    expiryDate: '2025-06-03',
-    salesPerson: 'Emily Zhao',
-    subTotal: 'AED 900.00'
-  },
-  {
-    id: 9,
-    date: '2025-05-17',
-    quoteNumber: 'Q1009',
-    referenceNumber: 'REF131',
-    customerName: 'CloudReach',
-    status: 'Declined',
-    amount: 'AED 1,750.00',
-    acceptedDate: '',
-    companyName: 'CloudReach AE',
-    declinedDate: '2025-05-26',
-    expiryDate: '2025-06-01',
-    salesPerson: 'Samir Khan',
-    subTotal: 'AED 1,600.00'
-  },
-  {
-    id: 10,
-    date: '2025-05-15',
-    quoteNumber: 'Q1010',
-    referenceNumber: 'REF132',
-    customerName: 'NetFusion',
-    status: 'Open',
-    amount: 'AED 2,100.00',
-    acceptedDate: '',
-    companyName: 'NetFusion Gulf',
-    declinedDate: '',
-    expiryDate: '2025-06-02',
-    salesPerson: 'Lina Perez',
-    subTotal: 'AED 2,000.00'
+    id:"4",
+    date: '27 May 2025',
+    paymentNumber: '917',
+    referenceNumber: 'REF9981',
+    customerName: 'Sky Logistics',
+    invoiceNumber: 'INV-000027',
+    mode: 'Credit Card',
+    amount: 20000.00,
+    unusedAmount: 5000.00,
+    paymentType: 'Partial Payment'
   }
 ];
 
+// Updated allColumns array with all the columns from the modal
 const allColumns = [
   { label: 'Date', accessor: 'date', key: 'date' },
-  { label: 'Quote Number', accessor: 'quoteNumber', key: 'quoteNumber' },
-  { label: 'Reference Number', accessor: 'referenceNumber', key: 'referenceNumber' },
+  { label: 'Payment #', accessor: 'paymentNumber', key: 'paymentNumber' },
+  { label: 'Reference number', accessor: 'referenceNumber', key: 'referenceNumber' },
   { label: 'Customer Name', accessor: 'customerName', key: 'customerName' },
-  { label: 'Status', accessor: 'status', key: 'status' },
+  { label: 'Invoice#', accessor: 'invoiceNumber', key: 'invoiceNumber' },
+  { label: 'Mode', accessor: 'mode', key: 'mode' },
   { label: 'Amount', accessor: 'amount', key: 'amount' },
-  { label: 'Accepted Date', accessor: 'acceptedDate', key: 'acceptedDate' },
-  { label: 'Company Name', accessor: 'companyName', key: 'companyName' },
-  { label: 'Declined Date', accessor: 'declinedDate', key: 'declinedDate' },
-  { label: 'Expiry Date', accessor: 'expiryDate', key: 'expiryDate' },
-  { label: 'Sales Person', accessor: 'salesPerson', key: 'salesPerson' },
-  { label: 'Sub Total', accessor: 'subTotal', key: 'subTotal' }
+  { label: 'Unused Amount', accessor: 'unusedAmount', key: 'unusedAmount' },
+  { label: 'Payment Type', accessor: 'paymentType', key: 'paymentType' }
 ];
 
-export default function QuotesLayout() {
+export default function PaymentReceivedLayout() {
   const navigate = useNavigate();
   const [customers] = useState(initialCustomers);
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
@@ -206,32 +102,32 @@ export default function QuotesLayout() {
     }
   };
 
+  // Updated filterFields to include all new columns
   const [filterFields, setFilterFields] = useState({
     date: true,
-    quoteNumber: true,
+    paymentNumber: true,
     referenceNumber: true,
     customerName: true,
-    status: true,
-    amount: true,
-    acceptedDate: false,
-    companyName: false,
-    declinedDate: false,
-    expiryDate: false,
-    salesPerson: false,
-    subTotal: false,
+    invoiceNumber: true,
+    mode:false,
+    amount:false,
+    unusedAmount:false,
+    paymentType:false,
   });
 
   const visibleColumns = allColumns.filter(col => filterFields[col.key]);
 
   // Updated handleRowClick to pass the entire row data
   const handleRowClick = (id) => {
-    const selectedQuote = customers.find(customer => customer.id === id);
-    console.log('====================================');
-    console.log('====================================');
-    navigate(`/QuotesDetailedPage/${id}`, { 
-      state: { quoteData: selectedQuote , title: "Quote",backToPath :"/Addqoutes", editForm:"/QuotesForm"}
+  
+    const selectedPayment = customers.find(customer => customer.id === id);
+    console.log("selectedPayment==>>", selectedPayment);
+    
+    navigate(`/PaymentReceipt/${id}`, { 
+      state: { paymentData: selectedPayment , title: "PAYMENT RECEIPT", backToPath :"/payemntReceived" , editForm:"/PaymentRecevibleForm"}
     });
   };
+
 
   const handleRowSelect = (id) => {
     setSelectedRows(prev =>
@@ -250,13 +146,13 @@ export default function QuotesLayout() {
       <div className="w-full bg-white">
         <div className="flex items-center w-full justify-between p-4 border-b">
           <div className="flex items-center">
-            <h1 className="text-2xl font-semibold text-gray-800">All Quotes</h1>
+            <h1 className="text-2xl font-semibold text-gray-800">All  Received Payments</h1>
             <ChevronDown className="ml-2 text-blue-500" size={20} />
           </div>
           <div className="flex items-center gap-2">
             <CommonButton
               label={<div className="flex items-center"><Plus size={20} className="mr-1" /> New</div>}
-              onClick={() => navigate('/QuotesForm')}
+              onClick={() => navigate('/PaymentRecevibleForm')}
               className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
             />
             <SortOptionsDropdown onMenuSelect={handleMenuSelect} />
@@ -272,7 +168,7 @@ export default function QuotesLayout() {
               <ExportCustomersModal
                 isOpen={showExportModal}
                 onClose={() => setShowExportModal(false)}
-                defaultModule="Quotes"
+                defaultModule="Invoices"
               />
             )}
 
@@ -306,6 +202,7 @@ export default function QuotesLayout() {
                 onSelectAll={handleSelectAll}
                 rowHighlightKey={selectedCustomerId}
                 onFilterClick={() => setIsFilterModalOpen(true)}
+                
               />
             </div>
           </div>
@@ -322,3 +219,4 @@ export default function QuotesLayout() {
     </div>
   );
 }
+

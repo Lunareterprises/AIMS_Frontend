@@ -36,6 +36,9 @@ import QuoteForm from "../component/sales/quotes/createNew/QuoteForm";
 import QuotesDetailedPage from "../component/sales/quotes/QuotesDetailedPage";
 import InvoicesLayout from "../component/sales/invoices/InvoicesLayout";
 import InvoiceForm from "../component/sales/invoices/createNew/InvoiceForm";
+import PaymentReceivedLayout from "../component/sales/paymentReceived/PaymentReceivedLayout";
+import PaymentRecevibleForm from "../component/sales/paymentReceived/createNew/PaymentRecevibleForm";
+import PaymentReceipt from "../component/sales/paymentReceived/detailedPage/PaymentReceipt";
 
 const AppRoutes = () => {
   return (
@@ -310,6 +313,34 @@ const AppRoutes = () => {
         element={
           <MainLayout>
             <InvoiceForm />
+          </MainLayout>
+        }
+      />
+
+      {/*//---------------------------Payemnt Received-------------??  */}
+
+      <Route 
+        path="/payemntReceived"
+        element={
+          <MainLayout>
+            <PaymentReceivedLayout />
+          </MainLayout>
+        }
+      />
+
+      <Route 
+        path="/PaymentRecevibleForm"
+        element={
+          <MainLayout>
+            <PaymentRecevibleForm />
+          </MainLayout>
+        }
+      />
+      <Route 
+        path="/PaymentReceipt/:id"
+        element={
+          <MainLayout>
+            <PaymentReceipt />
           </MainLayout>
         }
       />
