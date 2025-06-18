@@ -204,7 +204,7 @@ export default function ExpensesLayout() {
   // Updated handleRowClick to pass the entire row data
   const handleRowClick = (id) => {
     const selectedQuote = customers.find(customer => customer.id === id);
-    navigate(`/QuotesDetailedPage/${id}`, { 
+    navigate(`/expenseDetailedPage/${id}`, { 
       state: { quoteData: selectedQuote , title: "Quote",backToPath :"/Addqoutes", editForm:"/QuotesForm"}
     });
   };

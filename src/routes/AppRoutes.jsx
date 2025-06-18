@@ -42,6 +42,7 @@ import PaymentReceipt from "../component/sales/paymentReceived/detailedPage/Paym
 import VendorLayout from "../component/purchase/vendor/VendorLayout";
 import ExpensesLayout from "../component/purchase/expenses/ExpensesLayout";
 import ExpenseForm from "../component/purchase/expenses/createNew/ExpenseForm";
+import ExpenseDetailedPage from "../component/purchase/expenses/ExpenseDetailedPage";
 
 const AppRoutes = () => {
   return (
@@ -368,6 +369,14 @@ const AppRoutes = () => {
         element={
           <MainLayout>
             <ExpenseForm />
+          </MainLayout>
+        }
+      />
+      <Route 
+        path="/expenseDetailedPage/:id"
+        element ={
+          <MainLayout>
+            <ExpenseDetailedPage />
           </MainLayout>
         }
       />
