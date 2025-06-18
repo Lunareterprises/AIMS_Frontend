@@ -169,6 +169,25 @@ export default function Sidebar() {
             ]}
           />
 
+          <NavItem
+            icon={<ShoppingCart size={20} />}
+            label="Purchase"
+            collapsed={collapsed}
+            children={[
+              {
+                // icon: <Users size={18} />,
+                label: "Vendor",
+                to: "/vendorLayout",
+              },
+              {
+                // icon: <Users size={18} />,
+                label: "Expense",
+                to: "/expensesLayout",
+              },
+              
+            ]}
+          />
+
           {/* <NavItem
             icon={<Paintbrush size={20} />}
             label="Theme"

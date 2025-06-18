@@ -39,6 +39,9 @@ import InvoiceForm from "../component/sales/invoices/createNew/InvoiceForm";
 import PaymentReceivedLayout from "../component/sales/paymentReceived/PaymentReceivedLayout";
 import PaymentRecevibleForm from "../component/sales/paymentReceived/createNew/PaymentRecevibleForm";
 import PaymentReceipt from "../component/sales/paymentReceived/detailedPage/PaymentReceipt";
+import VendorLayout from "../component/purchase/vendor/VendorLayout";
+import ExpensesLayout from "../component/purchase/expenses/ExpensesLayout";
+import ExpenseForm from "../component/purchase/expenses/createNew/ExpenseForm";
 
 const AppRoutes = () => {
   return (
@@ -344,6 +347,31 @@ const AppRoutes = () => {
           </MainLayout>
         }
       />
+      <Route 
+        path="/vendorLayout"
+        element={
+          <MainLayout>
+            <VendorLayout />
+          </MainLayout>
+        }
+      />
+      <Route 
+        path="/expensesLayout"
+        element={
+          <MainLayout>
+            <ExpensesLayout />
+          </MainLayout>
+        }
+      />
+      <Route 
+        path="/expenseForm"
+        element={
+          <MainLayout>
+            <ExpenseForm />
+          </MainLayout>
+        }
+      />
+      
     </Routes>
 
       
