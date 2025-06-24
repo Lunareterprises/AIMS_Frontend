@@ -46,6 +46,8 @@ import ExpenseDetailedPage from "../component/purchase/expenses/ExpenseDetailedP
 import ManualJournalscreteForm from "../component/accounts/manualJournal/createNew/ManualJournalscreteForm";
 import ManualJournalsLayout from "../component/accounts/manualJournal/ManualJournalsLayout";
 import ManualJouralsDetailedPage from "../component/accounts/manualJournal/ManualJouralsDetailedPage";
+import ChartOfAccountsLayout from "../component/accounts/chartOfAccount/ChartOfAccountsLayout";
+import ChartOfAccountDetailedPage from "../component/accounts/chartOfAccount/ChartOfAccountDetailedPage";
 
 const AppRoutes = () => {
   return (
@@ -410,6 +412,23 @@ const AppRoutes = () => {
           </MainLayout>
         }
       />
+      <Route 
+        path="/ChartOfAccountsLayout"
+        element ={
+          <MainLayout>
+            <ChartOfAccountsLayout />
+          </MainLayout>
+        }
+      />
+      <Route 
+        path="/ChartOfAccountDetailedPage/:id"
+        element ={
+          <MainLayout>
+            <ChartOfAccountDetailedPage />
+          </MainLayout>
+        }
+      />
+      
     </Routes>
 
       

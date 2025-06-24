@@ -200,8 +200,8 @@ export default function Sidebar() {
               },
               {
                 // icon: <Users size={18} />,
-                label: "Expense",
-                to: "/expensesLayout",
+                label: "Chart of Accounts",
+                to: "/ChartOfAccountsLayout",
               },
               
             ]}

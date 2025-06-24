@@ -56,7 +56,7 @@ export default function ExportCustomersModal({ onClose, defaultModule }) {
       <div className="bg-white rounded w-full max-w-2xl max-h-[95vh] flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center py-3 px-4 bg-gray-100">
-          <h2 className="text-base font-medium text-gray-800">Export Customers</h2>
+          <h2 className="text-base font-medium text-gray-800">Export {defaultModule}</h2>
           <CommonButton label={<X size={18} />} onClick={onClose} className="text-red-600 hover:text-gray-700" />
         </div>
 
