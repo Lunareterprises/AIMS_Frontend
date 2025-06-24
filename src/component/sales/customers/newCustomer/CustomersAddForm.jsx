@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Phone, Smartphone } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import OtherDetails from './OtherDetails';
 import AddressTab from './AddressTab';
 import ContactPersonsTab from './ContactPersonsTab';
@@ -47,6 +47,8 @@ const CustomersAddForm = () => {
  
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const { title , customer_Type} = location.state || {};
 
   const [formData, setFormData] = useState({
     salutation: '',
@@ -81,6 +83,7 @@ const CustomersAddForm = () => {
 
   const tabs = ['Other Details', 'Address', 'Contact Persons', 'Remark'];
 
+  
   useEffect(() => {
     const { salutation, firstName, lastName } = formData;
     const options = [
@@ -197,7 +200,7 @@ const CustomersAddForm = () => {
   return (
     <div className="max-w-5xl flex flex-col min-h-screen">
       <div className="p-6">
-        <h1 className="text-xl font-semibold text-gray-900 mb-6">New Customer</h1>
+        <h1 className="text-xl font-semibold text-gray-900 mb-6">{title || 'Craete New'}</h1>
 
         {error && (
           <div className="text-red-600 text-sm mb-4 border border-red-300 bg-red-50 px-4 py-2 rounded">
@@ -206,30 +209,31 @@ const CustomersAddForm = () => {
         )}
 
         <div className="space-y-4 mb-6">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center gap-2 w-56">
-              <h2 className="block text-sm font-medium text-gray-700">Customer Type</h2>
-            </div>
+          {customer_Type === "customer" && (
             <div className="flex items-center space-x-4">
-              {['Business', 'Individual'].map((type) => (
-                <label key={type} className="flex items-center">
-                  <input
-                    type="radio"
-                    name="customerType"
-                    value={type}
-                    checked={customerType === type}
-                    onChange={(e) => {
-                      setCustomerType(e.target.value);
-                      setFormData({ ...formData, customerType: e.target.value });
-                    }}
-                    className="mr-2"
-                  />
-                  {type}
-                </label>
-              ))}
+              <div className="flex items-center gap-2 w-56">
+                <h2 className="block text-sm font-medium text-gray-700">Customer Type</h2>
+              </div>
+              <div className="flex items-center space-x-4">
+                {['Business', 'Individual'].map((type) => (
+                  <label key={type} className="flex items-center">
+                    <input
+                      type="radio"
+                      name="customerType"
+                      value={type}
+                      checked={customerType === type}
+                      onChange={(e) => {
+                        setCustomerType(e.target.value);
+                        setFormData({ ...formData, customerType: e.target.value });
+                      }}
+                      className="mr-2"
+                    />
+                    {type}
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
-
+          )}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 w-56">
               <h2 className="block text-sm font-medium text-gray-700">Primary Contact</h2>

@@ -43,6 +43,9 @@ import VendorLayout from "../component/purchase/vendor/VendorLayout";
 import ExpensesLayout from "../component/purchase/expenses/ExpensesLayout";
 import ExpenseForm from "../component/purchase/expenses/createNew/ExpenseForm";
 import ExpenseDetailedPage from "../component/purchase/expenses/ExpenseDetailedPage";
+import ManualJournalscreteForm from "../component/accounts/manualJournal/createNew/ManualJournalscreteForm";
+import ManualJournalsLayout from "../component/accounts/manualJournal/ManualJournalsLayout";
+import ManualJouralsDetailedPage from "../component/accounts/manualJournal/ManualJouralsDetailedPage";
 
 const AppRoutes = () => {
   return (
@@ -380,7 +383,33 @@ const AppRoutes = () => {
           </MainLayout>
         }
       />
-      
+
+      {/*//--------------------------- Manual Journals -------------??  */}
+
+      <Route 
+        path="/manualJournals"
+        element ={
+          <MainLayout>
+            <ManualJournalsLayout />
+          </MainLayout>
+        }
+      />
+      <Route 
+        path="/ManualJouralsDetailedPage/:id"
+        element ={
+          <MainLayout>
+            <ManualJouralsDetailedPage />
+          </MainLayout>
+        }
+      />
+      <Route 
+        path="/ManualJournalscreteForm"
+        element ={
+          <MainLayout>
+            <ManualJournalscreteForm />
+          </MainLayout>
+        }
+      />
     </Routes>
 
       

@@ -112,11 +112,16 @@ export default function CustomersList() {
             <ChevronDown className="ml-2 text-blue-500" size={20} />
           </div>
           <div className="flex items-center gap-2">
-            <CommonButton
-              label={<div className="flex items-center"><Plus size={20} className="mr-1" /> New</div>}
-              onClick={() => navigate('/CustomersAdd_Details')}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-            />
+          <CommonButton
+            label={
+              <div className="flex items-center">
+                <Plus size={20} className="mr-1" /> New
+              </div>
+            }
+            onClick={() => navigate('/CustomersAdd_Details', { state: { title: 'Add New Customer', customer_Type: 'customer' } }, )}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+          />
+
             <SortOptionsDropdown onMenuSelect={handleMenuSelect} />
 
             <ImportCustomersModal

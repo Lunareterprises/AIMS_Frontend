@@ -133,7 +133,7 @@ export default function ExportCustomersModal({ onClose, defaultModule }) {
                   onChange={() => setModuleOption('Customers')}
                 />
                 <label htmlFor="customers" className="ml-2 block text-sm text-gray-700">
-                  Customers
+                  { defaultModule }
                 </label>
               </div>
               <div className="flex items-center">

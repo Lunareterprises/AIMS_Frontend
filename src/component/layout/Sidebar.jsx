@@ -27,6 +27,7 @@ import {
   Repeat,
   RotateCcw,
   FileMinus,
+  UserCircle
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -178,6 +179,24 @@ export default function Sidebar() {
                 // icon: <Users size={18} />,
                 label: "Vendor",
                 to: "/vendorLayout",
+              },
+              {
+                // icon: <Users size={18} />,
+                label: "Expense",
+                to: "/expensesLayout",
+              },
+              
+            ]}
+          />
+          <NavItem
+            icon={<UserCircle size={20} />}
+            label="Accounts"
+            collapsed={collapsed}
+            children={[
+              {
+                // icon: <Users size={18} />,
+                label: "Manual Journals",
+                to: "/manualJournals",
               },
               {
                 // icon: <Users size={18} />,

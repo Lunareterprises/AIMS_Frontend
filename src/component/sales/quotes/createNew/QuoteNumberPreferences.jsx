@@ -20,13 +20,16 @@ const QuoteNumberPreferences = ({ isOpen, onClose, source }) => {
     } else if(source === 'quote'){
       setLabelName('Quote');
     }
+    else if(source === 'journal'){
+      setLabelName('Journal');
+    }
       else if(source === 'paymentRecevible'){
       setLabelName('Payment Recevible');
     }
   }, [source]);
 
   if (!isOpen) return null;
-
+  
   const dropdownOptions = [
     'Fiscal Year Start',
     'Fiscal Year End', 
