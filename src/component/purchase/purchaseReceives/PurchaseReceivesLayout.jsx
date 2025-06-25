@@ -77,7 +77,7 @@ const allColumns = [
 
 export default function PurchaseReceivesLayout() {
   const navigate = useNavigate();
-  const [customers] = useState(initialCustomers);
+  const [customers, setCustomers] = useState(initialCustomers);
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -127,6 +127,15 @@ export default function PurchaseReceivesLayout() {
     });
   };
 
+  const handleDeleteSelected = () => {
+    // Optional: Confirm before deleting
+    if (window.confirm("Are you sure you want to delete the selected records?")) {
+      const filtered = customers.filter(customer => !selectedRows.includes(customer.id));
+      setCustomers(filtered);
+      setSelectedRows([]); // Clear selection after deletion
+      setSelectAll(false);
+    }
+  };
 
   const handleRowSelect = (id) => {
     setSelectedRows(prev =>
@@ -149,6 +158,15 @@ export default function PurchaseReceivesLayout() {
             <ChevronDown className="ml-2 text-blue-500" size={20} />
           </div>
           <div className="flex items-center gap-2">
+            {selectedRows.length > 0 && (
+              <div className="flex justify-end p-4">
+                <CommonButton
+                  label="Delete Selected"
+                  onClick={handleDeleteSelected}
+                  className="bg-gray-300 hover:bg-gray-00 text-red-600 px-4 py-2 rounded"
+                />
+              </div>
+            )}
             <CommonButton
               label={<div className="flex items-center"><Plus size={20} className="mr-1" /> New</div>}
               onClick={() => navigate('/PurcahseReceivesForm')}
@@ -187,6 +205,8 @@ export default function PurchaseReceivesLayout() {
       </div>
       
       {/* table */}
+
+      
       <div className="w-full overflow-x-auto">
         <div className="w-full">
           <div className="overflow-x-auto">

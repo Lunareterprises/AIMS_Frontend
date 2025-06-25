@@ -64,6 +64,7 @@ export default function CustomerTable({
                     onClick={(e) => e.stopPropagation()}
                     className="w-4 h-4 border-gray-300 rounded"
                   />
+
                 </td>
                 {columns.map(col => (
                   <td key={col.accessor} className="px-3 py-4 whitespace-nowrap text-xs">
