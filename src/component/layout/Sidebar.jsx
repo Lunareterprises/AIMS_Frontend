@@ -185,6 +185,11 @@ export default function Sidebar() {
                 label: "Expense",
                 to: "/expensesLayout",
               },
+              {
+                // icon: <Users size={18} />,
+                label: "Purchase Receives",
+                to: "/PurchaseReceivesLayout",
+              },
               
             ]}
           />

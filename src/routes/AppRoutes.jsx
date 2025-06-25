@@ -48,6 +48,9 @@ import ManualJournalsLayout from "../component/accounts/manualJournal/ManualJour
 import ManualJouralsDetailedPage from "../component/accounts/manualJournal/ManualJouralsDetailedPage";
 import ChartOfAccountsLayout from "../component/accounts/chartOfAccount/ChartOfAccountsLayout";
 import ChartOfAccountDetailedPage from "../component/accounts/chartOfAccount/ChartOfAccountDetailedPage";
+import PurchaseReceivesLayout from "../component/purchase/purchaseReceives/PurchaseReceivesLayout";
+import PurcahseReceivesForm from "../component/purchase/purchaseReceives/createNew/PurcahseReceivesForm";
+import PurchaseReceiveDetailedPage from "../component/purchase/purchaseReceives/PurchaseReceiveDetailedPage";
 
 const AppRoutes = () => {
   return (
@@ -385,6 +388,36 @@ const AppRoutes = () => {
           </MainLayout>
         }
       />
+
+      {/*//---------------------------Purchase Received-------------??  */}
+
+      <Route 
+        path="/PurchaseReceivesLayout"
+        element={
+          <MainLayout>
+            <PurchaseReceivesLayout />
+          </MainLayout>
+        }
+      />
+       <Route 
+        path="/PurcahseReceivesForm"
+        element={
+          <MainLayout>
+            <PurcahseReceivesForm />
+          </MainLayout>
+        }
+      />
+      <Route 
+        path="/PurchaseReceiveDetailedPage/:id"
+        element={
+          <MainLayout>
+            <PurchaseReceiveDetailedPage />
+          </MainLayout>
+        }
+      />
+
+      
+
 
       {/*//--------------------------- Manual Journals -------------??  */}
 

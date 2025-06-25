@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Edit2, Trash2, Save, X } from 'lucide-react';
 
 export default function PaymentTable({ paymentData = [] }) {
-
+  console.log("paymentData--->", paymentData);
+  
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white">
       <div className="flex justify-between items-center mb-6">

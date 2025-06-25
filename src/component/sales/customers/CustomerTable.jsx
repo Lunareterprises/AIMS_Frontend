@@ -52,7 +52,7 @@ export default function CustomerTable({
             {data.map((row) => (
               <tr
                 key={row.id}
-                className={`hover:bg-gray-50 cursor-pointer ${row.id === rowHighlightKey ? 'bg-blue-50' : ''}`}
+                className={`hover:bg-blue-50 cursor-pointer ${row.id === rowHighlightKey ? 'bg-blue-50' : ''}`}
                 onClick={() => onRowClick(row.id)}
               >
                 <td className="px-3 py-4" />

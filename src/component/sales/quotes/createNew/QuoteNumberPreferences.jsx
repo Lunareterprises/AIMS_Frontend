@@ -26,6 +26,10 @@ const QuoteNumberPreferences = ({ isOpen, onClose, source }) => {
       else if(source === 'paymentRecevible'){
       setLabelName('Payment Recevible');
     }
+    
+      else if(source === 'purchaseReceive'){
+      setLabelName('Purchase Receive');
+    }
   }, [source]);
 
   if (!isOpen) return null;
