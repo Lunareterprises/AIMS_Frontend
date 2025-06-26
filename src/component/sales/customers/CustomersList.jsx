@@ -1,114 +1,106 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from "react";
+import Swal from "sweetalert2";
 import {
-  ChevronDown, Plus, MoreVertical, HelpCircle
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import FilterModal from './FilterModal';
-import CommonButton from '../../CommonUI/buttons/CommonButton';
-import CustomerTable from './CustomerTable';
-import ImportCustomersModal from './sort/importCustomer/ImportCustomersModal';
-import ExportCustomersModal from './sort/exportCustomer/ExportCustomersModal'
-import SortOptionsDropdown from './sort/SortOptionsDropdown';
-import ExportCurrentView from './sort/exportCurrentView/ExportCurrentView';
+  ChevronDown,
+  Plus,
+  MoreVertical,
+  HelpCircle,
+  ChevronUp,
+  Search,
+  Star,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import FilterModal from "./FilterModal";
+import CommonButton from "../../CommonUI/buttons/CommonButton";
+import CustomerTable from "./CustomerTable";
+import ImportCustomersModal from "./sort/importCustomer/ImportCustomersModal";
+import ExportCustomersModal from "./sort/exportCustomer/ExportCustomersModal";
+import SortOptionsDropdown from "./sort/SortOptionsDropdown";
+import ExportCurrentView from "./sort/exportCurrentView/ExportCurrentView";
+import { custom_list } from "../../../api/services/authService";
+import { customer_list } from "../../../api/services/sales/createCustomer";
+import { getFirstWordInCaps } from "../../../lib/utils";
 import { ReusableFilterDropdown } from './filterMenus/ReusableFilterDropdown';
 
-
-
-const initialCustomers = [
-  { id: 1, name: 'ASK', companyName: 'ASK PORTAL - FZCO', email: '', workPhone: '', receivables: 'AED0.00', unusedCredits: 'AED0.00' },
-  { id: 2, name: 'TA', companyName: 'TELUGU AIRLINES', email: '', workPhone: '', receivables: 'AED0.00', unusedCredits: 'AED0.00' },
-  { id: 3, name: '2070 VACATION HOME', companyName: '2070 VACATION HOME RENTAL CO. LLC', email: '', workPhone: '', receivables: 'AED0.00', unusedCredits: 'AED0.00' },
-  { id: 4, name: 'ELLUSHO', companyName: 'ELLUSHO PORTAL LLC', email: '', workPhone: '', receivables: 'AED0.00', unusedCredits: 'AED0.00' },
-  { id: 5, name: 'CASTLE KING TECHNICAL SERVICES LLC', companyName: 'CASTLE KING TECHNICAL SERVICES LLC', email: '', workPhone: '', receivables: 'AED0.00', unusedCredits: 'AED0.00' },
-  { id: 6, name: 'AIMTU', companyName: 'A I M T U REAL ESTATE L.L.C', email: '', workPhone: '', receivables: 'AED0.00', unusedCredits: 'AED0.00' },
-  { id: 7, name: 'STARLINK', companyName: 'STARLINKS TRADING - FZCO', email: '', workPhone: '', receivables: 'AED0.00', unusedCredits: 'AED0.00' },
-  { id: 8, name: 'R M K TRAVELS AND TOURS L.L.C', companyName: 'R M K TRAVELS AND TOURS L.L.C', email: '', workPhone: '', receivables: 'AED0.00', unusedCredits: 'AED0.00' },
-  { id: 9, name: 'OPTIMUSROBO', companyName: 'OPTIMUSROBO - FZCO', email: '', workPhone: '', receivables: 'AED0.00', unusedCredits: 'AED0.00' },
-];
-
 const allColumns = [
-  { label: 'Name', accessor: 'name', key: 'name' },
-  { label: 'Company Name', accessor: 'companyName', key: 'companyName' },
-  { label: 'Email', accessor: 'email', key: 'email' },
-  { label: 'Work Phone', accessor: 'workPhone', key: 'workPhone' },
-  { label: 'Receivables (BCY)', accessor: 'receivables', key: 'receivables' },
-  { label: 'Unused Credits (BCY)', accessor: 'unusedCredits', key: 'unusedCredits' },
-  { label: 'Receivables (BYC)', accessor: 'receivablesBYC', key: 'receivablesBYC' },
-  { label: 'Unused Credits (BYC)', accessor: 'unusedCreditsBYC', key: 'unusedCreditsBYC' },
-  { label: 'Source', accessor: 'source', key: 'source' },
-  { label: 'Payment Term', accessor: 'paymentTerm', key: 'paymentTerm' },
-  { label: 'Status', accessor: 'status', key: 'status' },
-  { label: 'Tax Treatment', accessor: 'taxTreatment', key: 'taxTreatment' },
-  { label: 'Website', accessor: 'website', key: 'website' },
+  {
+    accessor: "cu_id",
+    key: "id",
+  },
+  {
+    label: "Name",
+    accessor: "cu_display_name",
+    key: "name",
+    transform: "capitalizeWords",
+  },
+  {
+    label: "Company Name",
+    accessor: "cu_company_name",
+    key: "companyName",
+    transform: (value) => {
+      return getFirstWordInCaps(value);
+    },
+  },
+  { label: "Email", accessor: "cu_email", key: "email" },
+  { label: "Work Phone", accessor: "cu_phone", key: "workPhone" },
+  { label: "Receivables (BCY)", accessor: "receivables", key: "receivables" },
+  {
+    label: "Unused Credits (BCY)",
+    accessor: "unusedCredits",
+    key: "unusedCredits",
+  },
+  {
+    label: "Receivables (BYC)",
+    accessor: "receivablesBYC",
+    key: "receivablesBYC",
+  },
+  {
+    label: "Unused Credits (BYC)",
+    accessor: "unusedCreditsBYC",
+    key: "unusedCreditsBYC",
+  },
+  { label: "Source", accessor: "source", key: "source" },
+  { label: "Payment Term", accessor: "paymentTerm", key: "paymentTerm" },
+  { label: "Status", accessor: "cu_status", key: "status" },
+  { label: "Tax Treatment", accessor: "cu_tax_treatment", key: "taxTreatment" },
+  { label: "Website", accessor: "cu_website", key: "website" },
 ];
 
 export default function CustomersList() {
   const navigate = useNavigate();
-  const [customers, setCustomers] = useState(initialCustomers);
+  const [customers, setCustomers] = useState([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showExportCurrentView, setShowExportCurrentView] = useState(false);
-  const [selectedCustomerFilter, setSelectedCustomerFilter] = useState({
-    id: 'active',
-    label: 'Active Customers'
-  });
-
-
-    // Customer filter options
-  const customerDefaultFilters = [
-    { id: 'all', label: 'All Customers', count: 150 },
-    { id: 'active', label: 'Active Customers', count: 120 },
-    { id: 'crm', label: 'CRM Customers', count: 45 },
-    { id: 'duplicate', label: 'Duplicate Customers', count: 8 },
-    { id: 'inactive', label: 'Inactive Customers', count: 30 },
-    { id: 'portal-enabled', label: 'Customer Portal Enabled', count: 25 },
-    { id: 'portal-disabled', label: 'Customer Portal Disabled', count: 95 },
-    { id: 'overdue', label: 'Overdue Customers', count: 12 },
-    { id: 'unpaid', label: 'Unpaid Customers', count: 18 }
-  ];
-
-    const handleCustomerFilterSelect = (filter) => {
-    setSelectedCustomerFilter(filter);
-    console.log('Customer filter selected:', filter);
-    // Add your customer filtering logic here
-  };
-
-
-    const customerCustomFilters = [
-    { id: 'sample-custom', label: 'Sample custom view', count: 5, hasDropdown: true },
-    { id: 'my-vip-customers', label: 'My VIP Customers', count: 10 }
-  ];
-
-
-  const handleNewCustomerView = () => {
-    console.log('Creating new customer custom view');
-    // Add your new custom view logic here
-  };
-
-
+  const [loadingfilter, setLoadingfilter] = useState(false);
+  const dropdownRef = useRef(null);
+  const dropdownRefd = useRef(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [itemsfilter, setCustomersfilter] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState({ usage: "" });
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10); // Can make this dynamic
+  const [totalPages, setTotalPages] = useState(1);
   const [showImportModal, setShowImportModal] = useState(false);
-  const [importOption, setImportOption] = useState('customers');
+  const [importOption, setImportOption] = useState("customers");
+  const [activeFilter, setActiveFilter] = useState("All Customers");
+  const [searchTermfilter, setSearchTermfilter] = useState("");
 
   const handleMenuSelect = (label) => {
-    if (label === 'Import Customers') {
+    if (label === "Import Customers") {
       setShowImportModal(true);
-    }
-    else if (label === 'Export Customers') {
+    } else if (label === "Export Customers") {
       setShowExportModal(true);
-    }
-    else if (label === 'Export Current View') {
+    } else if (label === "Export Current View") {
       setShowExportCurrentView(true);
-    }
-    else if (label === 'Preferences') {
-      navigate('/customers-vendors'); 
+    } else if (label === "Preferences") {
+      navigate("/customers-vendors");
     }
   };
-
-
-  
 
   const [filterFields, setFilterFields] = useState({
     name: true,
@@ -126,7 +118,19 @@ export default function CustomersList() {
     website: false,
   });
 
-  const visibleColumns = allColumns.filter(col => filterFields[col.key]);
+  const visibleColumns = allColumns.filter((col) => filterFields[col.key]);
+
+  const staticMenuItems = [
+    { id: "all", label: "All Customers", starred: true },
+    { id: "active", label: "Active Customers", starred: false },
+    { id: "crm", label: "CRM Customers", starred: false },
+    { id: "duplicate", label: "Duplicate Customers", starred: false },
+    { id: "inactive", label: "Inactive Customers", starred: false },
+    { id: "portalEnabled", label: "Customer Portal Enabled", starred: false },
+    { id: "portalDisabled", label: "Customer Portal Disabled", starred: false },
+    { id: "overdue", label: "Overdue Customers", starred: false },
+    { id: "unpaid", label: "Unpaid Customers", starred: false },
+  ];
 
   const handleRowClick = (id) => {
     navigate(`/CustomerDetailedPage/${id}`);
@@ -142,18 +146,161 @@ export default function CustomersList() {
     }
   };
   const handleRowSelect = (id) => {
-    setSelectedRows(prev =>
-      prev.includes(id) ? prev.filter(row => row !== id) : [...prev, id]
+    setSelectedRows((prev) =>
+      prev.includes(id) ? prev.filter((row) => row !== id) : [...prev, id]
     );
   };
-
   const handleSelectAll = () => {
     setSelectAll(!selectAll);
-    setSelectedRows(!selectAll ? customers.map(c => c.id) : []);
+    setSelectedRows(!selectAll ? customers.map((c) => c.id) : []);
   };
 
+  const fetchData = async () => {
+    setLoadingfilter(true);
+    try {
+      const body = { table: "customer" };
+      const response = await custom_list(body);
+      const customItems = response.data || [];
+
+      const formattedCustomItems =
+        customItems &&
+        customItems.map((item) => ({
+          id: `custom_${item.id}`,
+          label: item.label || item.cv_name || "Unnamed",
+          starred: item.cv_is_favorite || 0,
+          isCustom: true,
+        }));
+
+      const combinedItems = [...staticMenuItems, ...formattedCustomItems];
+      setCustomersfilter(combinedItems);
+    } catch (err) {
+      console.error("Error fetching filters:", err);
+    } finally {
+      setLoadingfilter(false);
+    }
+  };
+  // Open dropdown and fetch data
+  useEffect(() => {
+    if (isOpen) fetchData();
+  }, [isOpen]);
+
+  // Click outside to close
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Toggle star status
+  const toggleStar = (id) => {
+    setCustomersfilter((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, starred: !item.starred } : item
+      )
+    );
+  };
+  //------------------
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleItemClick = (label, id) => {
+    setActiveFilter(label);
+    fetchItems(id);
+    setIsOpen(false);
+  };
+
+  const filteredItems = itemsfilter
+    .filter((item) =>
+      item.label.toLowerCase().includes(searchTermfilter.toLowerCase())
+    )
+    .sort((a, b) => (b.starred ? 1 : 0) - (a.starred ? 1 : 0)); // starred items first
+
+  //---------------------
+
+  const handleClickOutside = (e) => {
+    if (dropdownRefd.current && !dropdownRefd.current.contains(e.target)) {
+      setOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelect = (label) => {
+    console.log("Selected:", label);
+
+    if (label === "Import Items") {
+      setShowCsvConverter(true);
+    }
+    setOpen(false); // Close the dropdown when an item is selected
+  };
+
+  const closeCsvConverter = () => {
+    setShowCsvConverter(false); // Close the CSV converter
+  };
+
+  const fetchItems = async (label) => {
+    try {
+      const body = {
+        search: searchTerm,
+        page,
+        limit,
+        filters: label,
+      };
+      const response = await customer_list(body);
+
+      const transformedData = (response.list || []).map((customer) => ({
+        ...customer,
+        id: customer.cu_id, // Map cu_id to id
+      }));
+
+      setCustomers(transformedData || []);
+      setTotalPages(response.total_count || 1);
+    } catch (error) {
+      Swal.fire("Error", "Failed to fetch items", "error");
+    }
+  };
+
+  //------------------------------
+
+  const fetchItemscustom = async (label) => {
+    try {
+      const body = {
+        search: searchTerm,
+        page,
+        limit,
+        filters: label,
+      };
+      const response = await customer_list(body);
+      const transformedData = (response.list || []).map((customer) => ({
+        ...customer,
+        id: customer.cu_id, // Map cu_id to id
+      }));
+      setCustomers(transformedData || []);
+      setTotalPages(response.total_count || 1);
+    } catch (error) {
+      Swal.fire("Error", "Failed to fetch items", "error");
+    }
+  };
+
+  useEffect(() => {
+    fetchItems();
+    fetchItemscustom();
+  }, [searchTerm, filters, page]);
+
   return (
-    <div >
+    <div>
       {/* Header section */}
       <div className=" w-full bg-white  ">
         <div className="flex items-center w-full justify-between p-4 border-b ">
@@ -203,18 +350,17 @@ export default function CustomersList() {
               <ExportCustomersModal
                 isOpen={showExportModal}
                 onClose={() => setShowExportModal(false)}
-                 defaultModule="Customers"
+                defaultModule="Customers"
               />
             )}
 
             {showExportCurrentView && (
-              <ExportCurrentView 
-              isOpen={showExportCurrentView}
-              onClose={() => setShowExportCurrentView(false)}
+              <ExportCurrentView
+                isOpen={showExportCurrentView}
+                onClose={() => setShowExportCurrentView(false)}
               />
             )}
 
-          
             <CommonButton
               label={<HelpCircle size={20} />}
               className="p-2 text-white bg-orange-500 hover:bg-orange-600 rounded"
@@ -226,7 +372,9 @@ export default function CustomersList() {
       <div className="w-full overflow-x-auto">
         <div className="w-full">
           <div className="overflow-x-auto">
-            <div className="min-w-[1000px]"> {/* optional: set a min-width */}
+            <div className="min-w-[1000px]">
+              {" "}
+              {/* optional: set a min-width */}
               <CustomerTable
                 columns={visibleColumns}
                 data={customers}
@@ -241,11 +389,6 @@ export default function CustomersList() {
             </div>
           </div>
         </div>
-
-
-
-      
-
         {isFilterModalOpen && (
           <FilterModal
             filterFields={filterFields}
@@ -255,6 +398,5 @@ export default function CustomersList() {
         )}
       </div>
     </div>
-
   );
 }
