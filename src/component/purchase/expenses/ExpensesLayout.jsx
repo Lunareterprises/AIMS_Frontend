@@ -11,6 +11,7 @@ import ExportCurrentView from '../../sales/customers/sort/exportCurrentView/Expo
 import ExportCustomersModal from '../../sales/customers/sort/exportCustomer/ExportCustomersModal';
 import SortOptionsDropdown from '../../sales/customers/sort/SortOptionsDropdown';
 import FilterModal from '../../sales/customers/FilterModal';
+import { ReusableFilterDropdown } from '../../sales/customers/filterMenus/ReusableFilterDropdown';
 
 const initialCustomers = [
   {
@@ -170,7 +171,42 @@ export default function ExpensesLayout() {
   const [showExportCurrentView, setShowExportCurrentView] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importOption, setImportOption] = useState('customers');
+const [selectedCustomerFilter, setSelectedCustomerFilter] = useState({
+    id: 'active',
+    label: 'All Expenses'
+  });
 
+
+    // Customer filter options
+  const customerDefaultFilters = [
+  { id: 'all', label: 'All Expenses', count: 150 },
+  { id: 'unbilled', label: 'Unbilled', count: 0 },
+  { id: 'invoiced', label: 'Invoiced', count: 0 },
+  { id: 'reimbursed', label: 'Reimbursed', count: 0 },
+  { id: 'billable', label: 'Billable', count: 0 },
+  { id: 'non-billable', label: 'Non-Billable', count: 0 },
+  { id: 'with-receipts', label: 'With Receipts', count: 0 },
+  { id: 'without-receipts', label: 'Without Receipts', count: 0 },
+  { id: 'from-zoho-expense', label: 'From Zoho Expense', count: 0 }
+];
+
+    const handleCustomerFilterSelect = (filter) => {
+    setSelectedCustomerFilter(filter);
+    console.log('Customer filter selected:', filter);
+    // Add your customer filtering logic here
+  };
+
+
+    const customerCustomFilters = [
+    { id: 'sample-custom', label: 'Sample custom view', count: 5, hasDropdown: true },
+    { id: 'my-vip-customers', label: 'My VIP Customers', count: 10 }
+  ];
+
+
+  const handleNewCustomerView = () => {
+    console.log('Creating new customer custom view');
+    // Add your new custom view logic here
+  };
   const handleMenuSelect = (label) => {
     if (label === 'Import Customers') {
       setShowImportModal(true);
@@ -233,10 +269,20 @@ export default function ExpensesLayout() {
       {/* Header section */}
       <div className="w-full bg-white">
         <div className="flex items-center w-full justify-between p-4 border-b">
-          <div className="flex items-center">
-            <h1 className="text-2xl font-semibold text-gray-800">All Expenses</h1>
-            <ChevronDown className="ml-2 text-blue-500" size={20} />
-          </div>
+         
+          <ReusableFilterDropdown
+            selectedFilter={selectedCustomerFilter}
+            onFilterSelect={handleCustomerFilterSelect}
+            dropdownTitle="All Expenses"
+            defaultFilters={customerDefaultFilters}
+            customFilters={customerCustomFilters}
+            onNewCustomView={handleNewCustomerView}
+            showSearch={true}
+            showNewCustomView={true}
+            showStarIcons={true}
+            dropdownWidth="w-80"
+            showDefaultFilters={true}
+          />
           <div className="flex items-center gap-2">
             {selectedRows.length > 0 && (
               <div className="flex justify-end p-4">

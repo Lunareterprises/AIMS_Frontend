@@ -10,6 +10,9 @@ import ImportCustomersModal from './sort/importCustomer/ImportCustomersModal';
 import ExportCustomersModal from './sort/exportCustomer/ExportCustomersModal'
 import SortOptionsDropdown from './sort/SortOptionsDropdown';
 import ExportCurrentView from './sort/exportCurrentView/ExportCurrentView';
+import { ReusableFilterDropdown } from './filterMenus/ReusableFilterDropdown';
+
+
 
 const initialCustomers = [
   { id: 1, name: 'ASK', companyName: 'ASK PORTAL - FZCO', email: '', workPhone: '', receivables: 'AED0.00', unusedCredits: 'AED0.00' },
@@ -48,6 +51,43 @@ export default function CustomersList() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showExportCurrentView, setShowExportCurrentView] = useState(false);
+  const [selectedCustomerFilter, setSelectedCustomerFilter] = useState({
+    id: 'active',
+    label: 'Active Customers'
+  });
+
+
+    // Customer filter options
+  const customerDefaultFilters = [
+    { id: 'all', label: 'All Customers', count: 150 },
+    { id: 'active', label: 'Active Customers', count: 120 },
+    { id: 'crm', label: 'CRM Customers', count: 45 },
+    { id: 'duplicate', label: 'Duplicate Customers', count: 8 },
+    { id: 'inactive', label: 'Inactive Customers', count: 30 },
+    { id: 'portal-enabled', label: 'Customer Portal Enabled', count: 25 },
+    { id: 'portal-disabled', label: 'Customer Portal Disabled', count: 95 },
+    { id: 'overdue', label: 'Overdue Customers', count: 12 },
+    { id: 'unpaid', label: 'Unpaid Customers', count: 18 }
+  ];
+
+    const handleCustomerFilterSelect = (filter) => {
+    setSelectedCustomerFilter(filter);
+    console.log('Customer filter selected:', filter);
+    // Add your customer filtering logic here
+  };
+
+
+    const customerCustomFilters = [
+    { id: 'sample-custom', label: 'Sample custom view', count: 5, hasDropdown: true },
+    { id: 'my-vip-customers', label: 'My VIP Customers', count: 10 }
+  ];
+
+
+  const handleNewCustomerView = () => {
+    console.log('Creating new customer custom view');
+    // Add your new custom view logic here
+  };
+
 
   const [showImportModal, setShowImportModal] = useState(false);
   const [importOption, setImportOption] = useState('customers');
@@ -115,12 +155,21 @@ export default function CustomersList() {
   return (
     <div >
       {/* Header section */}
-      <div className=" w-full bg-white ">
+      <div className=" w-full bg-white  ">
         <div className="flex items-center w-full justify-between p-4 border-b ">
-          <div className="flex items-center">
-            <h1 className="text-2xl font-semibold text-gray-800">Active Customers</h1>
-            <ChevronDown className="ml-2 text-blue-500" size={20} />
-          </div>
+          <ReusableFilterDropdown
+            selectedFilter={selectedCustomerFilter}
+            onFilterSelect={handleCustomerFilterSelect}
+            dropdownTitle="All Customers"
+            defaultFilters={customerDefaultFilters}
+            customFilters={customerCustomFilters}
+            onNewCustomView={handleNewCustomerView}
+            showSearch={true}
+            showNewCustomView={true}
+            showStarIcons={true}
+            dropdownWidth="w-80"
+            showDefaultFilters={false}
+          />
           <div className="flex items-center gap-2">
             {selectedRows.length > 0 && (
               <div className="flex justify-end p-4">

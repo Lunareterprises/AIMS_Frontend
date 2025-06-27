@@ -10,6 +10,7 @@ import ImportCustomersModal from '../../sales/customers/sort/importCustomer/Impo
 import ExportCurrentView from '../../sales/customers/sort/exportCurrentView/ExportCurrentView';
 import ExportCustomersModal from '../../sales/customers/sort/exportCustomer/ExportCustomersModal';
 import SortOptionsDropdown from '../../sales/customers/sort/SortOptionsDropdown';
+import { ReusableFilterDropdown } from '../../sales/customers/filterMenus/ReusableFilterDropdown';
 
 const initialCustomers = [
   {
@@ -165,7 +166,40 @@ export default function VendorLayout() {
   const [showExportCurrentView, setShowExportCurrentView] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importOption, setImportOption] = useState('customers');
+const [selectedCustomerFilter, setSelectedCustomerFilter] = useState({
+    id: 'active',
+    label: 'All Vendors'
+  });
 
+
+    // Customer filter options
+  const customerDefaultFilters = [
+  { id: 'all', label: 'All Vendors', count: 150 },
+  { id: 'active-vendors', label: 'Active Vendors', count: 0 },
+  { id: 'crm-vendors', label: 'CRM Vendors', count: 0 },
+  { id: 'duplicate-vendors', label: 'Duplicate Vendors', count: 0 },
+  { id: 'inactive-vendors', label: 'Inactive Vendors', count: 0 },
+  { id: 'vendor-portal-enabled', label: 'Vendor Portal Enabled', count: 0 },
+  { id: 'vendor-portal-disabled', label: 'Vendor Portal Disabled', count: 0 }
+];
+
+    const handleCustomerFilterSelect = (filter) => {
+    setSelectedCustomerFilter(filter);
+    console.log('Customer filter selected:', filter);
+    // Add your customer filtering logic here
+  };
+
+
+    const customerCustomFilters = [
+    { id: 'sample-custom', label: 'Sample custom view', count: 5, hasDropdown: true },
+    { id: 'my-vip-customers', label: 'My VIP Customers', count: 10 }
+  ];
+
+
+  const handleNewCustomerView = () => {
+    console.log('Creating new customer custom view');
+    // Add your new custom view logic here
+  };
   const handleMenuSelect = (label) => {
     if (label === 'Import Customers') setShowImportModal(true);
     else if (label === 'Export Customers') setShowExportModal(true);
@@ -226,10 +260,19 @@ export default function VendorLayout() {
     <div>
       {/* Header */}
       <div className="w-full bg-white border-b p-4 flex justify-between items-center">
-        <div className="flex items-center">
-          <h1 className="text-2xl font-semibold text-gray-800">All Vendor</h1>
-          <ChevronDown className="ml-2 text-blue-500" size={20} />
-        </div>
+       <ReusableFilterDropdown
+            selectedFilter={selectedCustomerFilter}
+            onFilterSelect={handleCustomerFilterSelect}
+            dropdownTitle="All Vendors"
+            defaultFilters={customerDefaultFilters}
+            customFilters={customerCustomFilters}
+            onNewCustomView={handleNewCustomerView}
+            showSearch={true}
+            showNewCustomView={true}
+            showStarIcons={true}
+            dropdownWidth="w-80"
+            showDefaultFilters={true}
+          />
         <div className="flex gap-2 items-center">
           {selectedRows.length > 0 && (
               <div className="flex justify-end p-4">

@@ -195,7 +195,7 @@ export default function Sidebar() {
           />
           <NavItem
             icon={<UserCircle size={20} />}
-            label="Accounts"
+            label="Accountant"
             collapsed={collapsed}
             children={[
               {

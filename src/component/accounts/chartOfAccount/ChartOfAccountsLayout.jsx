@@ -11,6 +11,7 @@ import ExportCurrentView from '../../sales/customers/sort/exportCurrentView/Expo
 import ExportCustomersModal from '../../sales/customers/sort/exportCustomer/ExportCustomersModal';
 import SortOptionsDropdown from '../../sales/customers/sort/SortOptionsDropdown';
 import CreateAccountModal from './CreateAccount/CreateAccountModal';
+import { ReusableFilterDropdown } from '../../sales/customers/filterMenus/ReusableFilterDropdown';
 
 const initialCustomers = [
   {
@@ -90,7 +91,39 @@ export default function ChartOfAccountsLayout() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [importOption, setImportOption] = useState('customers');
   const [showPopup, setShowPopup] = useState(false);
+const [selectedCustomerFilter, setSelectedCustomerFilter] = useState({
+    id: 'active',
+    label: 'Active Accounts'
+  });
 
+
+const customerDefaultFilters = [
+  { id: 'all', label: 'All Accounts', count: 150 },
+  { id: 'active-accounts', label: 'Active Accounts', count: 0 },
+  { id: 'inactive-accounts', label: 'Inactive Accounts', count: 0 },
+  { id: 'asset-accounts', label: 'Asset Accounts', count: 0 },
+  { id: 'liability-accounts', label: 'Liability Accounts', count: 0 },
+  { id: 'equity-accounts', label: 'Equity Accounts', count: 0 },
+  { id: 'income-accounts', label: 'Income Accounts', count: 0 },
+  { id: 'expense-accounts', label: 'Expense Accounts', count: 0 }
+];
+    const handleCustomerFilterSelect = (filter) => {
+    setSelectedCustomerFilter(filter);
+    console.log('Customer filter selected:', filter);
+    // Add your customer filtering logic here
+  };
+
+
+    const customerCustomFilters = [
+    { id: 'sample-custom', label: 'Sample custom view', count: 5, hasDropdown: true },
+    { id: 'my-vip-customers', label: 'My VIP Customers', count: 10 }
+  ];
+
+
+  const handleNewCustomerView = () => {
+    console.log('Creating new customer custom view');
+    // Add your new custom view logic here
+  };
   const handleMenuSelect = (label) => {
     if (label === 'Import Customers') {
       setShowImportModal(true);
@@ -150,10 +183,20 @@ const [filterFields, setFilterFields] = useState({
       {/* Header section */}
       <div className="w-full bg-white">
         <div className="flex items-center w-full justify-between p-4 border-b">
-          <div className="flex items-center">
-            <h1 className="text-2xl font-semibold text-gray-800">Active Accounts</h1>
-            <ChevronDown className="ml-2 text-blue-500" size={20} />
-          </div>
+          
+          <ReusableFilterDropdown
+            selectedFilter={selectedCustomerFilter}
+            onFilterSelect={handleCustomerFilterSelect}
+            dropdownTitle="Active Accounts"
+            defaultFilters={customerDefaultFilters}
+            customFilters={customerCustomFilters}
+            onNewCustomView={handleNewCustomerView}
+            showSearch={true}
+            showNewCustomView={true}
+            showStarIcons={true}
+            dropdownWidth="w-80"
+            showDefaultFilters={true}
+          />
           <div className="flex items-center gap-2">
             {selectedRows.length > 0 && (
               <div className="flex justify-end p-4">

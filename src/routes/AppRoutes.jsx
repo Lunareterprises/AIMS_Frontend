@@ -51,6 +51,7 @@ import ChartOfAccountDetailedPage from "../component/accounts/chartOfAccount/Cha
 import PurchaseReceivesLayout from "../component/purchase/purchaseReceives/PurchaseReceivesLayout";
 import PurcahseReceivesForm from "../component/purchase/purchaseReceives/createNew/PurcahseReceivesForm";
 import PurchaseReceiveDetailedPage from "../component/purchase/purchaseReceives/PurchaseReceiveDetailedPage";
+import CustomViewForm from "../component/sales/customers/filterMenus/CustomViewForm";
 
 const AppRoutes = () => {
   return (
@@ -191,6 +192,15 @@ const AppRoutes = () => {
         }
       />
       {/* //-------sale-------------- */}
+
+      <Route
+        path="/CustomViewForm"
+        element={
+          <MainLayout>
+            <CustomViewForm />
+          </MainLayout>
+        }
+      />
       <Route
         path="/import/map-fields"
         element={

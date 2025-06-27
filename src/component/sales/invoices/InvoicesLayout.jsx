@@ -10,6 +10,7 @@ import ImportCustomersModal from '../customers/sort/importCustomer/ImportCustome
 import ExportCurrentView from '../customers/sort/exportCurrentView/ExportCurrentView';
 import ExportCustomersModal from '../customers/sort/exportCustomer/ExportCustomersModal';
 import SortOptionsDropdown from '../customers/sort/SortOptionsDropdown';
+import { ReusableFilterDropdown } from '../customers/filterMenus/ReusableFilterDropdown';
 
 const initialCustomers = [
   {
@@ -380,6 +381,53 @@ export default function InvoicesLayout() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [importOption, setImportOption] = useState('customers');
 
+
+  const [selectedCustomerFilter, setSelectedCustomerFilter] = useState({
+    id: 'active',
+    label: 'All Invoice'
+  });
+
+
+    // Customer filter options
+  const customerDefaultFilters = [
+  { id: 'all', label: 'All Invoice', count: 150 },
+  { id: 'draft', label: 'Draft', count: 0 },
+  { id: 'locked', label: 'Locked', count: 0 },
+  { id: 'pending-approval', label: 'Pending Approval', count: 0 },
+  { id: 'approved', label: 'Approved', count: 0 },
+  { id: 'customer-viewed', label: 'Customer Viewed', count: 0 },
+  { id: 'partially-paid', label: 'Partially Paid', count: 0 },
+  { id: 'unpaid', label: 'Unpaid', count: 0 },
+  { id: 'overdue', label: 'Overdue', count: 0 },
+  { id: 'payment-initiated', label: 'Payment Initiated', count: 0 },
+  { id: 'paid', label: 'Paid', count: 0 },
+  { id: 'void', label: 'Void', count: 0 },
+  { id: 'yet-to-be-shipped', label: 'Yet To Be Shipped', count: 0 },
+  { id: 'shipped', label: 'Shipped', count: 0 },
+  { id: 'debit-note', label: 'Debit Note', count: 0 },
+  { id: 'write-off', label: 'Write Off', count: 0 }
+];
+
+    const handleCustomerFilterSelect = (filter) => {
+    setSelectedCustomerFilter(filter);
+    console.log('Customer filter selected:', filter);
+    // Add your customer filtering logic here
+  };
+
+
+    const customerCustomFilters = [
+    { id: 'sample-custom', label: 'Sample custom view', count: 5, hasDropdown: true },
+    { id: 'my-vip-customers', label: 'My VIP Customers', count: 10 }
+  ];
+
+
+  const handleNewCustomerView = () => {
+    console.log('Creating new customer custom view');
+    // Add your new custom view logic here
+  };
+
+
+
   const handleMenuSelect = (label) => {
     if (label === 'Import Customers') {
       setShowImportModal(true);
@@ -465,10 +513,19 @@ export default function InvoicesLayout() {
       {/* Header section */}
       <div className="w-full bg-white">
         <div className="flex items-center w-full justify-between p-4 border-b">
-          <div className="flex items-center">
-            <h1 className="text-2xl font-semibold text-gray-800">All Invoice</h1>
-            <ChevronDown className="ml-2 text-blue-500" size={20} />
-          </div>
+          <ReusableFilterDropdown
+            selectedFilter={selectedCustomerFilter}
+            onFilterSelect={handleCustomerFilterSelect}
+            dropdownTitle="All Invoice"
+            defaultFilters={customerDefaultFilters}
+            customFilters={customerCustomFilters}
+            onNewCustomView={handleNewCustomerView}
+            showSearch={true}
+            showNewCustomView={true}
+            showStarIcons={true}
+            dropdownWidth="w-80"
+            showDefaultFilters={true}
+          />
           <div className="flex items-center gap-2">
             {selectedRows.length > 0 && (
               <div className="flex justify-end p-4">
