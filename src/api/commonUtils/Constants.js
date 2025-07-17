@@ -41,21 +41,28 @@ export const API_ENDPOINTS = {
   EDIT_COMPOSIT_ITEM: "/crm/compositeItem/edit",
   DELETE_COMPOSIT_ITEM: "/crm/compositeItem/delete",
 
-
-
-
-
-
   //----------->>>>>>Vendor<<<<<<------------------------------
   LIST_VENDOR: "/crm/list/vendors",
 
-
   //----------->>>>>> Sales -  Customer <<<<<<------------------------------
 
-  CREATE_CUSTOMER : "/crm/add-customer",
-  CUSTOMER_LIST : "/crm/list/customers"
+  CREATE_CUSTOMER: "/crm/add-customer",
+  CUSTOMER_LIST: "/crm/list/customers",
 
+  SALESPERSON_LIST: "/crm/salesperson/list",
+  CREATE_SALESPERSON: "/crm/salesperson/create",
+  EDIT_SALESPERSON: "/crm/salesperson/edit",
+  GET_SALESPERON: "/crm/salesperson/data",
+  DELETE_SALESPERSON: "/crm/salesperson/delete",
 
-  
+  TAX_LIST: "/crm/tax/list",
+  CREATE_TAX: "/crm/tax/create",
+  CREATE_QUOTES: "/crm/quote/create",
 
+  PROJECT_LIST: "/crm/project/list",
+  CREATE_PROJECT: "/crm/project/create",
+  QUOTES_LIST: "/crm/quote/list",
+
+  CREATE_INVOICE: "/crm/invoice/create",
+  INVOICE_LIST: "/crm/invoice/list",
 };

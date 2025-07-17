@@ -20,7 +20,7 @@ import ExportCurrentView from "./sort/exportCurrentView/ExportCurrentView";
 import { custom_list } from "../../../api/services/authService";
 import { customer_list } from "../../../api/services/sales/createCustomer";
 import { getFirstWordInCaps } from "../../../lib/utils";
-import { ReusableFilterDropdown } from './filterMenus/ReusableFilterDropdown';
+import { ReusableFilterDropdown } from "./filterMenus/ReusableFilterDropdown";
 
 const allColumns = [
   {
@@ -89,6 +89,10 @@ export default function CustomersList() {
   const [importOption, setImportOption] = useState("customers");
   const [activeFilter, setActiveFilter] = useState("All Customers");
   const [searchTermfilter, setSearchTermfilter] = useState("");
+  const [selectedCustomerFilter, setSelectedCustomerFilter] = useState({
+    id: "active",
+    label: "Active Accounts",
+  });
 
   const handleMenuSelect = (label) => {
     if (label === "Import Customers") {
@@ -120,26 +124,46 @@ export default function CustomersList() {
 
   const visibleColumns = allColumns.filter((col) => filterFields[col.key]);
 
-  const staticMenuItems = [
-    { id: "all", label: "All Customers", starred: true },
-    { id: "active", label: "Active Customers", starred: false },
-    { id: "crm", label: "CRM Customers", starred: false },
-    { id: "duplicate", label: "Duplicate Customers", starred: false },
-    { id: "inactive", label: "Inactive Customers", starred: false },
-    { id: "portalEnabled", label: "Customer Portal Enabled", starred: false },
-    { id: "portalDisabled", label: "Customer Portal Disabled", starred: false },
-    { id: "overdue", label: "Overdue Customers", starred: false },
-    { id: "unpaid", label: "Unpaid Customers", starred: false },
+  const customerDefaultFilters = [
+    { id: 'all', label: 'All Customers', count: 150 },
+    { id: 'active', label: 'Active Customers', count: 120 },
+    { id: 'crm', label: 'CRM Customers', count: 45 },
+    { id: 'duplicate', label: 'Duplicate Customers', count: 8 },
+    { id: 'inactive', label: 'Inactive Customers', count: 30 },
+    { id: 'portal-enabled', label: 'Customer Portal Enabled', count: 25 },
+    { id: 'portal-disabled', label: 'Customer Portal Disabled', count: 95 },
+    { id: 'overdue', label: 'Overdue Customers', count: 12 },
+    { id: 'unpaid', label: 'Unpaid Customers', count: 18 }
+  ];
+
+  const customerCustomFilters = [
+    { id: 'sample-custom', label: 'Sample custom view', count: 5, hasDropdown: true },
+    { id: 'my-vip-customers', label: 'My VIP Customers', count: 10 }
   ];
 
   const handleRowClick = (id) => {
     navigate(`/CustomerDetailedPage/${id}`);
   };
 
-    const handleDeleteSelected = () => {
+  const handleNewCustomerView = () => {
+    console.log("Creating new customer custom view");
+    // Add your new custom view logic here
+  };
+
+  const handleCustomerFilterSelect = (filter) => {
+    setSelectedCustomerFilter(filter);
+    console.log('Customer filter selected:', filter);
+    // Add your customer filtering logic here
+  };
+
+  const handleDeleteSelected = () => {
     // Optional: Confirm before deleting
-    if (window.confirm("Are you sure you want to delete the selected records?")) {
-      const filtered = customers.filter(customer => !selectedRows.includes(customer.id));
+    if (
+      window.confirm("Are you sure you want to delete the selected records?")
+    ) {
+      const filtered = customers.filter(
+        (customer) => !selectedRows.includes(customer.id)
+      );
       setCustomers(filtered);
       setSelectedRows([]); // Clear selection after deletion
       setSelectAll(false);
@@ -327,15 +351,22 @@ export default function CustomersList() {
                 />
               </div>
             )}
-          <CommonButton
-            label={
-              <div className="flex items-center">
-                <Plus size={20} className="mr-1" /> New
-              </div>
-            }
-            onClick={() => navigate('/CustomersAdd_Details', { state: { title: 'Add New Customer', customer_Type: 'customer' } }, )}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-          />
+            <CommonButton
+              label={
+                <div className="flex items-center">
+                  <Plus size={20} className="mr-1" /> New
+                </div>
+              }
+              onClick={() =>
+                navigate("/CustomersAdd_Details", {
+                  state: {
+                    title: "Add New Customer",
+                    customer_Type: "customer",
+                  },
+                })
+              }
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+            />
 
             <SortOptionsDropdown onMenuSelect={handleMenuSelect} />
 

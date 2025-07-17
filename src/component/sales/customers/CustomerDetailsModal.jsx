@@ -157,7 +157,7 @@ const CustomerDetailsModal = ({
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Portal Status</span>
                     <span className="text-sm text-gray-900">
-                      {customerData.cu_portal_access.trim() === "false"
+                      {customerData?.cu_portal_access?.trim() === "false"
                         ? "Disabled"
                         : "Enabled"}
                     </span>
