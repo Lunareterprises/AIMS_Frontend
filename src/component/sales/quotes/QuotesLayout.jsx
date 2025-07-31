@@ -40,13 +40,16 @@ const allColumns = [
 const formatDate = (dateString) => {
   if (!dateString) return "";
   const date = new Date(dateString);
-  return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD format
+  return date.toISOString().split("T")[0]; // Returns YYYY-MM-DD format
 };
 
 // Helper function to format currency
 const formatCurrency = (amount) => {
   if (!amount && amount !== 0) return "";
-  return `AED ${Number(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `AED ${Number(amount).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 };
 
 // Helper function to capitalize status
@@ -69,11 +72,12 @@ const transformQuoteData = (apiQuote) => {
     companyName: apiQuote.companyName || apiQuote.company_name || "N/A", // You might need to join with customer table
     declinedDate: "", // You may need to add this field to your API response
     expiryDate: formatDate(apiQuote.q_expiry_date),
-    salesPerson: apiQuote.salesPersonName || apiQuote.sales_person_name || "N/A", // You might need to join with sales person table
+    salesPerson:
+      apiQuote.salesPersonName || apiQuote.sales_person_name || "N/A", // You might need to join with sales person table
     subTotal: formatCurrency(apiQuote.q_sub_total),
-    
+
     // Keep original API data for reference
-    originalData: apiQuote
+    originalData: apiQuote,
   };
 };
 
@@ -149,60 +153,61 @@ export default function QuotesLayout() {
 
   // Customer filter options - dynamically calculated from data
   const customerDefaultFilters = [
-    { id: "all", label: "All Quotes", count: customers.length },
+    { id: "all", label: "All Quotes", count: customers?.length },
     {
       id: "draft",
       label: "Draft",
-      count: customers.filter((c) => c.status?.toLowerCase() === "draft")
+      count: customers?.filter((c) => c.status?.toLowerCase() === "draft")
         .length,
     },
     {
       id: "pending-approval",
       label: "Pending Approval",
-      count: customers.filter(
+      count: customers?.filter(
         (c) => c.status?.toLowerCase() === "pending approval"
       ).length,
     },
     {
       id: "approved",
       label: "Approved",
-      count: customers.filter((c) => c.status?.toLowerCase() === "approved")
+      count: customers?.filter((c) => c.status?.toLowerCase() === "approved")
         .length,
     },
     {
       id: "sent",
       label: "Sent",
-      count: customers.filter((c) => c.status?.toLowerCase() === "sent").length,
+      count: customers?.filter((c) => c.status?.toLowerCase() === "sent")
+        .length,
     },
     {
       id: "customer-viewed",
       label: "Customer Viewed",
-      count: customers.filter(
+      count: customers?.filter(
         (c) => c.status?.toLowerCase() === "customer viewed"
       ).length,
     },
     {
       id: "accepted",
       label: "Accepted",
-      count: customers.filter((c) => c.status?.toLowerCase() === "accepted")
+      count: customers?.filter((c) => c.status?.toLowerCase() === "accepted")
         .length,
     },
     {
       id: "invoiced",
       label: "Invoiced",
-      count: customers.filter((c) => c.status?.toLowerCase() === "invoiced")
+      count: customers?.filter((c) => c.status?.toLowerCase() === "invoiced")
         .length,
     },
     {
       id: "declined",
       label: "Declined",
-      count: customers.filter((c) => c.status?.toLowerCase() === "declined")
+      count: customers?.filter((c) => c.status?.toLowerCase() === "declined")
         .length,
     },
     {
       id: "expired",
       label: "Expired",
-      count: customers.filter((c) => c.status?.toLowerCase() === "expired")
+      count: customers?.filter((c) => c.status?.toLowerCase() === "expired")
         .length,
     },
   ];
@@ -279,7 +284,8 @@ export default function QuotesLayout() {
         quoteData: selectedQuote,
         title: "Quote",
         backToPath: "/Addqoutes",
-        editForm: "/QuotesForm",
+        editForm: `/QuotesForm`,
+        mailForm: `/QuotesMailPage`,
       },
     });
   };

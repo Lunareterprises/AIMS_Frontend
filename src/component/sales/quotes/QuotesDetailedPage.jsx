@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import CommonButton from "../../CommonUI/buttons/CommonButton";
 import html2pdf from "html2pdf.js";
@@ -7,10 +7,12 @@ import html2pdf from "html2pdf.js";
 export default function QuotesDetailedPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { id } = useParams();
   const quoteData = location.state?.quoteData;
   const title = location.state?.title || "Quote";
   const backToPath = location.state?.backToPath;
   const editForm = location.state?.editForm;
+  const mailForm = location.state?.mailForm;
 
   const printRef = useRef();
 
@@ -116,7 +118,12 @@ export default function QuotesDetailedPage() {
         <CommonButton
           label="Edit"
           className="bg-gray-200 rounded-md px-5 py-2 text-gray-900 hover:bg-gray-300"
-          onClick={() => navigate(editForm)}
+          onClick={() => navigate(`${editForm}/${id}`)}
+        />
+        <CommonButton
+          label="Mail"
+          className="bg-gray-200 rounded-md px-5 py-2 text-gray-900 hover:bg-gray-300"
+          onClick={() => navigate(`${mailForm}/${id}`)}
         />
         <CommonButton
           onClick={handleDownloadPDF}

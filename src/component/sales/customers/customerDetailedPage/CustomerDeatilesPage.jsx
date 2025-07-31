@@ -4,6 +4,7 @@ import Tabs from "./Tabs";
 import Swal from "sweetalert2";
 import { customer_list } from "../../../../api/services/sales/createCustomer";
 import { getFirstWordInCaps } from "../../../../lib/utils";
+import CommonButton from "../../../CommonUI/buttons/CommonButton";
 
 const CustomerDetailsPage = () => {
   const navigate = useNavigate();
@@ -18,8 +19,9 @@ const CustomerDetailsPage = () => {
 
       const response = await customer_list(body);
 
-      const customerData = response.list && response.list.length > 0 ? response.list[0] : null;
-      
+      const customerData =
+        response.list && response.list.length > 0 ? response.list[0] : null;
+
       if (customerData) {
         const transformedData = {
           ...customerData,
@@ -48,9 +50,18 @@ const CustomerDetailsPage = () => {
       <div className="bg-white border-b border-gray-200 px-6 py-3">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-gray-900">
-            {customer ? `${getFirstWordInCaps(customer.cu_company_name || customer.customer_name)}` : ''}
+            {customer
+              ? `${getFirstWordInCaps(
+                  customer.cu_company_name || customer.customer_name
+                )}`
+              : ""}
           </h1>
           <div className="flex items-center space-x-4">
+            <CommonButton
+              label="Edit"
+              className="bg-gray-200 rounded-md px-5 py-2 text-gray-900 hover:bg-gray-300"
+              onClick={() => navigate(`/CustomersAdd_Details/${id}`)}
+            />
             <button
               className="text-gray-500 hover:text-gray-700"
               onClick={() => navigate("/CustomersList")}

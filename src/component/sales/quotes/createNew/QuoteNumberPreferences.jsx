@@ -1,53 +1,52 @@
-import React, { useEffect, useState } from 'react';
-import { X, Info, Plus } from 'lucide-react';
-import CommonButton from '../../../CommonUI/buttons/CommonButton';
+import React, { useEffect, useState } from "react";
+import { X, Info, Plus } from "lucide-react";
+import CommonButton from "../../../CommonUI/buttons/CommonButton";
 
 const QuoteNumberPreferences = ({ isOpen, onClose, source }) => {
   const [autoGenerate, setAutoGenerate] = useState(true);
-  const [prefix, setPrefix] = useState('QT-');
-  const [nextNumber, setNextNumber] = useState('000004');
+  const [prefix, setPrefix] = useState("QT-");
+  const [nextNumber, setNextNumber] = useState("000004");
   const [restartNumbering, setRestartNumbering] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
-  const [selectedOption, setSelectedOption] = useState('');
-  const [selectedYearFormat, setSelectedYearFormat] = useState('');
-  const [labelName, setLabelName] = useState('');
+  const [selectedOption, setSelectedOption] = useState("");
+  const [selectedYearFormat, setSelectedYearFormat] = useState("");
+  const [labelName, setLabelName] = useState("");
 
-    useEffect(() => {
-    if (source === 'invoice') {
-      setLabelName('Invoice');
-    } else if(source === 'quote'){
-      setLabelName('Quote');
-    }
-    else if(source === 'journal'){
-      setLabelName('Journal');
-    }
-      else if(source === 'paymentRecevible'){
-      setLabelName('Payment Recevible');
-    }
-    
-      else if(source === 'purchaseReceive'){
-      setLabelName('Purchase Receive');
+  useEffect(() => {
+    if (source === "invoice") {
+      setLabelName("Invoice");
+      setPrefix("INV-");
+    } else if (source === "quote") {
+      setLabelName("Quote");
+      setPrefix("QT-");
+    } else if (source === "journal") {
+      setLabelName("Journal");
+    } else if (source === "paymentRecevible") {
+      setLabelName("Payment Recevible");
+      setPrefix("");
+    } else if (source === "purchaseReceive") {
+      setLabelName("Purchase Receive");
     }
   }, [source]);
 
   if (!isOpen) return null;
-  
+
   const dropdownOptions = [
-    'Fiscal Year Start',
-    'Fiscal Year End', 
-    'Transaction Year',
-    'Transaction Date',
-    'Transaction Month'
+    "Fiscal Year Start",
+    "Fiscal Year End",
+    "Transaction Year",
+    "Transaction Date",
+    "Transaction Month",
   ];
 
-  const yearFormats = ['YY', 'YYYY'];
+  const yearFormats = ["YY", "YYYY"];
 
   const handleDropdownSelect = (option) => {
     setSelectedOption(option);
     setShowDropdown(false);
-    if (option === 'Fiscal Year Start' || option === 'Fiscal Year End') {
+    if (option === "Fiscal Year Start" || option === "Fiscal Year End") {
       setShowYearDropdown(true);
     } else {
       setShowYearDropdown(false);
@@ -64,8 +63,14 @@ const QuoteNumberPreferences = ({ isOpen, onClose, source }) => {
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Configure {labelName} Number Preferences</h2>
-          <CommonButton label={<X size={24} />} className="text-gray-400 hover:text-gray-600" onClick={onClose} />
+          <h2 className="text-xl font-semibold text-gray-900">
+            Configure {labelName} Number Preferences
+          </h2>
+          <CommonButton
+            label={<X size={24} />}
+            className="text-gray-400 hover:text-gray-600"
+            onClick={onClose}
+          />
         </div>
 
         {/* Content */}
@@ -77,7 +82,9 @@ const QuoteNumberPreferences = ({ isOpen, onClose, source }) => {
             </div>
             <div className="flex-1">
               <p className="text-gray-600">
-                Configure multiple transaction number series to auto-generate transaction numbers with unique prefixes according to your business needs.
+                Configure multiple transaction number series to auto-generate
+                transaction numbers with unique prefixes according to your
+                business needs.
               </p>
             </div>
             <button className="text-blue-600 hover:text-blue-800 font-medium">
@@ -88,7 +95,8 @@ const QuoteNumberPreferences = ({ isOpen, onClose, source }) => {
           {/* Warning Message */}
           <div className="bg-gray-50 p-4 rounded-lg">
             <p className="text-gray-700">
-              Your {labelName} numbers are set on auto-generate mode to save your time. Are you sure about changing this setting?
+              Your {labelName} numbers are set on auto-generate mode to save
+              your time. Are you sure about changing this setting?
             </p>
           </div>
 
@@ -103,7 +111,10 @@ const QuoteNumberPreferences = ({ isOpen, onClose, source }) => {
                 onChange={() => setAutoGenerate(true)}
                 className="w-4 h-4 text-blue-600"
               />
-              <label htmlFor="auto-generate" className="text-gray-900 font-medium">
+              <label
+                htmlFor="auto-generate"
+                className="text-gray-900 font-medium"
+              >
                 Continue auto-generating {labelName} numbers
               </label>
               <div className="relative ">
@@ -116,7 +127,8 @@ const QuoteNumberPreferences = ({ isOpen, onClose, source }) => {
                 </button>
                 {showTooltip && (
                   <div className=" absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg w-96 z-10">
-                    The edited prefix and next number will be updated in the transaction number series associated with your {labelName}.
+                    The edited prefix and next number will be updated in the
+                    transaction number series associated with your {labelName}.
                   </div>
                 )}
               </div>
@@ -163,10 +175,14 @@ const QuoteNumberPreferences = ({ isOpen, onClose, source }) => {
                     className="mt-1 w-4 h-4 text-blue-600 rounded"
                   />
                   <div className="flex-1">
-                    <label htmlFor="restart-numbering" className="text-gray-700">
-                      Restart numbering for {labelName} at the start of each fiscal year.
+                    <label
+                      htmlFor="restart-numbering"
+                      className="text-gray-700"
+                    >
+                      Restart numbering for {labelName} at the start of each
+                      fiscal year.
                     </label>
-                    
+
                     {restartNumbering && (
                       <div className="mt-3 relative">
                         <div className="relative inline-block">
@@ -174,9 +190,9 @@ const QuoteNumberPreferences = ({ isOpen, onClose, source }) => {
                             onClick={() => setShowDropdown(!showDropdown)}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
                           >
-                            {selectedOption || 'PLACEHOLDER'}
+                            {selectedOption || "PLACEHOLDER"}
                           </button>
-                          
+
                           {showDropdown && (
                             <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
                               {dropdownOptions.map((option, index) => (
@@ -191,7 +207,7 @@ const QuoteNumberPreferences = ({ isOpen, onClose, source }) => {
                             </div>
                           )}
                         </div>
-                        
+
                         {showYearDropdown && (
                           <div className="ml-4 mt-2 relative inline-block">
                             <div className="space-x-2">
@@ -201,8 +217,8 @@ const QuoteNumberPreferences = ({ isOpen, onClose, source }) => {
                                   onClick={() => handleYearFormatSelect(format)}
                                   className={`px-4 py-2 rounded-lg border ${
                                     selectedYearFormat === format
-                                      ? 'bg-blue-600 text-white border-blue-600'
-                                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                      ? "bg-blue-600 text-white border-blue-600"
+                                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                                   }`}
                                 >
                                   {format}
@@ -227,7 +243,10 @@ const QuoteNumberPreferences = ({ isOpen, onClose, source }) => {
                 onChange={() => setAutoGenerate(false)}
                 className="w-4 h-4 text-blue-600"
               />
-              <label htmlFor="manual-entry" className="text-gray-900 font-medium">
+              <label
+                htmlFor="manual-entry"
+                className="text-gray-900 font-medium"
+              >
                 Enter {labelName} numbers manually
               </label>
             </div>
@@ -236,8 +255,15 @@ const QuoteNumberPreferences = ({ isOpen, onClose, source }) => {
 
         {/* Footer */}
         <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-          <CommonButton label="Cancel" onClick={onClose} className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"/>
-          <CommonButton label="Save" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"/>
+          <CommonButton
+            label="Cancel"
+            onClick={onClose}
+            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+          />
+          <CommonButton
+            label="Save"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          />
         </div>
       </div>
     </div>

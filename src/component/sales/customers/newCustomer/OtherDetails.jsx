@@ -1,33 +1,73 @@
-import React, { useState } from 'react';
-import { Upload, Globe, ChevronUp,Search, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Upload, Globe, ChevronUp, Search, ChevronDown } from "lucide-react";
 
 function OtherDetails({ data, onChange }) {
-  const [fileError, setFileError] = useState('');
+  const options = [
+    {
+      label: "VAT Registered",
+      value: "vat_registered",
+      description:
+        "A business that is registered for VAT and is located in the U.A.E.",
+    },
+    {
+      label: "Non VAT Registered",
+      value: "non_vat_registered",
+      description:
+        "A business that is not registered for VAT and is located in the U.A.E.",
+    },
+    {
+      label: "VAT Registered - Designated Zone",
+      value: "vat_registered_designated_zone",
+      description:
+        "A business that is registered for VAT and is located in a designated zone within the U.A.E.",
+    },
+    {
+      label: "Non VAT Registered - Designated Zone",
+      value: "non_vat_registered_designated_zone",
+      description:
+        "A business that isn't registered for VAT and is located in a designated zone within the U.A.E.",
+    },
+  ];
+
+  const [fileError, setFileError] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState("Non VAT Registered");
+  const [selectedOption, setSelectedOption] = useState(() => {
+    const option = options.find((opt) => opt.value === data.taxTreatment);
+    return option ? option.label : "Non VAT Registered";
+  });
   const [searchTerm, setSearchTerm] = useState("");
-  const [trn, setTrn] = useState('');
-  const [trnError, setTrnError] = useState('');
+  const [trn, setTrn] = useState("");
+  const [trnError, setTrnError] = useState("");
 
   const labelClass = "w-1/3 text-sm font-medium text-gray-700";
-  const fieldClass = "w-1/2 text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-0";
+  const fieldClass =
+    "w-1/2 text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-0";
 
   const [showMore, setShowMore] = useState(false);
-  
+
   const MAX_FILES = 10;
   const MAX_FILE_SIZE_MB = 10;
-  
+
+  // Set initial taxTreatment value if not already set
+  useEffect(() => {
+    if (!data.taxTreatment) {
+      onChange({ ...data, taxTreatment: "non_vat_registered" });
+    }
+  }, []);
+
   const handleFileChange = (e) => {
     const newFiles = Array.from(e.target.files);
     const totalFiles = uploadedFiles.length + newFiles.length;
 
-    let error = '';
+    let error = "";
     if (totalFiles > MAX_FILES) {
       error = `You can upload a maximum of ${MAX_FILES} files.`;
     } else {
       const allFiles = [...uploadedFiles, ...newFiles];
-      const validFiles = allFiles.filter(file => file.size <= MAX_FILE_SIZE_MB * 1024 * 1024);
+      const validFiles = allFiles.filter(
+        (file) => file.size <= MAX_FILE_SIZE_MB * 1024 * 1024
+      );
 
       if (validFiles.length !== allFiles.length) {
         error = `Each file must be smaller than ${MAX_FILE_SIZE_MB}MB.`;
@@ -40,7 +80,7 @@ function OtherDetails({ data, onChange }) {
     if (error) {
       setFileError(error);
     } else {
-      setFileError('');
+      setFileError("");
     }
   };
 
@@ -50,7 +90,7 @@ function OtherDetails({ data, onChange }) {
     { code: "KWD", name: "Kuwaiti Dinar" },
     { code: "BHD", name: "Bahraini Dinar" },
     { code: "OMR", name: "Omani Rial" },
-    { code: "QAR", name: "Qatari Riyal" }
+    { code: "QAR", name: "Qatari Riyal" },
   ];
 
   const languages = [
@@ -73,46 +113,24 @@ function OtherDetails({ data, onChange }) {
     { label: "Tamil", value: "ta" },
     { label: "Telugu", value: "te" },
     { label: "Punjabi", value: "pa" },
-    { label: "Italian", value: "it" }
+    { label: "Italian", value: "it" },
   ];
-    const uaePlaces = [
-      "Abu Dhabi",
-      "Dubai",
-      "Sharjah",
-      "Ajman",
-      "Umm Al Quwain",
-      "Ras Al Khaimah",
-      "Fujairah"
-    ];
 
+  const uaePlaces = [
+    "Abu Dhabi",
+    "Dubai",
+    "Sharjah",
+    "Ajman",
+    "Umm Al Quwain",
+    "Ras Al Khaimah",
+    "Fujairah",
+  ];
 
-  const options = [
-      {
-        label: 'VAT Registered',
-        value: 'vat_registered',
-        description: 'A business that is registered for VAT and is located in the U.A.E.',
-      },
-      {
-        label: 'Non VAT Registered',
-        value: 'non_vat_registered',
-        description: 'A business that is not registered for VAT and is located in the U.A.E.',
-      },
-      {
-        label: 'VAT Registered - Designated Zone',
-        value: 'vat_registered_designated_zone',
-        description: 'A business that is registered for VAT and is located in a designated zone within the U.A.E.',
-      },
-      {
-        label: 'Non VAT Registered - Designated Zone',
-        value: 'non_vat_registered_designated_zone',
-        description: 'A business that isn’t registered for VAT and is located in a designated zone within the U.A.E.',
-      },
-    ];
-
-    const filteredOptions = options.filter(option =>
+  const filteredOptions = options.filter(
+    (option) =>
       option.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
       option.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  );
 
   return (
     <div className="flex flex-col space-y-4">
@@ -157,13 +175,16 @@ function OtherDetails({ data, onChange }) {
                     onClick={() => {
                       setSelectedOption(option.label);
                       setIsOpen(false);
-                      setTrn('');       // reset TRN when changing option
-                      setTrnError('');  // reset error
+                      setTrn("");
+                      setTrnError("");
+                      onChange({ ...data, taxTreatment: option.value });
                     }}
                     className={`p-4 cursor-pointer hover:bg-blue-100 transition-colors text-gray-700`}
                   >
                     <div className="font-medium mb-1">{option.label}</div>
-                    <div className="text-sm text-gray-500">{option.description}</div>
+                    <div className="text-sm text-gray-500">
+                      {option.description}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -175,41 +196,65 @@ function OtherDetails({ data, onChange }) {
             </div>
           )}
         </div>
-
       </div>
 
-
-      {(selectedOption === 'VAT Registered' || selectedOption === 'VAT Registered - Designated Zone') && (
-          <div className="flex items-start gap-x-4">
-            <label className={`${labelClass} text-red-600`}>Tax Registration<br />Number (TRN)*</label>
-            <div className="w-1/2">
-              <input
-                type="text"
-                value={trn}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setTrn(value);
-                  // Validate on change
-                  if (!/^\d{15}$/.test(value)) {
-                    setTrnError("Enter your customer's 15-digit TRN.");
-                  } else {
-                    setTrnError('');
-                  }
-                }}
-                className={`w-full text-sm px-3 py-2 border rounded focus:outline-none ${trnError ? 'border-red-500 text-red-700' : 'border-gray-300'}`}
-                placeholder="Enter 15-digit TRN"
-              />
-              {trnError && (
-                <div className="text-red-600 text-sm mt-1 flex items-center gap-x-1">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>
-                  <span>{trnError}</span>
-                </div>
-              )}
-              <a href="https://tax.gov.ae/en/default.aspx" target="_blank"  rel="noopener noreferrer" className="text-blue-600 text-sm mt-1 inline-block">Validate TRN <span className="text-blue-500">?</span></a>
-            </div>
+      {(selectedOption === "VAT Registered" ||
+        selectedOption === "VAT Registered - Designated Zone") && (
+        <div className="flex items-start gap-x-4">
+          <label className={`${labelClass} text-red-600`}>
+            Tax Registration
+            <br />
+            Number (TRN)*
+          </label>
+          <div className="w-1/2">
+            <input
+              type="text"
+              value={trn}
+              onChange={(e) => {
+                const value = e.target.value;
+                onChange({ ...data, trn: e.target.value });
+                setTrn(value);
+                // Validate on change
+                if (!/^\d{15}$/.test(value)) {
+                  setTrnError("Enter your customer's 15-digit TRN.");
+                } else {
+                  setTrnError("");
+                }
+              }}
+              className={`w-full text-sm px-3 py-2 border rounded focus:outline-none ${
+                trnError ? "border-red-500 text-red-700" : "border-gray-300"
+              }`}
+              placeholder="Enter 15-digit TRN"
+            />
+            {trnError && (
+              <div className="text-red-600 text-sm mt-1 flex items-center gap-x-1">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"
+                  />
+                </svg>
+                <span>{trnError}</span>
+              </div>
+            )}
+            <a
+              href="https://tax.gov.ae/en/default.aspx"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 text-sm mt-1 inline-block"
+            >
+              Validate TRN <span className="text-blue-500">?</span>
+            </a>
           </div>
-        )}
-
+        </div>
+      )}
 
       <div className="flex items-center gap-x-4">
         <label className={labelClass}>Place of Supply*</label>
@@ -227,7 +272,6 @@ function OtherDetails({ data, onChange }) {
           <option value="Other">Other</option>
         </select>
       </div>
-
 
       <div className="flex items-center gap-x-4">
         <label className={labelClass}>Currency</label>
@@ -251,7 +295,9 @@ function OtherDetails({ data, onChange }) {
           type="text"
           className={fieldClass}
           value={data.accountReceivable}
-          onChange={(e) => onChange({ ...data, accountReceivable: e.target.value })}
+          onChange={(e) =>
+            onChange({ ...data, accountReceivable: e.target.value })
+          }
         />
       </div>
 
@@ -261,7 +307,9 @@ function OtherDetails({ data, onChange }) {
           type="number"
           className={fieldClass}
           value={data.openingBalance}
-          onChange={(e) => onChange({ ...data, openingBalance: e.target.value })}
+          onChange={(e) =>
+            onChange({ ...data, openingBalance: e.target.value })
+          }
         />
       </div>
 
@@ -281,7 +329,9 @@ function OtherDetails({ data, onChange }) {
           type="checkbox"
           className="rounded"
           checked={data.enablePortal}
-          onChange={(e) => onChange({ ...data, enablePortal: e.target.checked })}
+          onChange={(e) =>
+            onChange({ ...data, enablePortal: e.target.checked })
+          }
         />
       </div>
 
@@ -290,7 +340,9 @@ function OtherDetails({ data, onChange }) {
         <select
           className={fieldClass}
           value={data.portalLanguage}
-          onChange={(e) => onChange({ ...data, portalLanguage: e.target.value })}
+          onChange={(e) =>
+            onChange({ ...data, portalLanguage: e.target.value })
+          }
         >
           <option value="">Select language</option>
           {languages.map((lang) => (
@@ -331,7 +383,9 @@ function OtherDetails({ data, onChange }) {
                     type="button"
                     className="text-red-600 ml-2 text-xs"
                     onClick={() => {
-                      const updatedFiles = uploadedFiles.filter((_, i) => i !== idx);
+                      const updatedFiles = uploadedFiles.filter(
+                        (_, i) => i !== idx
+                      );
                       setUploadedFiles(updatedFiles);
                       onChange({ ...data, documents: updatedFiles });
                     }}
@@ -342,9 +396,9 @@ function OtherDetails({ data, onChange }) {
               ))}
             </ul>
           )}
-
         </div>
       </div>
+
       <a
         href="#"
         onClick={(e) => {
@@ -353,7 +407,7 @@ function OtherDetails({ data, onChange }) {
         }}
         className="text-blue-600"
       >
-        {showMore ? 'Hide details' : 'Add more details'}
+        {showMore ? "Hide details" : "Add more details"}
       </a>
 
       {showMore && (
@@ -377,7 +431,9 @@ function OtherDetails({ data, onChange }) {
               type="text"
               className={fieldClass}
               value={data.department}
-              onChange={(e) => onChange({ ...data, department: e.target.value })}
+              onChange={(e) =>
+                onChange({ ...data, department: e.target.value })
+              }
             />
           </div>
 
@@ -387,7 +443,9 @@ function OtherDetails({ data, onChange }) {
               type="text"
               className={fieldClass}
               value={data.designation}
-              onChange={(e) => onChange({ ...data, designation: e.target.value })}
+              onChange={(e) =>
+                onChange({ ...data, designation: e.target.value })
+              }
             />
           </div>
 

@@ -47,6 +47,7 @@ export const API_ENDPOINTS = {
   //----------->>>>>> Sales -  Customer <<<<<<------------------------------
 
   CREATE_CUSTOMER: "/crm/add-customer",
+  UPDATE_CUSTOMER: "/crm/edit/customer",
   CUSTOMER_LIST: "/crm/list/customers",
 
   SALESPERSON_LIST: "/crm/salesperson/list",
@@ -58,6 +59,7 @@ export const API_ENDPOINTS = {
   TAX_LIST: "/crm/tax/list",
   CREATE_TAX: "/crm/tax/create",
   CREATE_QUOTES: "/crm/quote/create",
+  EDIT_QUOTES: "/crm/quote/edit",
 
   PROJECT_LIST: "/crm/project/list",
   CREATE_PROJECT: "/crm/project/create",
@@ -65,4 +67,13 @@ export const API_ENDPOINTS = {
 
   CREATE_INVOICE: "/crm/invoice/create",
   INVOICE_LIST: "/crm/invoice/list",
+
+  PAYMENT_MODE_LIST: "/crm/payment_mode/list",
+  CREATE_PAYMENT_MODE: "/crm/payment_mode/create",
+  EDIT_PAYMENT_MODE: "/crm/payment_mode/edit",
+  SET_DEFAULT_PAYMENT_MODE: "/crm/payment_mode/set_default",
+  DELETE_PAYMENT_MODE: "/crm/payment_mode/delete",
+
+  CREATE_PAYMENT_RECEIVED: "/crm/payment_received/create",
+  PAYMENT_RECEIVED_LIST: "/crm/payment_received/list",
 };

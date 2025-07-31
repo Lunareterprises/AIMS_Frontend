@@ -52,6 +52,7 @@ import PurchaseReceivesLayout from "../component/purchase/purchaseReceives/Purch
 import PurcahseReceivesForm from "../component/purchase/purchaseReceives/createNew/PurcahseReceivesForm";
 import PurchaseReceiveDetailedPage from "../component/purchase/purchaseReceives/PurchaseReceiveDetailedPage";
 import CustomViewForm from "../component/sales/customers/filterMenus/CustomViewForm";
+import QuotesMailPage from "../component/sales/quotes/QuotesMailPage";
 
 const AppRoutes = () => {
   return (
@@ -241,6 +242,14 @@ const AppRoutes = () => {
           </MainLayout>
         }
       />
+      <Route
+        path="/CustomersAdd_Details/:id"
+        element={
+          <MainLayout>
+            <CustomersAdd />
+          </MainLayout>
+        }
+      />
 
       <Route
         path="/CustomerView"
@@ -270,10 +279,26 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/QuotesForm/:id"
+        element={
+          <MainLayout>
+            <QuoteForm />
+          </MainLayout>
+        }
+      />
+      <Route
         path="/QuotesDetailedPage/:id"
         element={
           <MainLayout>
             <QuotesDetailedPage />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/QuotesMailPage"
+        element={
+          <MainLayout>
+            <QuotesMailPage />
           </MainLayout>
         }
       />

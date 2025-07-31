@@ -29,6 +29,20 @@ const CustomerDetailsModal = ({
     }
   };
 
+  // Safe function to get contact persons count
+  const getContactPersonsCount = (customerData) => {
+    if (!customerData) return 0;
+    const contacts = customerData?.contact_persons ?? customerData?.contactPersons;
+    return Array.isArray(contacts) ? contacts.length : 0;
+  };
+
+  // Safe function to get contact persons array
+  const getContactPersons = (customerData) => {
+    if (!customerData) return [];
+    const contacts = customerData?.contact_persons ?? customerData?.contactPersons;
+    return Array.isArray(contacts) ? contacts : [];
+  };
+
   return (
     <>
       {/* Overlay */}
@@ -43,7 +57,7 @@ const CustomerDetailsModal = ({
         <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">
-              {customerData.initial}
+              {customerData?.initial || customerData?.name?.charAt(0) || "?"}
             </div>
             <div>
               <div className="flex items-center space-x-1">
@@ -53,7 +67,7 @@ const CustomerDetailsModal = ({
               </div>
               <div className="flex items-center space-x-2">
                 <h3 className="font-semibold text-gray-900">
-                  {customerData.name}
+                  {customerData?.name || customerData?.cu_display_name || "Unknown Customer"}
                 </h3>
                 <ExternalLink
                   className="w-4 h-4 text-blue-500 cursor-pointer hover:text-blue-700"
@@ -75,10 +89,14 @@ const CustomerDetailsModal = ({
           {/* Company Name */}
           <div className="p-4 border-b border-gray-100">
             <div className="flex items-center space-x-2 text-gray-600">
-              <span className="text-sm">{customerData.company || "-"}</span>
+              <span className="text-sm">
+                {customerData?.company || customerData?.cu_company_name || "-"}
+              </span>
             </div>
             <div className="flex items-center space-x-2 mt-1 text-gray-500">
-              <span className="text-sm">{customerData.email || "-"}</span>
+              <span className="text-sm">
+                {customerData?.email || customerData?.cu_email || "-"}
+              </span>
             </div>
           </div>
 
@@ -114,7 +132,7 @@ const CustomerDetailsModal = ({
                     </span>
                   </div>
                   <div className="text-lg font-semibold text-gray-900">
-                    AED{customerData.outstandingReceivables || "0.00"}
+                    AED {customerData?.outstandingReceivables || customerData?.receivables || "0.00"}
                   </div>
                 </div>
                 <div className="text-center">
@@ -125,7 +143,7 @@ const CustomerDetailsModal = ({
                     </span>
                   </div>
                   <div className="text-lg font-semibold text-gray-900">
-                    AED{customerData.unusedCredits || "0.00"}
+                    AED {customerData?.unusedCredits || "0.00"}
                   </div>
                 </div>
               </div>
@@ -139,19 +157,19 @@ const CustomerDetailsModal = ({
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Customer Type</span>
                     <span className="text-sm text-gray-900">
-                      {customerData.cu_type || "Business"}
+                      {customerData?.cu_type || "Business"}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Currency</span>
                     <span className="text-sm text-gray-900">
-                      {customerData.cu_currency || "AED"}
+                      {customerData?.cu_currency || "AED"}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Payment Terms</span>
                     <span className="text-sm text-gray-900">
-                      {customerData.cu_payment_terms || "Due on Receipt"}
+                      {customerData?.cu_payment_terms || "Due on Receipt"}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -167,32 +185,32 @@ const CustomerDetailsModal = ({
                       Portal Language
                     </span>
                     <span className="text-sm text-gray-900">
-                      {customerData.cu_portal_language || "English"}
+                      {customerData?.cu_portal_language || "English"}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Tax Treatment</span>
                     <span className="text-sm text-gray-900">
-                      {customerData.cu_tax_treatment || "Non VAT Registered"}
+                      {customerData?.cu_tax_treatment || "Non VAT Registered"}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Member State</span>
                     <span className="text-sm text-gray-900">
-                      {customerData.cu_place_supply || "Dubai"}
+                      {customerData?.cu_place_supply || "Dubai"}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Source</span>
                     <span className="text-sm text-gray-900">
-                      {customerData.source || "-"}
+                      {customerData?.source || "-"}
                     </span>
                   </div>
-                  {customerData.phone && (
+                  {(customerData?.phone || customerData?.cu_phone) && (
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Phone</span>
                       <span className="text-sm text-gray-900">
-                        {customerData.phone}
+                        {customerData?.phone || customerData?.cu_phone}
                       </span>
                     </div>
                   )}
@@ -212,9 +230,7 @@ const CustomerDetailsModal = ({
                       Contact Persons
                     </h4>
                     <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
-                      {(Array.isArray(customerData.contact_persons) &&
-                        customerData.contact_persons?.length) ||
-                        0}
+                      {getContactPersonsCount(customerData)}
                     </span>
                   </div>
                   <ChevronDown
@@ -225,40 +241,47 @@ const CustomerDetailsModal = ({
                 </div>
                 {contactPersonsExpanded && (
                   <div className="pl-4 pb-3">
-                    {!customerData.contact_persons ||
-                    customerData.contactPersons.length === 0 ? (
-                      <div className="text-center text-gray-500 py-4">
-                        <div className="text-sm">No contact persons found.</div>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {customerData.contact_persons.map((contact, index) => (
-                          <div
-                            key={index}
-                            className="border border-gray-200 rounded-lg p-3"
-                          >
-                            <div className="font-medium text-gray-900">
-                              {contact.name}
-                            </div>
-                            {contact.title && (
-                              <div className="text-sm text-gray-600">
-                                {contact.title}
-                              </div>
-                            )}
-                            {contact.email && (
-                              <div className="text-sm text-gray-600">
-                                {contact.email}
-                              </div>
-                            )}
-                            {contact.phone && (
-                              <div className="text-sm text-gray-600">
-                                {contact.phone}
-                              </div>
-                            )}
+                    {(() => {
+                      const contacts = getContactPersons(customerData);
+
+                      return contacts.length === 0 ? (
+                        <div className="text-center text-gray-500 py-4">
+                          <div className="text-sm">
+                            No contact persons found.
                           </div>
-                        ))}
-                      </div>
-                    )}
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {contacts.map((contact, index) => (
+                            <div
+                              key={contact?.id || contact?.cp_id || index}
+                              className="border border-gray-200 rounded-lg p-3"
+                            >
+                              <div className="font-medium text-gray-900">
+                                {contact?.name ||
+                                  contact?.cp_name ||
+                                  "Unknown Name"}
+                              </div>
+                              {(contact?.title || contact?.cp_title) && (
+                                <div className="text-sm text-gray-600">
+                                  {contact?.title || contact?.cp_title}
+                                </div>
+                              )}
+                              {(contact?.email || contact?.cp_email) && (
+                                <div className="text-sm text-gray-600">
+                                  {contact?.email || contact?.cp_email}
+                                </div>
+                              )}
+                              {(contact?.phone || contact?.cp_phone) && (
+                                <div className="text-sm text-gray-600">
+                                  {contact?.phone || contact?.cp_phone}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
@@ -289,7 +312,7 @@ const CustomerDetailsModal = ({
                         </span>
                       </div>
                       <div className="ml-6 mt-2 text-sm text-gray-700">
-                        {!customerData.cu_b_addr_address?.trim() ? (
+                        {!customerData?.cu_b_addr_address?.trim() ? (
                           <div className="text-gray-400 italic">
                             No Billing Address
                           </div>
@@ -297,36 +320,36 @@ const CustomerDetailsModal = ({
                           <div className="space-y-1">
                             <div>
                               <span className="font-medium">Attention:</span>{" "}
-                              {customerData.cu_b_addr_attention?.trim() ||
+                              {customerData?.cu_b_addr_attention?.trim() ||
                                 "N/A"}
                             </div>
                             <div>
                               <span className="font-medium">Address:</span>{" "}
-                              {customerData.cu_b_addr_address?.trim() || "N/A"}
+                              {customerData?.cu_b_addr_address?.trim() || "N/A"}
                             </div>
                             <div>
                               <span className="font-medium">City:</span>{" "}
-                              {customerData.cu_b_addr_city?.trim() || "N/A"}
+                              {customerData?.cu_b_addr_city?.trim() || "N/A"}
                             </div>
                             <div>
                               <span className="font-medium">State:</span>{" "}
-                              {customerData.cu_b_addr_state?.trim() || "N/A"}
+                              {customerData?.cu_b_addr_state?.trim() || "N/A"}
                             </div>
                             <div>
                               <span className="font-medium">Country:</span>{" "}
-                              {customerData.cu_b_addr_country?.trim() || "N/A"}
+                              {customerData?.cu_b_addr_country?.trim() || "N/A"}
                             </div>
                             <div>
                               <span className="font-medium">Pincode:</span>{" "}
-                              {customerData.cu_b_addr_pincode || "N/A"}
+                              {customerData?.cu_b_addr_pincode || "N/A"}
                             </div>
                             <div>
                               <span className="font-medium">Phone:</span>{" "}
-                              {customerData.cu_b_addr_phone || "N/A"}
+                              {customerData?.cu_b_addr_phone || "N/A"}
                             </div>
                             <div>
                               <span className="font-medium">Fax:</span>{" "}
-                              {customerData.cu_b_addr_fax_number || "N/A"}
+                              {customerData?.cu_b_addr_fax_number || "N/A"}
                             </div>
                           </div>
                         )}
@@ -344,7 +367,7 @@ const CustomerDetailsModal = ({
                         </span>
                       </div>
                       <div className="ml-6 mt-2 text-sm text-gray-700">
-                        {!customerData.cu_s_addr_address?.trim() ? (
+                        {!customerData?.cu_s_addr_address?.trim() ? (
                           <div className="text-gray-400 italic">
                             No Shipping Address
                           </div>
@@ -352,36 +375,36 @@ const CustomerDetailsModal = ({
                           <div className="space-y-1">
                             <div>
                               <span className="font-medium">Attention:</span>{" "}
-                              {customerData.cu_s_addr_attention?.trim() ||
+                              {customerData?.cu_s_addr_attention?.trim() ||
                                 "N/A"}
                             </div>
                             <div>
                               <span className="font-medium">Address:</span>{" "}
-                              {customerData.cu_s_addr_address?.trim() || "N/A"}
+                              {customerData?.cu_s_addr_address?.trim() || "N/A"}
                             </div>
                             <div>
                               <span className="font-medium">City:</span>{" "}
-                              {customerData.cu_s_addr_city?.trim() || "N/A"}
+                              {customerData?.cu_s_addr_city?.trim() || "N/A"}
                             </div>
                             <div>
                               <span className="font-medium">State:</span>{" "}
-                              {customerData.cu_s_addr_state?.trim() || "N/A"}
+                              {customerData?.cu_s_addr_state?.trim() || "N/A"}
                             </div>
                             <div>
                               <span className="font-medium">Country:</span>{" "}
-                              {customerData.cu_s_addr_country?.trim() || "N/A"}
+                              {customerData?.cu_s_addr_country?.trim() || "N/A"}
                             </div>
                             <div>
                               <span className="font-medium">Pincode:</span>{" "}
-                              {customerData.cu_s_addr_pincode || "N/A"}
+                              {customerData?.cu_s_addr_pincode || "N/A"}
                             </div>
                             <div>
                               <span className="font-medium">Phone:</span>{" "}
-                              {customerData.cu_s_addr_phone || "N/A"}
+                              {customerData?.cu_s_addr_phone || "N/A"}
                             </div>
                             <div>
                               <span className="font-medium">Fax:</span>{" "}
-                              {customerData.cu_s_addr_fax_number || "N/A"}
+                              {customerData?.cu_s_addr_fax_number || "N/A"}
                             </div>
                           </div>
                         )}

@@ -1,14 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Swal from "sweetalert2";
-import {
-  ChevronDown,
-  Plus,
-  MoreVertical,
-  HelpCircle,
-  ChevronUp,
-  Search,
-  Star,
-} from "lucide-react";
+import { Plus, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import FilterModal from "./FilterModal";
 import CommonButton from "../../CommonUI/buttons/CommonButton";
@@ -69,6 +61,7 @@ const allColumns = [
 export default function CustomersList() {
   const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
+  const [allCustomers, setAllCustomers] = useState([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -90,8 +83,8 @@ export default function CustomersList() {
   const [activeFilter, setActiveFilter] = useState("All Customers");
   const [searchTermfilter, setSearchTermfilter] = useState("");
   const [selectedCustomerFilter, setSelectedCustomerFilter] = useState({
-    id: "active",
-    label: "Active Accounts",
+    id: "all",
+    label: "All Customers",
   });
 
   const handleMenuSelect = (label) => {
@@ -124,21 +117,67 @@ export default function CustomersList() {
 
   const visibleColumns = allColumns.filter((col) => filterFields[col.key]);
 
+  // Dynamic customer filters with counts calculated from actual data
   const customerDefaultFilters = [
-    { id: 'all', label: 'All Customers', count: 150 },
-    { id: 'active', label: 'Active Customers', count: 120 },
-    { id: 'crm', label: 'CRM Customers', count: 45 },
-    { id: 'duplicate', label: 'Duplicate Customers', count: 8 },
-    { id: 'inactive', label: 'Inactive Customers', count: 30 },
-    { id: 'portal-enabled', label: 'Customer Portal Enabled', count: 25 },
-    { id: 'portal-disabled', label: 'Customer Portal Disabled', count: 95 },
-    { id: 'overdue', label: 'Overdue Customers', count: 12 },
-    { id: 'unpaid', label: 'Unpaid Customers', count: 18 }
+    { id: "all", label: "All Customers", count: allCustomers?.length },
+    {
+      id: "active",
+      label: "Active Customers",
+      count: allCustomers?.filter(
+        (c) => c.cu_status?.toLowerCase() === "active"
+      ).length,
+    },
+    {
+      id: "inactive",
+      label: "Inactive Customers",
+      count: allCustomers?.filter(
+        (c) => c.cu_status?.toLowerCase() === "inactive"
+      ).length,
+    },
+    {
+      id: "crm",
+      label: "CRM Customers",
+      count: allCustomers?.filter((c) =>
+        c.source?.toLowerCase().includes("crm")
+      ).length,
+    },
+    {
+      id: "duplicate",
+      label: "Duplicate Customers",
+      count: allCustomers?.filter((c) => c.isDuplicate === true).length,
+    },
+    {
+      id: "portal-enabled",
+      label: "Customer Portal Enabled",
+      count: allCustomers?.filter((c) => c.portalEnabled === true).length,
+    },
+    {
+      id: "portal-disabled",
+      label: "Customer Portal Disabled",
+      count: allCustomers?.filter((c) => c.portalEnabled === false).length,
+    },
+    {
+      id: "overdue",
+      label: "Overdue Customers",
+      count: allCustomers?.filter(
+        (c) => c.receivables > 0 && c.isOverdue === true
+      ).length,
+    },
+    {
+      id: "unpaid",
+      label: "Unpaid Customers",
+      count: allCustomers?.filter((c) => c.receivables > 0).length,
+    },
   ];
 
   const customerCustomFilters = [
-    { id: 'sample-custom', label: 'Sample custom view', count: 5, hasDropdown: true },
-    { id: 'my-vip-customers', label: 'My VIP Customers', count: 10 }
+    {
+      id: "sample-custom",
+      label: "Sample custom view",
+      count: 5,
+      hasDropdown: true,
+    },
+    { id: "my-vip-customers", label: "My VIP Customers", count: 10 },
   ];
 
   const handleRowClick = (id) => {
@@ -152,8 +191,56 @@ export default function CustomersList() {
 
   const handleCustomerFilterSelect = (filter) => {
     setSelectedCustomerFilter(filter);
-    console.log('Customer filter selected:', filter);
-    // Add your customer filtering logic here
+    console.log("Customer filter selected:", filter);
+
+    // Apply filtering logic based on filter ID
+    let filteredCustomers = [];
+
+    switch (filter.id) {
+      case "all":
+        filteredCustomers = allCustomers;
+        break;
+      case "active":
+        filteredCustomers = allCustomers.filter(
+          (c) => c.cu_status?.toLowerCase() === "active"
+        );
+        break;
+      case "inactive":
+        filteredCustomers = allCustomers.filter(
+          (c) => c.cu_status?.toLowerCase() === "inactive"
+        );
+        break;
+      case "crm":
+        filteredCustomers = allCustomers.filter((c) =>
+          c.source?.toLowerCase().includes("crm")
+        );
+        break;
+      case "duplicate":
+        filteredCustomers = allCustomers.filter((c) => c.isDuplicate === true);
+        break;
+      case "portal-enabled":
+        filteredCustomers = allCustomers.filter(
+          (c) => c.portalEnabled === true
+        );
+        break;
+      case "portal-disabled":
+        filteredCustomers = allCustomers.filter(
+          (c) => c.portalEnabled === false
+        );
+        break;
+      case "overdue":
+        filteredCustomers = allCustomers.filter(
+          (c) => c.receivables > 0 && c.isOverdue === true
+        );
+        break;
+      case "unpaid":
+        filteredCustomers = allCustomers.filter((c) => c.receivables > 0);
+        break;
+      default:
+        filteredCustomers = allCustomers;
+    }
+
+    setCustomers(filteredCustomers);
   };
 
   const handleDeleteSelected = () => {
@@ -161,19 +248,28 @@ export default function CustomersList() {
     if (
       window.confirm("Are you sure you want to delete the selected records?")
     ) {
-      const filtered = customers.filter(
+      const filtered = customers?.filter(
         (customer) => !selectedRows.includes(customer.id)
       );
       setCustomers(filtered);
+
+      // Also update allCustomers to keep counts accurate
+      const filteredAll = allCustomers.filter(
+        (customer) => !selectedRows.includes(customer.id)
+      );
+      setAllCustomers(filteredAll);
+
       setSelectedRows([]); // Clear selection after deletion
       setSelectAll(false);
     }
   };
+
   const handleRowSelect = (id) => {
     setSelectedRows((prev) =>
       prev.includes(id) ? prev.filter((row) => row !== id) : [...prev, id]
     );
   };
+
   const handleSelectAll = () => {
     setSelectAll(!selectAll);
     setSelectedRows(!selectAll ? customers.map((c) => c.id) : []);
@@ -203,6 +299,7 @@ export default function CustomersList() {
       setLoadingfilter(false);
     }
   };
+
   // Open dropdown and fetch data
   useEffect(() => {
     if (isOpen) fetchData();
@@ -222,33 +319,9 @@ export default function CustomersList() {
     };
   }, []);
 
-  // Toggle star status
-  const toggleStar = (id) => {
-    setCustomersfilter((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, starred: !item.starred } : item
-      )
-    );
-  };
-  //------------------
-
   useEffect(() => {
     fetchData();
   }, []);
-
-  const handleItemClick = (label, id) => {
-    setActiveFilter(label);
-    fetchItems(id);
-    setIsOpen(false);
-  };
-
-  const filteredItems = itemsfilter
-    .filter((item) =>
-      item.label.toLowerCase().includes(searchTermfilter.toLowerCase())
-    )
-    .sort((a, b) => (b.starred ? 1 : 0) - (a.starred ? 1 : 0)); // starred items first
-
-  //---------------------
 
   const handleClickOutside = (e) => {
     if (dropdownRefd.current && !dropdownRefd.current.contains(e.target)) {
@@ -261,25 +334,12 @@ export default function CustomersList() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSelect = (label) => {
-    console.log("Selected:", label);
-
-    if (label === "Import Items") {
-      setShowCsvConverter(true);
-    }
-    setOpen(false); // Close the dropdown when an item is selected
-  };
-
-  const closeCsvConverter = () => {
-    setShowCsvConverter(false); // Close the CSV converter
-  };
-
   const fetchItems = async (label) => {
     try {
       const body = {
         search: searchTerm,
         page,
-        limit,
+        limit: 1000, // Fetch all customers for accurate counting
         filters: label,
       };
       const response = await customer_list(body);
@@ -289,21 +349,28 @@ export default function CustomersList() {
         id: customer.cu_id, // Map cu_id to id
       }));
 
-      setCustomers(transformedData || []);
+      // Store all customers for counting purposes
+      setAllCustomers(transformedData || []);
+
+      // Apply current filter if any
+      if (selectedCustomerFilter.id === "all") {
+        setCustomers(transformedData || []);
+      } else {
+        handleCustomerFilterSelect(selectedCustomerFilter);
+      }
+
       setTotalPages(response.total_count || 1);
     } catch (error) {
       Swal.fire("Error", "Failed to fetch items", "error");
     }
   };
 
-  //------------------------------
-
   const fetchItemscustom = async (label) => {
     try {
       const body = {
         search: searchTerm,
         page,
-        limit,
+        limit: 1000, // Fetch all customers for accurate counting
         filters: label,
       };
       const response = await customer_list(body);
@@ -311,6 +378,9 @@ export default function CustomersList() {
         ...customer,
         id: customer.cu_id, // Map cu_id to id
       }));
+
+      // Store all customers for counting purposes
+      setAllCustomers(transformedData || []);
       setCustomers(transformedData || []);
       setTotalPages(response.total_count || 1);
     } catch (error) {

@@ -24,12 +24,14 @@ import {
   GET_ALL_TAXES,
   CREATE_QUOTES,
   GET_ALL_PROJECTS,
-  CREATE_PROJECT
+  CREATE_PROJECT,
+  GET_ALL_QUOTES,
 } from "../../../../api/services/sales/createCustomer";
 import ItemModal from "./ItemModal";
 import CustomTaxDropdown from "../CustomTaxDropdown";
 import { GET_ALL_ITEMS } from "../../../../api/services/authService";
 import ProjectModal from "./ProjectModal";
+import { useParams } from "react-router-dom";
 
 // Helper function to generate initials
 const generateInitial = (name) => {
@@ -37,7 +39,13 @@ const generateInitial = (name) => {
 };
 
 export default function QuoteForm() {
-  // AUTO-INCREMENT QUOTE NUMBER STATE
+  const { id } = useParams();
+
+  // Add loading states for fetching quote data
+  const [fetchingQuoteData, setFetchingQuoteData] = useState(false);
+  const [quoteDataLoaded, setQuoteDataLoaded] = useState(false);
+  const [fetchError, setFetchError] = useState("");
+
   const [quoteNumberConfig, setQuoteNumberConfig] = useState({
     prefix: "QT-",
     nextNumber: 1,
@@ -62,7 +70,7 @@ export default function QuoteForm() {
     sales_person_id: null,
     salespersonData: null,
     project_id: "",
-    projectData: null, // Add projectData to formData
+    projectData: null,
     supply_place: "",
     tax_treatment: "",
     subject: "",
@@ -182,6 +190,234 @@ export default function QuoteForm() {
 
   const [customerDetailsData, setCustomerDetailsData] = useState(null);
 
+  // Updated fetchQuoteData function based on your API response structure
+  const fetchQuoteData = async () => {
+    if (!id) return;
+
+    setFetchingQuoteData(true);
+    setFetchError("");
+
+    try {
+      // Using GET_ALL_QUOTES with quote_id parameter
+      const response = await GET_ALL_QUOTES({ quote_id: id });
+
+      console.log("API Response:", response);
+
+      // Check if response has data - handle both direct array and wrapped array formats
+      let quoteData = null;
+
+      if (Array.isArray(response) && response.length > 0) {
+        // Direct array format
+        quoteData = response[0];
+        console.log("Fetched quote data from direct array:", quoteData);
+      } else if (
+        response &&
+        response.data &&
+        Array.isArray(response.data) &&
+        response.data.length > 0
+      ) {
+        // Wrapped array format
+        quoteData = response.data[0];
+        console.log("Fetched quote data from wrapped array:", quoteData);
+      } else if (
+        response &&
+        response.result &&
+        response.list &&
+        Array.isArray(response.list) &&
+        response.list.length > 0
+      ) {
+        // Alternative wrapped format
+        quoteData = response.list[0];
+        console.log("Fetched quote data from list array:", quoteData);
+      }
+
+      if (quoteData) {
+        console.log("Fetched quote data:", quoteData);
+
+        // Map the API field names to your form structure
+        const updatedFormData = {
+          customer_id: quoteData.q_c_id || null,
+          customerData: null, // Will be populated separately if needed
+          number: quoteData.q_no || "",
+          reference: quoteData.q_reference || "",
+          date: quoteData.q_date ? quoteData.q_date.split("T")[0] : "", // Extract date part only
+          expiry_date: quoteData.q_expiry_date
+            ? quoteData.q_expiry_date.split("T")[0]
+            : "",
+          sales_person_id: quoteData.q_sp_id || null,
+          salespersonData: null, // Will be populated separately if needed
+          project_id: quoteData.q_p_id || "",
+          projectData: null, // Will be populated separately if needed
+          supply_place: quoteData.q_place_supply || "",
+          tax_treatment: quoteData.q_tax_treatment || "",
+          subject: quoteData.q_subject || "",
+          tax_preference: quoteData.q_tax_preference || "",
+          notes: quoteData.q_notes || "",
+          terms_condition: quoteData.q_terms_condition || "",
+          template: quoteData.q_template || "standard",
+          sub_total: parseFloat(quoteData.q_sub_total || 0),
+          discount: parseFloat(quoteData.q_discount || 0),
+          shipping_charge: parseFloat(quoteData.q_shipping_charges || 0),
+          adjustment: parseFloat(quoteData.q_adjustment || 0),
+          tcs_tds: quoteData.q_tcs_tds || null,
+          tcs_tds_id: quoteData.q_tcs_tds_id || null,
+          total: parseFloat(quoteData.q_total || 0),
+          items:
+            quoteData.items && quoteData.items.length > 0
+              ? quoteData.items.map((item, index) => ({
+                  id: item.qi_id || Date.now() + index,
+                  item_id: item.qi_i_id || null,
+                  description: item.qi_description || "",
+                  quantity: parseFloat(item.qi_quantity || 1),
+                  rate: parseFloat(item.qi_rate || 0),
+                  discount: parseFloat(item.qi_discount || 0),
+                  discount_type: item.qi_discount_type || "%",
+                  tax_id: item.qi_tax_id || null,
+                  tax: item.qi_tax || "",
+                  amount: parseFloat(item.qi_amount || 0),
+                  isEditing: false,
+                }))
+              : [
+                  {
+                    id: 1,
+                    item_id: null,
+                    description: "",
+                    quantity: 1.0,
+                    rate: 0.0,
+                    discount: 0,
+                    discount_type: "%",
+                    tax_id: null,
+                    tax: "",
+                    amount: 0.0,
+                    isEditing: true,
+                  },
+                ],
+          status: quoteData.q_status || "draft",
+        };
+
+        console.log("Mapped form data:", updatedFormData);
+        setFormData(updatedFormData);
+
+        // If you need to fetch related customer data, salesperson data, or project data
+        // you can make separate API calls here based on the IDs
+
+        // Example: Fetch customer data if customer_id exists
+        if (quoteData.q_c_id) {
+          try {
+            const customerResponse = await customer_list({
+              cust_id: quoteData.q_c_id,
+            });
+            if (
+              customerResponse &&
+              customerResponse.result &&
+              customerResponse.list &&
+              customerResponse.list.length > 0
+            ) {
+              const customerData = customerResponse.list[0];
+              const transformedCustomer = {
+                ...customerData,
+                id: customerData.cu_id,
+                name:
+                  customerData.cu_display_name || customerData.cu_name || "",
+                company: customerData.cu_company_name || "",
+                initial: generateInitial(
+                  customerData.cu_display_name || customerData.cu_name || ""
+                ),
+                email: customerData.cu_email || "",
+                phone: customerData.cu_phone || "",
+              };
+              handleFormDataChange("customerData", transformedCustomer);
+              console.log("Customer data loaded:", transformedCustomer);
+            }
+          } catch (error) {
+            console.error("Error fetching customer data:", error);
+          }
+        }
+
+        // Example: Fetch salesperson data if sales_person_id exists
+        if (quoteData.q_sp_id) {
+          try {
+            const salespersonResponse = await GET_ALL_SALESPERSONS({
+              search: "",
+              page: 1,
+              limit: 100, // Get enough to find the specific salesperson
+            });
+            if (salespersonResponse && salespersonResponse.data) {
+              const salesperson = salespersonResponse.data.find(
+                (sp) => (sp.sp_id || sp.id) === quoteData.q_sp_id
+              );
+              if (salesperson) {
+                const transformedSalesperson = {
+                  id: salesperson.sp_id || salesperson.id,
+                  name: salesperson.sp_name || salesperson.name || "",
+                  email: salesperson.sp_email || salesperson.email || "",
+                  phone: salesperson.sp_phone || salesperson.phone || "",
+                  initial: generateInitial(
+                    salesperson.sp_name || salesperson.name || ""
+                  ),
+                };
+                handleFormDataChange("salespersonData", transformedSalesperson);
+                console.log("Salesperson data loaded:", transformedSalesperson);
+              }
+            }
+          } catch (error) {
+            console.error("Error fetching salesperson data:", error);
+          }
+        }
+
+        // Example: Fetch project data if project_id exists
+        if (quoteData.q_p_id) {
+          try {
+            const projectResponse = await GET_ALL_PROJECTS({
+              search: "",
+              page: 1,
+              limit: 100, // Get enough to find the specific project
+            });
+            if (projectResponse && projectResponse.data) {
+              const project = projectResponse.data.find(
+                (p) => (p.p_id || p.id) === quoteData.q_p_id
+              );
+              if (project) {
+                const transformedProject = {
+                  id: project.p_id || project.id,
+                  name: project.p_name || project.name || "",
+                  code: project.p_code || project.code || "",
+                  description:
+                    project.p_description || project.description || "",
+                  status: project.p_status || project.status || "",
+                  customer_id:
+                    project.p_customer_id || project.customer_id || null,
+                  initial: generateInitial(
+                    project.p_name || project.name || ""
+                  ),
+                };
+                handleFormDataChange("projectData", transformedProject);
+                console.log("Project data loaded:", transformedProject);
+              }
+            }
+          } catch (error) {
+            console.error("Error fetching project data:", error);
+          }
+        }
+
+        setQuoteDataLoaded(true);
+        console.log("Quote data loaded successfully");
+      } else {
+        setFetchError("Failed to fetch quote data - no data found in response");
+        console.error("No valid data found in response:", response);
+      }
+    } catch (error) {
+      console.error("Error fetching quote data:", error);
+      setFetchError("Failed to fetch quote data. Please try again.");
+    } finally {
+      setFetchingQuoteData(false);
+    }
+  };
+  // Fetch quote data when component mounts and id exists
+  useEffect(() => {
+    fetchQuoteData();
+  }, [id]);
+
   // AUTO-INCREMENT FUNCTIONS
   const generateNextQuoteNumber = () => {
     const { prefix, nextNumber, digitLength, suffix } = quoteNumberConfig;
@@ -237,6 +473,9 @@ export default function QuoteForm() {
   };
 
   const initializeQuoteNumber = () => {
+    // Don't auto-generate quote number if we're editing an existing quote
+    if (id && quoteDataLoaded) return;
+
     try {
       const savedConfig = localStorage.getItem("quoteNumberConfig");
       let configToUse = { ...quoteNumberConfig };
@@ -247,7 +486,7 @@ export default function QuoteForm() {
         setQuoteNumberConfig(configToUse);
       }
 
-      if (configToUse.autoGenerate) {
+      if (configToUse.autoGenerate && !id) {
         const nextNumber = getNextQuoteNumber();
         configToUse.nextNumber = nextNumber;
 
@@ -260,7 +499,9 @@ export default function QuoteForm() {
       }
     } catch (error) {
       console.error("Error initializing quote number:", error);
-      handleFormDataChange("number", "QT-000001");
+      if (!id) {
+        handleFormDataChange("number", "QT-000001");
+      }
     }
   };
 
@@ -375,14 +616,16 @@ export default function QuoteForm() {
 
   // Set default quote date and initialize quote number on mount
   useEffect(() => {
-    const today = new Date().toISOString().split("T")[0];
-    handleFormDataChange("date", today);
-    initializeQuoteNumber();
-  }, []);
+    if (!quoteDataLoaded && !id) {
+      const today = new Date().toISOString().split("T")[0];
+      handleFormDataChange("date", today);
+      initializeQuoteNumber();
+    }
+  }, [quoteDataLoaded, id]);
 
-  // Update the quote number when config changes
+  // Update the quote number when config changes (only for new quotes)
   useEffect(() => {
-    if (quoteNumberConfig.autoGenerate) {
+    if (quoteNumberConfig.autoGenerate && !id && !quoteDataLoaded) {
       const newQuoteNumber = generateNextQuoteNumber();
       handleFormDataChange("number", newQuoteNumber);
     }
@@ -391,6 +634,8 @@ export default function QuoteForm() {
     quoteNumberConfig.digitLength,
     quoteNumberConfig.suffix,
     quoteNumberConfig.nextNumber,
+    id,
+    quoteDataLoaded,
   ]);
 
   // CALCULATE TOTALS
@@ -434,7 +679,7 @@ export default function QuoteForm() {
     };
   };
 
-  // CREATE QUOTE API FUNCTION WITH FORMDATA
+  // UPDATED CREATE/UPDATE QUOTE API FUNCTION
   const handleCreateQuote = async (isDraft = false) => {
     // Validation
     if (!formData.customer_id) {
@@ -539,43 +784,47 @@ export default function QuoteForm() {
         status: isDraft ? "draft" : "sent",
       };
 
+      // Add quote ID for update
+      if (id) {
+        quoteData.quote_id = id;
+      }
+
       console.log("Quote data being sent to API:", quoteData);
 
-      const response = await CREATE_QUOTES(quoteData);
+      let response;
+      if (id) {
+        response = await UPDATE_QUOTES(quoteData);
+      } else {
+        // Create new quote
+        response = await CREATE_QUOTES(quoteData);
+      }
 
       console.log({ response });
+
       if (response.result) {
-        // Update quote number sequence after successful creation
-        if (quoteNumberConfig.autoGenerate) {
+        // Update quote number sequence after successful creation (only for new quotes)
+        if (!id && quoteNumberConfig.autoGenerate) {
           updateQuoteNumberSequence(formData.number);
         }
 
         // Success handling
-        if (isDraft) {
-          Swal.fire({
-            title: "Success!",
-            text: "Quote saved as draft successfully",
-            icon: "success",
-            confirmButtonText: "OK",
-          }).then(() => {
-            if (quoteNumberConfig.autoGenerate) {
-              generateNewQuoteForNext();
-            }
-          });
-        } else {
-          Swal.fire({
-            title: "Success!",
-            text: "Quote saved and sent successfully",
-            icon: "success",
-            confirmButtonText: "OK",
-          }).then(() => {
-            if (quoteNumberConfig.autoGenerate) {
-              generateNewQuoteForNext();
-            }
-          });
-        }
+        const action = id ? "updated" : "created";
+        const message = isDraft
+          ? `Quote ${action} as draft successfully`
+          : `Quote ${action} and sent successfully`;
 
-        console.log("Quote created successfully:", response);
+        Swal.fire({
+          title: "Success!",
+          text: message,
+          icon: "success",
+          confirmButtonText: "OK",
+        }).then(() => {
+          if (!id && quoteNumberConfig.autoGenerate) {
+            generateNewQuoteForNext();
+          }
+        });
+
+        console.log(`Quote ${action} successfully:`, response);
       } else {
         Swal.fire({
           title: "Error",
@@ -585,9 +834,11 @@ export default function QuoteForm() {
         });
       }
     } catch (error) {
-      console.error("Error creating quote:", error);
+      console.error("Error saving quote:", error);
 
-      let errorMessage = "Failed to save quote. Please try again.";
+      let errorMessage = `Failed to ${
+        id ? "update" : "save"
+      } quote. Please try again.`;
 
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
@@ -630,7 +881,7 @@ export default function QuoteForm() {
       sales_person_id: null,
       salespersonData: null,
       project_id: "",
-      projectData: null, // Reset project data
+      projectData: null,
       supply_place: "Dubai",
       tax_treatment: "Non VAT Registered",
       subject: "",
@@ -672,11 +923,11 @@ export default function QuoteForm() {
     // Reset UI states
     setCustomerDropdownOpen(false);
     setSalespersonDropdownOpen(false);
-    setProjectDropdownOpen(false); // Reset project dropdown
-    setShowNewProjectModal(false); // Reset new project modal
+    setProjectDropdownOpen(false);
+    setShowNewProjectModal(false);
     setSearchQuery("");
     setSearchTerm("");
-    setSelectedProject(null); // Reset selected project
+    setSelectedProject(null);
   };
 
   // Fetch Salespersons
@@ -1294,12 +1545,12 @@ export default function QuoteForm() {
         p_revenue_budget: parseFloat(projectData.revenueBudget) || 0,
         p_add_to_watchlist: projectData.addToWatchlist,
         users: projectData.users,
-        tasks: projectData.tasks
+        tasks: projectData.tasks,
       };
 
       // Call the API to create project
       const response = await CREATE_PROJECT(apiProjectData);
-      
+
       if (response.result) {
         // Create project object from response
         const newProject = {
@@ -1309,18 +1560,18 @@ export default function QuoteForm() {
           description: projectData.description,
           status: "Active",
           customer_id: projectData.customerId,
-          initial: projectData.projectName.charAt(0).toUpperCase()
+          initial: projectData.projectName.charAt(0).toUpperCase(),
         };
 
         // Add to projects list
-        setProjects(prev => [newProject, ...prev]);
-        
+        setProjects((prev) => [newProject, ...prev]);
+
         // Select the new project
         handleProjectSelect(newProject);
-        
+
         // Close modal
         setShowNewProjectModal(false);
-        
+
         // Show success message
         Swal.fire({
           title: "Success!",
@@ -1329,22 +1580,21 @@ export default function QuoteForm() {
           timer: 2000,
           showConfirmButton: false,
         });
-        
+
         console.log("Project created:", newProject);
       } else {
         throw new Error(response.message || "Failed to create project");
       }
-      
     } catch (error) {
       console.error("Error creating project:", error);
-      
+
       let errorMessage = "Failed to create project. Please try again.";
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       Swal.fire("Error", errorMessage, "error");
     }
   };
@@ -1409,8 +1659,12 @@ export default function QuoteForm() {
   const filteredProjects = projects.filter(
     (project) =>
       project.name.toLowerCase().includes(projectSearchTerm.toLowerCase()) ||
-      (project.code && project.code.toLowerCase().includes(projectSearchTerm.toLowerCase())) ||
-      (project.description && project.description.toLowerCase().includes(projectSearchTerm.toLowerCase()))
+      (project.code &&
+        project.code.toLowerCase().includes(projectSearchTerm.toLowerCase())) ||
+      (project.description &&
+        project.description
+          .toLowerCase()
+          .includes(projectSearchTerm.toLowerCase()))
   );
 
   // Close dropdowns when clicking outside
@@ -1437,9 +1691,32 @@ export default function QuoteForm() {
   // Calculate current totals
   const totals = calculateTotals();
 
+  // Show loading state while fetching quote data
+  if (fetchingQuoteData) {
+    return (
+      <div className="bg-white min-h-screen w-full text-gray-700">
+        <div className="p-6">
+          <div className="flex justify-center items-center h-64">
+            <div className="flex items-center space-x-3">
+              <Loader className="w-6 h-6 animate-spin text-blue-500" />
+              <div className="text-lg text-gray-600">Loading quote data...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white min-h-screen w-full text-gray-700">
       <div className="p-6 space-y-6">
+        {/* Update the page title */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold text-gray-900">
+            {id ? "Edit Quote" : "Create New Quote"}
+          </h1>
+        </div>
+
         {/* Customer Name */}
         <div className="flex items-center space-x-2 w-3/5">
           <label className="text-red-500 font-medium w-32 text-sm">
@@ -2030,7 +2307,9 @@ export default function QuoteForm() {
                                   : "text-gray-500"
                               }`}
                             >
-                              {project.code ? `Code: ${project.code}` : "No code"}
+                              {project.code
+                                ? `Code: ${project.code}`
+                                : "No code"}
                               {project.status && ` | ${project.status}`}
                             </div>
                           </div>
@@ -2542,7 +2821,7 @@ export default function QuoteForm() {
           custom fields for your quotes by going to Settings ⚙️ Sales ➤ Quotes
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - UPDATE LABELS */}
         <div className="flex space-x-4 mt-8 pt-6 border-t">
           <button
             onClick={() => handleCreateQuote(true)}
@@ -2554,7 +2833,11 @@ export default function QuoteForm() {
             )}
             <span>
               {isSavingQuote && saveMode === "draft"
-                ? "Saving..."
+                ? id
+                  ? "Updating..."
+                  : "Saving..."
+                : id
+                ? "Update as Draft"
                 : "Save as Draft"}
             </span>
           </button>
@@ -2569,7 +2852,11 @@ export default function QuoteForm() {
             )}
             <span>
               {isSavingQuote && saveMode === "send"
-                ? "Saving..."
+                ? id
+                  ? "Updating..."
+                  : "Saving..."
+                : id
+                ? "Update and Send"
                 : "Save and Send"}
             </span>
           </button>
@@ -2656,7 +2943,7 @@ export default function QuoteForm() {
         }}
         onLoadMoreCustomers={() => {
           if (hasMore && !isLoadingCustomers) {
-            setPage(prev => prev + 1);
+            setPage((prev) => prev + 1);
           }
         }}
         customerHasMore={hasMore}
