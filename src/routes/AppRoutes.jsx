@@ -364,6 +364,15 @@ const AppRoutes = () => {
         }
       />
 
+       <Route
+        path="/InvoiceForm/:id"
+        element={
+          <MainLayout>
+            <InvoiceForm />
+          </MainLayout>
+        }
+      />
+
       {/*//---------------------------Payemnt Received-------------??  */}
 
       <Route 
@@ -377,6 +386,14 @@ const AppRoutes = () => {
 
       <Route 
         path="/PaymentRecevibleForm"
+        element={
+          <MainLayout>
+            <PaymentRecevibleForm />
+          </MainLayout>
+        }
+      />
+      <Route 
+        path="/PaymentRecevibleForm/:id"
         element={
           <MainLayout>
             <PaymentRecevibleForm />

@@ -67,6 +67,8 @@ export const API_ENDPOINTS = {
 
   CREATE_INVOICE: "/crm/invoice/create",
   INVOICE_LIST: "/crm/invoice/list",
+  GET_SINGLE_INVOICE: "/crm/invoice/singleInvoice",
+  EDIT_INVOICE: "/crm/invoice/edit",
 
   PAYMENT_MODE_LIST: "/crm/payment_mode/list",
   CREATE_PAYMENT_MODE: "/crm/payment_mode/create",
@@ -76,4 +78,6 @@ export const API_ENDPOINTS = {
 
   CREATE_PAYMENT_RECEIVED: "/crm/payment_received/create",
   PAYMENT_RECEIVED_LIST: "/crm/payment_received/list",
+  UPDATE_PAYMENT_RECEIVED: "/crm/payment_received/edit",
+  GET_PAYMENT_RECEIVED_BY_ID: "/crm/payment_received/data",
 };

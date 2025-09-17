@@ -169,11 +169,13 @@ export const CREATE_QUOTES = async (data) => {
 
 export const UPDATE_QUOTES = async (data) => {
   try {
+    console.log({ data });
     const response = await axiosInstance.post(API_ENDPOINTS.EDIT_QUOTES, data, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
+    console.log({ response }, "response from api");
     return response.data;
   } catch (error) {
     console.error("Register API failed:", error);
@@ -238,9 +240,38 @@ export const CREATE_INVOICES = async (data) => {
   }
 };
 
+export const UPDATE_INVOICES = async (data) => {
+  try {
+    console.log({ data }, "invoice data");
+    const response = await axiosInstance.post(
+      API_ENDPOINTS.EDIT_INVOICE,
+      data,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Register API failed:", error);
+    throw error;
+  }
+};
+
 export const GET_ALL_INVOICES = async (data) => {
   try {
     const response = await axiosInstance.post(API_ENDPOINTS.INVOICE_LIST, data);
+    return response.data;
+  } catch (error) {
+    console.error("Register API failed:", error);
+    throw error;
+  }
+};
+
+export const GET_INVOICE_BY_ID = async (data) => {
+  try {
+    const response = await axiosInstance.post(API_ENDPOINTS.GET_SINGLE_INVOICE, data);
     return response.data;
   } catch (error) {
     console.error("Register API failed:", error);
@@ -333,6 +364,25 @@ export const CREATE_PAYMENT_RECEIVED = async (data) => {
   }
 };
 
+export const UPDATE_PAYMENT_RECEIVED = async (data) => {
+  try {
+    const response = await axiosInstance.post(
+      API_ENDPOINTS.UPDATE_PAYMENT_RECEIVED,
+      data,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Create Payment Mode failed:", error);
+    throw error;
+  }
+};
+
+
 export const GET_ALL_PAYMENT_RECEIVED = async (data) => {
   try {
     const response = await axiosInstance.get(
@@ -345,3 +395,14 @@ export const GET_ALL_PAYMENT_RECEIVED = async (data) => {
     throw error;
   }
 };
+
+export const GET_PAYMENT_RECEIVED_BY_ID = async (data) => {
+  try {
+    const response = await axiosInstance.post(API_ENDPOINTS.GET_PAYMENT_RECEIVED_BY_ID, data);
+    return response.data;
+  } catch (error) {
+    console.error("Register API failed:", error);
+    throw error;
+  }
+};
+

@@ -1,43 +1,54 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
 import {
   ChevronDown,
-  Search,
-  Plus,
   X,
-  Upload,
-  HelpCircle,
+  Calendar,
+  Search,
   Settings,
-  Edit,
+  Plus,
   Loader,
+  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
-import CommonButton from "../../../CommonUI/buttons/CommonButton";
-import BillingAddressFormModal from "../../quotes/createNew/BillingAddressFormModal";
-import TaxPreferencesDialog from "../../quotes/createNew/TaxPreferencesDialog";
 import QuoteNumberPreferences from "../../quotes/createNew/QuoteNumberPreferences";
 import CustomerDetailsModal from "../../../sales/customers/CustomerDetailsModal";
-import ManageSalespersonsModal from "../../../sales/customers/ManageSalespersonsModal";
-import Swal from "sweetalert2";
 import {
-  CREATE_TAX,
   customer_list,
-  GET_ALL_SALESPERSONS,
-  GET_ALL_TAXES,
-  CREATE_INVOICES,
+  GET_ALL_INVOICES,
+  CREATE_PAYMENT_RECEIVED,
+  GET_PAYMENT_RECEIVED_BY_ID,
+  UPDATE_PAYMENT_RECEIVED,
 } from "../../../../api/services/sales/createCustomer";
-import ItemModal from "../../quotes/createNew/ItemModal";
-import { GET_ALL_ITEMS } from "../../../../api/services/authService";
-import CustomTaxDropdown from "../../quotes/CustomTaxDropdown";
-import ConfigureTerms from "./ConfigureTerms";
+import DateRangeFilterModal from "../../paymentReceived/createNew/DateRangeFilterModal";
+import FileUploadComponent from "../../paymentReceived/createNew/FileUploadComponent";
+import ConfigurePaymentModeModal from "../../paymentReceived/createNew/ConfigurePaymentModeModal";
 
 // Helper function to generate initials
 const generateInitial = (name) => {
   return name ? name.charAt(0).toUpperCase() : "";
 };
 
-export default function InvoiceForm() {
-  // AUTO-INCREMENT INVOICE NUMBER STATE
-  const [invoiceNumberConfig, setInvoiceNumberConfig] = useState({
-    prefix: "INV-",
+function formatDate(dateString) {
+  if (!dateString) return "";
+  const options = { day: "numeric", month: "short", year: "numeric" };
+  return new Date(dateString).toLocaleDateString("en-US", options);
+}
+
+const PaymentRecevibleForm = () => {
+  const { id } = useParams(); // Get payment ID from URL for editing
+
+  // Add loading states for fetching payment data
+  const [fetchingPaymentData, setFetchingPaymentData] = useState(false);
+  const [paymentDataLoaded, setPaymentDataLoaded] = useState(false);
+  const [fetchError, setFetchError] = useState("");
+
+  const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [showForm, setShowForm] = useState(false);
+
+  // AUTO-INCREMENT PAYMENT NUMBER STATE
+  const [paymentNumberConfig, setPaymentNumberConfig] = useState({
+    prefix: "",
     nextNumber: 1,
     digitLength: 6,
     autoGenerate: true,
@@ -48,828 +59,676 @@ export default function InvoiceForm() {
   });
 
   const [formData, setFormData] = useState({
-    // Backend field mappings
     customer_id: null,
     customerData: null,
-    invoice_number: "", 
-    order_number: "",
-    invoice_date: "", 
-    terms: "",
-    due_date: "",
-    account_receivable: "", 
-    sales_person: null, 
-    salespersonData: null,
-    project_id: "",
-    projectData: null,
-    supply_place: "",
-    tax_treatment: "",
-    subject: "",
-    tax_preference: "",
-    customer_note: "Looking forward for your business.", 
-    terms_condition: "",
-    template: "standard",
-
-    // Recurring invoice fields - Added
-    is_recurring: false,
-    profile_name: "",
-    repeat_every: "",
-    start_on: "",
-    ends_on: "",
-    never_expires: false,
-    payment_terms: "",
-    account_receivable_sec: "",
-
-    // Financial Fields
-    sub_total: 0,
-    discount: 0,
-    shippingCharge: 0, // Changed from 'shipping_charge'
-    adjustments: 0, // Changed from 'adjustment'
-    tax_rate: 0, // Added
-    tax_type: "", // Added
-    tcs_tds: null,
-    tcs_tds_id: null,
-    total: 0,
-
-    // Items Array
-    items: [
-      {
-        id: 1,
-        item_id: null,
-        name: "", 
-        description: "",
-        quantity: 1.0,
-        rate: 0.0,
-        discount: 0,
-        discount_type: "%",
-        tax_id: null,
-        tax: "",
-        amount: 0.0,
-        isEditing: true,
-      },
-    ],
-
-    // Status
-    status: "draft",
-
-    // File upload - Added
-    file: null,
+    customerName: "",
+    amountReceived: "",
+    bankCharges: "",
+    paymentDate: "",
+    paymentNumber: "",
+    paymentMode: "Cash",
+    depositTo: "Petty Cash",
+    reference: "",
+    notes: "",
+    sendMail: false,
+    email: "",
   });
 
-  // UI States
-  const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
-  const [salespersonDropdownOpen, setSalespersonDropdownOpen] = useState(false);
-  const [placeOfSupplyDropdownOpen, setPlaceOfSupplyDropdownOpen] =
-    useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showTaxTooltip, setShowTaxTooltip] = useState(false);
-  const [showCustomerDetailsModal, setShowCustomerDetailsModal] =
-    useState(false);
+  // NEW: File upload state
+  const [uploadedFile, setUploadedFile] = useState(null);
 
-  // Modal states
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalType, setModalType] = useState("billing");
-  const [configureModalOpen, setConfigureModalOpen] = useState(false);
-  const [itemActionsDropdown, setItemActionsDropdown] = useState(null);
-  const [showSalesPersonModal, setShowSalesPersonModal] = useState(false);
-  const [selectedItemForModal, setSelectedItemForModal] = useState(null);
-  const [showItemModal, setShowItemModal] = useState(false);
+  // NEW: API Loading and Error States
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMode, setSaveMode] = useState(""); // Added for tracking save mode
+  const [saveError, setSaveError] = useState(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
 
-  // API Data States
+  // Customer API states
   const [customers, setCustomers] = useState([]);
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
   const [customerError, setCustomerError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [limit] = useState(20);
   const [totalPages, setTotalPages] = useState(1);
   const [hasMore, setHasMore] = useState(false);
 
-  const [salespersons, setSalespersons] = useState([]);
-  const [isLoadingSalespersons, setIsLoadingSalespersons] = useState(false);
-  const [salespersonError, setSalespersonError] = useState(null);
-  const [salespersonSearchTerm, setSalespersonSearchTerm] = useState("");
-  const [salespersonPage, setSalespersonPage] = useState(1);
-  const [salespersonLimit] = useState(20);
-  const [salespersonHasMore, setSalespersonHasMore] = useState(false);
-  const [salespersonSearchTimeout, setSalespersonSearchTimeout] =
-    useState(null);
+  // Unpaid Invoices API states
+  const [unpaidInvoices, setUnpaidInvoices] = useState([]);
+  const [isLoadingInvoices, setIsLoadingInvoices] = useState(false);
+  const [invoiceError, setInvoiceError] = useState(null);
+  const [selectedInvoices, setSelectedInvoices] = useState([]);
+  const [invoicePayments, setInvoicePayments] = useState({});
+  const [invoicePaymentDates, setInvoicePaymentDates] = useState({});
 
-  const [taxes, setTaxes] = useState([]);
-  const [isLoadingTaxes, setIsLoadingTaxes] = useState(false);
-  const [taxError, setTaxError] = useState(null);
-  const [taxSearchTerm, setTaxSearchTerm] = useState("");
-  const [taxPage, setTaxPage] = useState(1);
-  const [taxLimit] = useState(20);
-  const [taxHasMore, setTaxHasMore] = useState(false);
-  const [taxSearchTimeout, setTaxSearchTimeout] = useState(null);
-  const [isCreatingTax, setIsCreatingTax] = useState(false);
-
-  const [availableItems, setAvailableItems] = useState([]);
-  const [isLoadingItems, setIsLoadingItems] = useState(false);
-  const [itemsError, setItemsError] = useState(null);
-
-  const [termsDropdownOpen, setTermsDropdownOpen] = useState(false);
-  const [itemsPage, setItemsPage] = useState(1);
-  const [itemsLimit] = useState(20);
-  const [itemsHasMore, setItemsHasMore] = useState(false);
-  const [itemsSearchTerm, setItemsSearchTerm] = useState("");
-  const [itemsSearchTimeout, setItemsSearchTimeout] = useState(null);
-
-  const [itemDropdownOpen, setItemDropdownOpen] = useState(null);
-  const [itemSearchQuery, setItemSearchQuery] = useState("");
-
-  // Invoice saving states
-  const [isSavingInvoice, setIsSavingInvoice] = useState(false);
-  const [saveMode, setSaveMode] = useState("");
-
+  // UI States
+  const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
+  const [paymentModeDropdownOpen, setPaymentModeDropdownOpen] = useState(false);
+  const [paymentModeSearchTerm, setPaymentModeSearchTerm] = useState("");
+  const [showCustomerDetailsModal, setShowCustomerDetailsModal] = useState(false);
   const [customerDetailsData, setCustomerDetailsData] = useState(null);
+  const [showConfigurePaymentModeModal, setShowConfigurePaymentModeModal] = useState(false);
 
-  // File upload states - Added
-  const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [isUploading, setIsUploading] = useState(false);
+  const [showDepositDropdown, setShowDepositDropdown] = useState(false);
+  const [depositSearchTerm, setDepositSearchTerm] = useState("");
 
-  const [paymentTerms, setPaymentTerms] = useState([
-    { id: 1, name: "Net 15", days: 15, isDefault: false },
-    { id: 2, name: "Net 30", days: 30, isDefault: true },
-    { id: 3, name: "Net 45", days: 45, isDefault: false },
-    { id: 4, name: "Net 60", days: 60, isDefault: false },
-  ]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
+  const [configureModalOpen, setConfigureModalOpen] = useState(false);
+  const [modalType, setModalType] = useState("billing");
 
-  const [showConfigureTermsModal, setShowConfigureTermsModal] = useState(false);
-  const [newTermName, setNewTermName] = useState("");
-  const [newTermDays, setNewTermDays] = useState("");
+  // Refs
+  const depositDropdownRef = useRef(null);
+  const depositSearchInputRef = useRef(null);
 
-  const builtInTermsOptions = [
-    { value: "Due on Receipt", label: "Due on Receipt", days: 0 },
-    {
-      value: "Due end of the month",
-      label: "Due end of the month",
-      days: "end_of_month",
-    },
-    {
-      value: "Due end of next month",
-      label: "Due end of next month",
-      days: "end_of_next_month",
-    },
-  ];
+  const displayLabel =
+    dateRange.startDate && dateRange.endDate
+      ? `${formatDate(dateRange.startDate)} - ${formatDate(dateRange.endDate)}`
+      : "Filter by Date Range";
 
-  // File upload handler - Added
-  const handleFileUpload = (event) => {
-    const files = Array.from(event.target.files);
-    
-    // Validate file constraints
-    if (uploadedFiles.length + files.length > 5) {
-      Swal.fire("Error", "You can upload a maximum of 5 files", "error");
-      return;
-    }
-
-    // Check file sizes (10MB max per file)
-    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
-    const invalidFiles = files.filter(file => file.size > maxSize);
-    
-    if (invalidFiles.length > 0) {
-      Swal.fire("Error", "Each file must be less than 10MB", "error");
-      return;
-    }
-
-    setIsUploading(true);
-    
-    // Simulate upload process (replace with actual upload logic)
-    setTimeout(() => {
-      const newFiles = files.map(file => ({
-        id: Date.now() + Math.random(),
-        name: file.name,
-        size: file.size,
-        file: file
-      }));
-      
-      setUploadedFiles(prev => [...prev, ...newFiles]);
-      setIsUploading(false);
-      
-      // Store first file for backend (or handle multiple files as needed)
-      if (files.length > 0) {
-        handleFormDataChange("file", files[0]);
-      }
-    }, 1000);
+  // Updated deposit accounts with categories
+  const depositAccounts = {
+    Bank: [
+      "A IM BUSINESS CORP FOR CORPORATE SERVICES PROVIDERS CO. L.L.C",
+      "Zoho Payroll - Bank Account",
+    ],
+    Cash: ["Petty Cash", "Undeposited Funds"],
+    Other: ["Other Current Liability"],
   };
 
-  // Remove uploaded file - Added
-  const removeUploadedFile = (fileId) => {
-    setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
-    
-    // Clear file from form data if it was the selected one
-    const removedFile = uploadedFiles.find(file => file.id === fileId);
-    if (removedFile && formData.file === removedFile.file) {
-      handleFormDataChange("file", null);
-    }
-  };
+  // Flatten all accounts for search
+  const allDepositAccounts = Object.values(depositAccounts).flat();
 
-  // Calculate due date based on terms
-  const calculateDueDate = (invoiceDate, selectedTerm) => {
-    if (!invoiceDate || !selectedTerm) return "";
-
-    const date = new Date(invoiceDate);
-
-    // Check if it's a built-in term
-    const builtInTerm = builtInTermsOptions.find(
-      (term) => term.value === selectedTerm
+  // Filter deposit accounts based on search term
+  const filteredDepositCategories = {};
+  if (depositSearchTerm.trim()) {
+    const matches = allDepositAccounts.filter((account) =>
+      account.toLowerCase().includes(depositSearchTerm.toLowerCase())
     );
-    if (builtInTerm) {
-      if (builtInTerm.days === 0) {
-        // Due on Receipt - same as invoice date
-        return invoiceDate;
-      } else if (builtInTerm.days === "end_of_month") {
-        // Due end of the month
-        const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-        return endOfMonth.toISOString().split("T")[0];
-      } else if (builtInTerm.days === "end_of_next_month") {
-        // Due end of next month
-        const endOfNextMonth = new Date(
-          date.getFullYear(),
-          date.getMonth() + 2,
-          0
-        );
-        return endOfNextMonth.toISOString().split("T")[0];
-      }
-    }
 
-    // Check if it's a custom payment term
-    const customTerm = paymentTerms.find((term) => term.name === selectedTerm);
-    if (customTerm && customTerm.days) {
-      date.setDate(date.getDate() + customTerm.days);
-      return date.toISOString().split("T")[0];
-    }
-
-    return "";
-  };
-
-  // Handle terms selection
-  const handleTermsChange = (selectedTerm) => {
-    handleFormDataChange("terms", selectedTerm);
-
-    // Auto-calculate due date
-    if (formData.invoice_date) {
-      const newDueDate = calculateDueDate(formData.invoice_date, selectedTerm);
-      if (newDueDate) {
-        handleFormDataChange("due_date", newDueDate);
-      }
-    }
-  };
-
-  // Handle adding new payment term
-  const handleAddNewTerm = () => {
-    if (newTermName.trim() && newTermDays && !isNaN(newTermDays)) {
-      const newTerm = {
-        id: Date.now(),
-        name: newTermName.trim(),
-        days: parseInt(newTermDays),
-        isDefault: false,
-      };
-      setPaymentTerms([...paymentTerms, newTerm]);
-      setNewTermName("");
-      setNewTermDays("");
-    }
-  };
-
-  // Handle marking term as default
-  const handleMarkAsDefault = (termId) => {
-    setPaymentTerms((terms) =>
-      terms.map((term) => ({
-        ...term,
-        isDefault: term.id === termId,
-      }))
-    );
-  };
-
-  // Handle deleting payment term
-  const handleDeleteTerm = (termId) => {
-    setPaymentTerms((terms) => terms.filter((term) => term.id !== termId));
-  };
-
-  // Handle saving payment terms
-  const handleSavePaymentTerms = () => {
-    setShowConfigureTermsModal(false);
-    // You can add API call here to save terms to backend
-  };
-
-  // Auto-update due date when invoice date changes
-  useEffect(() => {
-    if (formData.invoice_date && formData.terms) {
-      const newDueDate = calculateDueDate(
-        formData.invoice_date,
-        formData.terms
+    Object.entries(depositAccounts).forEach(([category, accounts]) => {
+      const categoryMatches = accounts.filter((account) =>
+        matches.includes(account)
       );
-      if (newDueDate && newDueDate !== formData.due_date) {
-        handleFormDataChange("due_date", newDueDate);
+      if (categoryMatches.length > 0) {
+        filteredDepositCategories[category] = categoryMatches;
       }
-    }
-  }, [formData.invoice_date, formData.terms]);
+    });
+  } else {
+    Object.assign(filteredDepositCategories, depositAccounts);
+  }
 
-  // Set default invoice date and initialize invoice number on mount
+  // FIXED: Simplified fetchPaymentData function based on working InvoiceForm pattern
+  const fetchPaymentData = async () => {
+    if (!id) return;
+
+    setFetchingPaymentData(true);
+    setFetchError("");
+
+    try {
+      const response = await GET_PAYMENT_RECEIVED_BY_ID({ payment_received_id: id });
+
+      console.log("API Response for payment data:", response);
+
+      // FIXED: Use same response parsing pattern as InvoiceForm
+      let paymentData = null;
+
+      if (Array.isArray(response) && response.length > 0) {
+        // Direct array format
+        paymentData = response[0];
+        console.log("Fetched payment data from direct array:", paymentData);
+      } else if (
+        response &&
+        response.data &&
+        Array.isArray(response.data) &&
+        response.data.length > 0
+      ) {
+        // Wrapped array format
+        paymentData = response.data[0];
+        console.log("Fetched payment data from wrapped array:", paymentData);
+      } else if (
+        response &&
+        response.result &&
+        response.list &&
+        Array.isArray(response.list) &&
+        response.list.length > 0
+      ) {
+        // Alternative wrapped format
+        paymentData = response.list[0];
+        console.log("Fetched payment data from list array:", paymentData);
+      }
+
+      if (paymentData) {
+        console.log("Fetched payment data:", paymentData);
+
+        // FIXED: Map API fields using same pattern as InvoiceForm
+        const updatedFormData = {
+          customer_id: paymentData.pr_customer_id || paymentData.customer_id || null,
+          customerData: null, // Will be populated below
+          customerName: paymentData.customer_name || paymentData.pr_customer_name || "",
+          amountReceived: paymentData.pr_amount_received || paymentData.amount_received || "",
+          bankCharges: paymentData.pr_bank_charges || paymentData.bank_charges || "",
+          paymentDate: paymentData.pr_payment_date
+            ? paymentData.pr_payment_date.split("T")[0]
+            : paymentData.payment_date
+            ? paymentData.payment_date.split("T")[0]
+            : "",
+          paymentNumber: paymentData.pr_payment_number || paymentData.payment_number || "",
+          paymentMode: paymentData.pr_payment_mode || paymentData.payment_mode || "Cash",
+          depositTo: paymentData.pr_deposit_to || paymentData.deposit_to || "Petty Cash",
+          reference: paymentData.pr_reference || paymentData.reference || "",
+          notes: paymentData.pr_notes || paymentData.notes || "",
+          sendMail: paymentData.pr_send_mail || paymentData.send_mail || false,
+          email: paymentData.pr_email || paymentData.email || "",
+        };
+
+        console.log("Mapped form data:", updatedFormData);
+        setFormData(updatedFormData);
+
+        // FIXED: Create customer data using InvoiceForm pattern
+        if (updatedFormData.customer_id && updatedFormData.customerName) {
+          const customerData = {
+            id: updatedFormData.customer_id,
+            cu_id: updatedFormData.customer_id,
+            name: updatedFormData.customerName.trim(),
+            cu_display_name: updatedFormData.customerName.trim(),
+            cu_name: updatedFormData.customerName.trim(),
+            company: paymentData.customer_company || paymentData.pr_customer_company || "",
+            cu_company_name: paymentData.customer_company || paymentData.pr_customer_company || "",
+            initial: generateInitial(updatedFormData.customerName.trim()),
+            email: paymentData.customer_email || paymentData.pr_email || paymentData.pr_customer_email || "",
+            cu_email: paymentData.customer_email || paymentData.pr_email || paymentData.pr_customer_email || "",
+            phone: paymentData.customer_phone || paymentData.pr_customer_phone || "",
+            cu_phone: paymentData.customer_phone || paymentData.pr_customer_phone || "",
+            cu_currency: paymentData.customer_currency || paymentData.pr_currency || "AED",
+          };
+
+          // FIXED: Update form data with customer information using same pattern
+          setFormData((prevData) => ({
+            ...prevData,
+            customerData: customerData,
+            email: customerData.email || prevData.email,
+          }));
+
+          console.log("Customer data created from API response:", customerData);
+          console.log("Form data updated with customer:", customerData.name);
+        } else {
+          console.error("Missing customer_id or customerName:", {
+            customer_id: updatedFormData.customer_id,
+            customerName: updatedFormData.customerName
+          });
+        }
+
+        // Load invoice payments if available
+        if (paymentData.unpaid_items || paymentData.invoice_payments) {
+          const items = paymentData.unpaid_items || paymentData.invoice_payments || [];
+          const payments = {};
+          const paymentDates = {};
+
+          items.forEach((item) => {
+            payments[item.invoice_id] = parseFloat(item.amount || 0);
+            paymentDates[item.invoice_id] = item.payment_date
+              ? item.payment_date.split("T")[0]
+              : paymentData.pr_payment_date
+              ? paymentData.pr_payment_date.split("T")[0]
+              : "";
+          });
+
+          setInvoicePayments(payments);
+          setInvoicePaymentDates(paymentDates);
+
+          // Fetch invoices for this customer
+          if (updatedFormData.customer_id) {
+            fetchUnpaidInvoices(updatedFormData.customer_id, true);
+          }
+        }
+
+        setPaymentDataLoaded(true);
+        console.log("Payment data loaded successfully");
+      } else {
+        setFetchError("Failed to fetch payment data - no data found in response");
+        console.error("No valid data found in response:", response);
+      }
+    } catch (error) {
+      console.error("Error fetching payment data:", error);
+      setFetchError("Failed to fetch payment data. Please try again.");
+    } finally {
+      setFetchingPaymentData(false);
+    }
+  };
+
+  // FIXED: Simple useEffect pattern like InvoiceForm
   useEffect(() => {
-    const today = new Date().toISOString().split("T")[0];
-    handleFormDataChange("invoice_date", today);
-    initializeInvoiceNumber();
-
-    // Set default payment term
-    const defaultTerm = paymentTerms.find((term) => term.isDefault);
-    if (defaultTerm && !formData.terms) {
-      handleFormDataChange("terms", defaultTerm.name);
-      handleFormDataChange("payment_terms", defaultTerm.name); // Added for backend
+    if (id) {
+      fetchPaymentData();
+    } else {
+      // Setup for new payments
+      fetchCustomers("", true);
+      const today = new Date().toISOString().split("T")[0];
+      setFormData(prev => ({ ...prev, paymentDate: today }));
+      initializePaymentNumber();
     }
-  }, []);
+  }, [id]);
+
+  // NEW: Validation function
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.customer_id) {
+      errors.customer_id = "Customer is required";
+    }
+
+    if (!formData.amountReceived || parseFloat(formData.amountReceived) <= 0) {
+      errors.amountReceived = "Amount received must be greater than 0";
+    }
+
+    if (!formData.paymentDate) {
+      errors.paymentDate = "Payment date is required";
+    }
+
+    if (!formData.paymentNumber) {
+      errors.paymentNumber = "Payment number is required";
+    }
+
+    if (!formData.depositTo) {
+      errors.depositTo = "Deposit account is required";
+    }
+
+    // Email validation if send mail is enabled
+    if (formData.sendMail && !formData.email) {
+      errors.email = "Email is required when send mail is enabled";
+    }
+
+    if (
+      formData.sendMail &&
+      formData.email &&
+      !/\S+@\S+\.\S+/.test(formData.email)
+    ) {
+      errors.email = "Please enter a valid email address";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // NEW: Success/Error Message Component
+  const MessageAlert = ({ type, message, onClose }) => {
+    const isSuccess = type === "success";
+
+    return (
+      <div
+        className={`fixed top-4 right-4 max-w-md w-full ${
+          isSuccess ? "bg-green-50" : "bg-red-50"
+        } border ${
+          isSuccess ? "border-green-200" : "border-red-200"
+        } rounded-lg p-4 shadow-lg z-50`}
+      >
+        <div className="flex items-start">
+          <div className="flex-shrink-0">
+            {isSuccess ? (
+              <CheckCircle className="h-5 w-5 text-green-600" />
+            ) : (
+              <AlertCircle className="h-5 w-5 text-red-600" />
+            )}
+          </div>
+          <div className="ml-3 flex-1">
+            <p
+              className={`text-sm font-medium ${
+                isSuccess ? "text-green-800" : "text-red-800"
+              }`}
+            >
+              {isSuccess ? "Success!" : "Error"}
+            </p>
+            <p
+              className={`text-sm mt-1 ${
+                isSuccess ? "text-green-700" : "text-red-700"
+              }`}
+            >
+              {message}
+            </p>
+          </div>
+          <div className="ml-4 flex-shrink-0 flex">
+            <button
+              className={`${
+                isSuccess
+                  ? "text-green-500 hover:text-green-600"
+                  : "text-red-500 hover:text-red-600"
+              } focus:outline-none`}
+              onClick={onClose}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // NEW: File Upload Handler
+  const handleFileUpload = (file) => {
+    setUploadedFile(file);
+  };
+
+  // Fetch Unpaid Invoices API function - Updated to include paid invoices for edit mode
+  const fetchUnpaidInvoices = async (customerId, includeAll = false) => {
+    if (!customerId) return;
+
+    setIsLoadingInvoices(true);
+    setInvoiceError(null);
+
+    try {
+      const body = {
+        customer_id: customerId,
+        status: includeAll ? "all" : "unpaid", // Get all invoices in edit mode
+        ...(dateRange.startDate &&
+          dateRange.endDate && {
+            start_date: dateRange.startDate,
+            end_date: dateRange.endDate,
+          }),
+        page: 1,
+        limit: 100,
+      };
+
+      const response = await GET_ALL_INVOICES(body);
+
+      const transformedInvoices = (response.list || response.data || []).map(
+        (invoice) => ({
+          ...invoice,
+          id: invoice.i_id,
+          invoiceNumber: invoice.i_number,
+          invoiceDate: invoice.i_date,
+          dueDate: invoice.i_due_date,
+          totalAmount: parseFloat(invoice.i_total || 0),
+          subTotal: parseFloat(invoice.i_sub_total || 0),
+          amountDue: parseFloat(invoice.i_amount_due || invoice.i_total || 0),
+          currency: formData.customerData?.cu_currency || "AED",
+          status: invoice.i_status,
+          customerName: invoice.customer_name,
+          orderNumber: invoice.i_order_number,
+          paymentTerms: invoice.i_payment_terms,
+        })
+      );
+
+      setUnpaidInvoices(transformedInvoices);
+
+      // Initialize payment amounts and dates for each invoice
+      if (!id) {
+        // Only initialize if not in edit mode
+        const initialPayments = {};
+        const initialPaymentDates = {};
+        const currentDate = new Date().toISOString().split("T")[0];
+
+        transformedInvoices.forEach((invoice) => {
+          initialPayments[invoice.id] = 0;
+          initialPaymentDates[invoice.id] = currentDate;
+        });
+        setInvoicePayments(initialPayments);
+        setInvoicePaymentDates(initialPaymentDates);
+      }
+    } catch (error) {
+      console.error("Error fetching unpaid invoices:", error);
+      setInvoiceError("Failed to fetch unpaid invoices");
+      setUnpaidInvoices([]);
+    } finally {
+      setIsLoadingInvoices(false);
+    }
+  };
+
+  // Auto-apply payment to invoices
+  const autoApplyPayment = () => {
+    const amountReceived = parseFloat(formData.amountReceived) || 0;
+    if (amountReceived <= 0 || unpaidInvoices.length === 0) return;
+
+    const newPayments = {};
+    const newPaymentDates = {};
+    const currentDate = new Date().toISOString().split("T")[0];
+    let remainingAmount = amountReceived;
+
+    // Sort invoices by due date (oldest first)
+    const sortedInvoices = [...unpaidInvoices].sort(
+      (a, b) => new Date(a.dueDate) - new Date(b.dueDate)
+    );
+
+    sortedInvoices.forEach((invoice) => {
+      if (remainingAmount <= 0) {
+        newPayments[invoice.id] = 0;
+        newPaymentDates[invoice.id] = currentDate;
+        return;
+      }
+
+      const amountToPay = Math.min(remainingAmount, invoice.amountDue);
+      newPayments[invoice.id] = amountToPay;
+      newPaymentDates[invoice.id] = currentDate;
+      remainingAmount -= amountToPay;
+    });
+
+    setInvoicePayments(newPayments);
+    setInvoicePaymentDates(newPaymentDates);
+  };
+
+  // Handle invoice payment amount change
+  const handleInvoicePaymentChange = (invoiceId, amount) => {
+    const numericAmount = parseFloat(amount) || 0;
+    const invoice = unpaidInvoices.find((inv) => inv.id === invoiceId);
+
+    if (invoice && numericAmount <= invoice.amountDue) {
+      setInvoicePayments((prev) => ({
+        ...prev,
+        [invoiceId]: numericAmount,
+      }));
+    }
+  };
+
+  // Handle invoice payment date change
+  const handleInvoicePaymentDateChange = (invoiceId, date) => {
+    setInvoicePaymentDates((prev) => ({
+      ...prev,
+      [invoiceId]: date,
+    }));
+  };
+
+  // Calculate payment summary
+  const calculatePaymentSummary = () => {
+    const totalInvoicesAmount = unpaidInvoices.reduce(
+      (sum, invoice) => sum + invoice.totalAmount,
+      0
+    );
+    const amountReceived = parseFloat(formData.amountReceived) || 0;
+    const totalPaymentsApplied = Object.values(invoicePayments).reduce(
+      (sum, amount) => sum + amount,
+      0
+    );
+    const amountInExcess = amountReceived - totalPaymentsApplied;
+
+    return {
+      total: totalInvoicesAmount,
+      amountReceived,
+      totalPaymentsApplied,
+      amountRefunded: 0,
+      amountInExcess: Math.max(0, amountInExcess),
+    };
+  };
+
+  // Clear invoice selection
+  const clearInvoiceSelection = () => {
+    const clearedPayments = {};
+    const clearedPaymentDates = {};
+    const currentDate = new Date().toISOString().split("T")[0];
+
+    unpaidInvoices.forEach((invoice) => {
+      clearedPayments[invoice.id] = 0;
+      clearedPaymentDates[invoice.id] = currentDate;
+    });
+    setInvoicePayments(clearedPayments);
+    setInvoicePaymentDates(clearedPaymentDates);
+    setSelectedInvoices([]);
+  };
+
+  // Handle date range filter apply
+  const handleDateRangeApply = (range) => {
+    setDateRange(range);
+    if (formData.customer_id) {
+      fetchUnpaidInvoices(formData.customer_id, id ? true : false);
+    }
+  };
 
   // AUTO-INCREMENT FUNCTIONS
-  const generateNextInvoiceNumber = () => {
-    const { prefix, nextNumber, digitLength, suffix } = invoiceNumberConfig;
+  const generateNextPaymentNumber = () => {
+    const { prefix, nextNumber, digitLength, suffix } = paymentNumberConfig;
     const paddedNumber = nextNumber.toString().padStart(digitLength, "0");
     return `${prefix}${paddedNumber}${suffix}`;
   };
 
-  const getNextInvoiceNumber = () => {
+  const getNextPaymentNumber = () => {
     try {
-      const lastNumber = localStorage.getItem("lastInvoiceNumber");
-      const lastInvoiceConfig = localStorage.getItem("invoiceNumberConfig");
+      const lastNumber = localStorage.getItem("lastPaymentNumber");
+      const lastPaymentConfig = localStorage.getItem("paymentNumberConfig");
 
-      if (lastInvoiceConfig) {
-        const config = JSON.parse(lastInvoiceConfig);
+      if (lastPaymentConfig) {
+        const config = JSON.parse(lastPaymentConfig);
         return config.nextNumber || (lastNumber ? parseInt(lastNumber) + 1 : 1);
       }
 
       return lastNumber ? parseInt(lastNumber) + 1 : 1;
     } catch (error) {
-      console.error("Error getting next invoice number:", error);
+      console.error("Error getting next payment number:", error);
       return 1;
     }
   };
 
-  const updateInvoiceNumberSequence = (currentNumber) => {
+  const updatePaymentNumberSequence = (currentNumber) => {
     try {
       const numberMatch = currentNumber.match(/(\d+)/);
       if (numberMatch) {
         const extractedNumber = parseInt(numberMatch[0]);
 
-        localStorage.setItem("lastInvoiceNumber", extractedNumber.toString());
+        localStorage.setItem("lastPaymentNumber", extractedNumber.toString());
 
         const updatedConfig = {
-          ...invoiceNumberConfig,
+          ...paymentNumberConfig,
           nextNumber: extractedNumber + 1,
         };
 
         localStorage.setItem(
-          "invoiceNumberConfig",
+          "paymentNumberConfig",
           JSON.stringify(updatedConfig)
         );
-        setInvoiceNumberConfig(updatedConfig);
+        setPaymentNumberConfig(updatedConfig);
 
         console.log(
-          `Invoice number sequence updated. Next number will be: ${
+          `Payment number sequence updated. Next number will be: ${
             extractedNumber + 1
           }`
         );
       }
     } catch (error) {
-      console.error("Error updating invoice number sequence:", error);
+      console.error("Error updating payment number sequence:", error);
     }
   };
 
-  const initializeInvoiceNumber = () => {
+  const initializePaymentNumber = () => {
+    // Don't auto-generate payment number if we're editing an existing payment
+    if (id && paymentDataLoaded) return;
+
     try {
-      const savedConfig = localStorage.getItem("invoiceNumberConfig");
-      let configToUse = { ...invoiceNumberConfig };
+      const savedConfig = localStorage.getItem("paymentNumberConfig");
+      let configToUse = { ...paymentNumberConfig };
 
       if (savedConfig) {
         const parsedConfig = JSON.parse(savedConfig);
-        configToUse = { ...invoiceNumberConfig, ...parsedConfig };
-        setInvoiceNumberConfig(configToUse);
+        configToUse = { ...paymentNumberConfig, ...parsedConfig };
+        setPaymentNumberConfig(configToUse);
       }
 
-      if (configToUse.autoGenerate) {
-        const nextNumber = getNextInvoiceNumber();
+      if (configToUse.autoGenerate && !id) {
+        const nextNumber = getNextPaymentNumber();
         configToUse.nextNumber = nextNumber;
 
         const { prefix, digitLength, suffix } = configToUse;
         const paddedNumber = nextNumber.toString().padStart(digitLength, "0");
-        const newInvoiceNumber = `${prefix}${paddedNumber}${suffix}`;
+        const newPaymentNumber = `${prefix}${paddedNumber}${suffix}`;
 
-        handleFormDataChange("invoice_number", newInvoiceNumber);
-        setInvoiceNumberConfig(configToUse);
+        handleInputChange("paymentNumber", newPaymentNumber);
+        setPaymentNumberConfig(configToUse);
       }
     } catch (error) {
-      console.error("Error initializing invoice number:", error);
-      handleFormDataChange("invoice_number", "INV-000001");
+      console.error("Error initializing payment number:", error);
+      if (!id) {
+        handleInputChange("paymentNumber", "000001");
+      }
     }
   };
 
-  const handleInvoiceNumberConfigChange = (newConfig) => {
+  const handlePaymentNumberConfigChange = (newConfig) => {
     const updatedConfig = {
-      ...invoiceNumberConfig,
+      ...paymentNumberConfig,
       ...newConfig,
     };
 
-    setInvoiceNumberConfig(updatedConfig);
-    localStorage.setItem("invoiceNumberConfig", JSON.stringify(updatedConfig));
+    setPaymentNumberConfig(updatedConfig);
+    localStorage.setItem("paymentNumberConfig", JSON.stringify(updatedConfig));
 
-    console.log("Invoice number config updated:", updatedConfig);
+    console.log("Payment number config updated:", updatedConfig);
   };
 
-  const generateManualInvoiceNumber = () => {
-    const nextNumber = getNextInvoiceNumber();
+  const formatToDDMMYYYY = (date) => {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const generateManualPaymentNumber = () => {
+    const nextNumber = getNextPaymentNumber();
     const updatedConfig = {
-      ...invoiceNumberConfig,
+      ...paymentNumberConfig,
       nextNumber: nextNumber,
     };
 
-    setInvoiceNumberConfig(updatedConfig);
-    localStorage.setItem("invoiceNumberConfig", JSON.stringify(updatedConfig));
+    setPaymentNumberConfig(updatedConfig);
+    localStorage.setItem("paymentNumberConfig", JSON.stringify(updatedConfig));
 
-    const newInvoiceNumber = generateNextInvoiceNumber();
-    handleFormDataChange("invoice_number", newInvoiceNumber);
+    const newPaymentNumber = generateNextPaymentNumber();
+    handleInputChange("paymentNumber", newPaymentNumber);
   };
 
   const toggleAutoGeneration = (enabled) => {
     const updatedConfig = {
-      ...invoiceNumberConfig,
+      ...paymentNumberConfig,
       autoGenerate: enabled,
     };
 
-    handleInvoiceNumberConfigChange(updatedConfig);
+    handlePaymentNumberConfigChange(updatedConfig);
 
     if (enabled) {
-      const nextNumber = getNextInvoiceNumber();
+      const nextNumber = getNextPaymentNumber();
       updatedConfig.nextNumber = nextNumber;
-      setInvoiceNumberConfig(updatedConfig);
+      setPaymentNumberConfig(updatedConfig);
 
-      const newInvoiceNumber = generateNextInvoiceNumber();
-      handleFormDataChange("invoice_number", newInvoiceNumber);
+      const newPaymentNumber = generateNextPaymentNumber();
+      handleInputChange("paymentNumber", newPaymentNumber);
     }
   };
 
-  const generateNewInvoiceForNext = () => {
-    if (invoiceNumberConfig.autoGenerate) {
-      const newInvoiceNumber = generateNextInvoiceNumber();
-      handleFormDataChange("invoice_number", newInvoiceNumber);
+  const generateNewPaymentForNext = () => {
+    if (paymentNumberConfig.autoGenerate) {
+      const newPaymentNumber = generateNextPaymentNumber();
+      handleInputChange("paymentNumber", newPaymentNumber);
     }
   };
 
-  // GENERIC FORM DATA HANDLER
-  const handleFormDataChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  // ITEMS HANDLER
-  const handleItemsChange = (newItems) => {
-    setFormData((prev) => ({
-      ...prev,
-      items: newItems,
-    }));
-  };
-
-  // UPDATE SINGLE ITEM
-  const updateItem = (itemId, updates) => {
-    const newItems = formData.items.map((item) => {
-      if (item.id === itemId) {
-        const updatedItem = { ...item, ...updates };
-
-        // Calculate amount when quantity, rate, discount, or discountType changes
-        if (
-          updates.hasOwnProperty("quantity") ||
-          updates.hasOwnProperty("rate") ||
-          updates.hasOwnProperty("discount") ||
-          updates.hasOwnProperty("discount_type")
-        ) {
-          const quantity = parseFloat(updatedItem.quantity) || 0;
-          const rate = parseFloat(updatedItem.rate) || 0;
-          const discount = parseFloat(updatedItem.discount) || 0;
-          const discountType = updatedItem.discount_type || "%";
-
-          const subtotal = quantity * rate;
-          let discountAmount = 0;
-
-          if (discountType === "%") {
-            discountAmount = (subtotal * discount) / 100;
-          } else if (discountType === "AED") {
-            discountAmount = discount;
-          }
-
-          updatedItem.amount = Math.max(0, subtotal - discountAmount);
-        }
-
-        return updatedItem;
-      }
-      return item;
-    });
-
-    handleItemsChange(newItems);
-  };
-
-  const updateSingleField = (itemId, field, value) => {
-    updateItem(itemId, { [field]: value });
-  };
-
-  // Update the invoice number when config changes
-  useEffect(() => {
-    if (invoiceNumberConfig.autoGenerate) {
-      const newInvoiceNumber = generateNextInvoiceNumber();
-      handleFormDataChange("invoice_number", newInvoiceNumber);
-    }
-  }, [
-    invoiceNumberConfig.prefix,
-    invoiceNumberConfig.digitLength,
-    invoiceNumberConfig.suffix,
-    invoiceNumberConfig.nextNumber,
+  const [paymentModeOptions, setPaymentModeOptions] = useState([
+    { id: 1, name: "Bank Remittance", description: "Bank remittance transfer" },
+    { id: 2, name: "Bank Transfer", description: "Direct bank transfer" },
+    { id: 3, name: "Cash", description: "Cash payment" },
+    { id: 4, name: "Check", description: "Check payment" },
+    { id: 5, name: "Credit Card", description: "Credit card payment" },
   ]);
 
-  // CALCULATE TOTALS
-  const calculateTotals = () => {
-    const subtotal = formData.items.reduce(
-      (sum, item) => sum + (item.amount || 0),
-      0
-    );
-
-    const taxBreakdown = formData.items.reduce((acc, item) => {
-      if (
-        item.tax &&
-        item.amount > 0 &&
-        item.tax !== "Exempt" &&
-        item.tax !== "Out of Scope"
-      ) {
-        const taxRate = item.tax;
-        if (!acc[taxRate]) {
-          acc[taxRate] = 0;
-        }
-
-        const taxMatch = taxRate.match(/(\d+(?:\.\d+)?)/);
-        const taxPercentage = taxMatch ? parseFloat(taxMatch[0]) : 0;
-        const taxAmount = (item.amount * taxPercentage) / 100;
-        acc[taxRate] += taxAmount;
-      }
-      return acc;
-    }, {});
-
-    const totalTax = Object.values(taxBreakdown).reduce(
-      (sum, tax) => sum + tax,
-      0
-    );
-    const grandTotal = subtotal + totalTax;
-
-    return {
-      subtotal,
-      taxBreakdown,
-      totalTax,
-      grandTotal,
-    };
-  };
-
-  // CREATE INVOICE API FUNCTION - Updated with correct field mapping
-  const handleCreateInvoice = async (isDraft = false) => {
-    // Validation
-    if (!formData.customer_id) {
-      Swal.fire("Error", "Please select a customer", "error");
-      return;
-    }
-
-    if (!formData.invoice_date) {
-      Swal.fire("Error", "Please select an invoice date", "error");
-      return;
-    }
-
-    if (!formData.supply_place) {
-      Swal.fire("Error", "Please select place of supply", "error");
-      return;
-    }
-
-    // Check if there are valid items with proper validation
-    const validItems = formData.items.filter(
-      (item) =>
-        (item.description && item.description.trim() !== "") ||
-        (item.name && item.name.trim() !== "") &&
-        parseFloat(item.quantity) > 0 &&
-        parseFloat(item.rate) >= 0 &&
-        !isNaN(parseFloat(item.quantity)) &&
-        !isNaN(parseFloat(item.rate))
-    );
-
-    if (validItems.length === 0) {
-      Swal.fire("Error", "Please add at least one valid item with name/description, quantity, and rate", "error");
-      return;
-    }
-
-    // Validate each item has required fields
-    for (let i = 0; i < validItems.length; i++) {
-      const item = validItems[i];
-      if (!item.description && !item.name) {
-        Swal.fire("Error", `Item ${i + 1}: Name or Description is required`, "error");
-        return;
-      }
-      if (!item.quantity || parseFloat(item.quantity) <= 0) {
-        Swal.fire("Error", `Item ${i + 1}: Quantity must be greater than 0`, "error");
-        return;
-      }
-      if (item.rate === undefined || item.rate === null || isNaN(parseFloat(item.rate))) {
-        Swal.fire("Error", `Item ${i + 1}: Rate is required`, "error");
-        return;
-      }
-    }
-
-    setIsSavingInvoice(true);
-    setSaveMode(isDraft ? "draft" : "send");
-
-    try {
-      // Helper function to get tax ID from tax value
-      const getTaxId = (taxValue) => {
-        if (!taxValue) return null;
-
-        // For hardcoded options
-        if (taxValue === "Exempt" || taxValue === "Out of Scope") {
-          return null;
-        }
-
-        // For API taxes, find the matching tax
-        const matchedTax = taxes.find((tax) => 
-          tax.value === taxValue || 
-          tax.label === taxValue ||
-          tax.name === taxValue
-        );
-        return matchedTax ? matchedTax.id : null;
-      };
-
-      // Calculate totals
-      const totals = calculateTotals();
-
-      // Get primary tax rate and type from items (you may need to adjust this logic)
-      const primaryTax = formData.items.find(item => item.tax && item.tax !== "Exempt" && item.tax !== "Out of Scope");
-      const taxMatch = primaryTax?.tax?.match(/(\d+(?:\.\d+)?)/);
-      const primaryTaxRate = taxMatch ? parseFloat(taxMatch[0]) : 0;
-
-      // Prepare FormData for file upload
-      const formDataToSend = new FormData();
-
-      // Map frontend fields to backend expected field names
-      formDataToSend.append('customer_id', formData.customer_id.toString());
-      formDataToSend.append('invoice_number', formData.invoice_number || '');
-      formDataToSend.append('order_number', formData.order_number || '');
-      formDataToSend.append('invoice_date', formData.invoice_date);
-      formDataToSend.append('terms', formData.terms || '');
-      formDataToSend.append('due_date', formData.due_date || '');
-      formDataToSend.append('account_receivable', formData.account_receivable || '');
-      formDataToSend.append('sales_person', formData.sales_person ? formData.sales_person.toString() : '');
-      formDataToSend.append('subject', formData.subject || '');
-      formDataToSend.append('customer_note', formData.customer_note || '');
-      formDataToSend.append('terms_condition', formData.terms_condition || '');
-      formDataToSend.append('is_recurring', formData.is_recurring ? 'true' : 'false');
-      formDataToSend.append('profile_name', formData.profile_name || '');
-      formDataToSend.append('repeat_every', formData.repeat_every || '');
-      formDataToSend.append('start_on', formData.start_on || '');
-      formDataToSend.append('ends_on', formData.ends_on || '');
-      formDataToSend.append('never_expires', formData.never_expires ? 'true' : 'false');
-      formDataToSend.append('payment_terms', formData.payment_terms || formData.terms || '');
-      formDataToSend.append('account_receivable_sec', formData.account_receivable_sec || '');
-      formDataToSend.append('sub_total', totals.subtotal.toFixed(2));
-      formDataToSend.append('total', (
-        totals.grandTotal +
-        parseFloat(formData.shippingCharge || 0) +
-        parseFloat(formData.adjustments || 0) +
-        parseFloat(formData.tcs_tds || 0) -
-        parseFloat(formData.discount || 0)
-      ).toFixed(2));
-      formDataToSend.append('discount', (parseFloat(formData.discount || 0)).toFixed(2));
-      formDataToSend.append('tax_rate', primaryTaxRate.toString());
-      formDataToSend.append('tax_type', primaryTax?.tax || '');
-      formDataToSend.append('adjustments', (parseFloat(formData.adjustments || 0)).toFixed(2));
-      formDataToSend.append('shippingCharge', (parseFloat(formData.shippingCharge || 0)).toFixed(2));
-
-      // Prepare items with proper validation and formatting
-      const itemsData = validItems.map((item, index) => {
-        const taxId = getTaxId(item.tax);
-        
-        return {
-          item_id: item.item_id || null, 
-          name: item.name || '',
-          description: item.description.trim(),
-          quantity: parseFloat(item.quantity),
-          rate: parseFloat(item.rate),
-          discount: parseFloat(item.discount || 0),
-          discount_type: item.discount_type || '%',
-          tax_id: taxId,
-          tax: item.tax || '',
-          amount: parseFloat(item.amount || 0),
-          unit: item.unit || 'pcs',
-          hsn_code: item.hsn_code || '',
-          item_type: item.item_type || 'product'
-        };
-      });
-
-      // Log items data for debugging
-      console.log("Items data being sent:", itemsData);
-
-      // Add items as JSON string (or as individual form fields if backend expects that)
-      formDataToSend.append('items', JSON.stringify(itemsData));
-
-      // Alternative: If backend expects items as separate form fields
-      // itemsData.forEach((item, index) => {
-      //   Object.keys(item).forEach(key => {
-      //     formDataToSend.append(`items[${index}][${key}]`, item[key] || '');
-      //   });
-      // });
-
-      // Add file if exists
-      if (formData.file) {
-        formDataToSend.append('file', formData.file);
-      }
-
-      // Add status
-      formDataToSend.append('status', isDraft ? "draft" : "sent");
-
-      console.log("Invoice data being sent to API:");
-      // Log FormData contents
-      for (let [key, value] of formDataToSend.entries()) {
-        console.log(key, value);
-      }
-
-      // Log the JSON parsed items for debugging
-      console.log("Items JSON:", JSON.parse(formDataToSend.get('items')));
-
-      const response = await CREATE_INVOICES(formDataToSend);
-
-      console.log({ response }, "response from create invoice");
-      if (response.result) {
-        // Update invoice number sequence after successful creation
-        if (invoiceNumberConfig.autoGenerate) {
-          updateInvoiceNumberSequence(formData.invoice_number);
-        }
-
-        // Success handling
-        if (isDraft) {
-          Swal.fire({
-            title: "Success!",
-            text: "Invoice saved as draft successfully",
-            icon: "success",
-            confirmButtonText: "OK",
-          }).then(() => {
-            if (invoiceNumberConfig.autoGenerate) {
-              generateNewInvoiceForNext();
-            }
-          });
-        } else {
-          Swal.fire({
-            title: "Success!",
-            text: "Invoice saved and sent successfully",
-            icon: "success",
-            confirmButtonText: "OK",
-          }).then(() => {
-            if (invoiceNumberConfig.autoGenerate) {
-              generateNewInvoiceForNext();
-            }
-          });
-        }
-
-        console.log("Invoice created successfully:", response);
-      } else {
-        // Show detailed error message
-        let errorMessage = response.message || "Failed to save invoice";
-        
-        if (response.errors && Array.isArray(response.errors)) {
-          errorMessage += "\n\nDetails:\n" + response.errors.join("\n");
-        }
-
-        Swal.fire({
-          title: "Error",
-          text: errorMessage,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      }
-    } catch (error) {
-      console.error("Error creating invoice:", error);
-
-      let errorMessage = "Failed to save invoice. Please try again.";
-
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-        if (error.response.data.errors) {
-          errorMessage += "\n\nDetails:\n" + error.response.data.errors.join("\n");
-        }
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      Swal.fire({
-        title: "Error",
-        text: errorMessage,
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-    } finally {
-      setIsSavingInvoice(false);
-      setSaveMode("");
-    }
-  };
-
-  // Fetch Customers
+  // Fetch Customers API function
   const fetchCustomers = async (filterLabel = "", resetPage = false) => {
     setIsLoadingCustomers(true);
     setCustomerError(null);
@@ -913,268 +772,86 @@ export default function InvoiceForm() {
     } catch (error) {
       console.error("Error fetching customers:", error);
       setCustomerError("Failed to fetch customers");
-      Swal.fire("Error", "Failed to fetch customers", "error");
     } finally {
       setIsLoadingCustomers(false);
     }
   };
 
-  // Fetch Salespersons
-  const fetchSalespersons = async (searchTerm = "", resetPage = false) => {
-    setIsLoadingSalespersons(true);
-    setSalespersonError(null);
-
-    try {
-      const currentPage = resetPage ? 1 : salespersonPage;
-      const body = {
-        search: searchTerm,
-        page: currentPage,
-        limit: salespersonLimit,
-      };
-
-      const response = await GET_ALL_SALESPERSONS(body);
-
-      const transformedSalespersons = (
-        response.data ||
-        response.salespersons ||
-        response.list ||
-        []
-      ).map((salesperson) => ({
-        id: salesperson.sp_id || salesperson.id,
-        name: salesperson.sp_name || salesperson.name || "",
-        email: salesperson.sp_email || salesperson.email || "",
-        phone: salesperson.sp_phone || salesperson.phone || "",
-        initial: generateInitial(salesperson.sp_name || salesperson.name || ""),
-      }));
-
-      if (resetPage || currentPage === 1) {
-        setSalespersons(transformedSalespersons);
-      } else {
-        setSalespersons((prev) => [...prev, ...transformedSalespersons]);
-      }
-
-      const totalCount =
-        response.total_count || response.total || response.count || 0;
-      const totalPages = Math.ceil(totalCount / salespersonLimit);
-      setSalespersonHasMore(currentPage < totalPages);
-
-      if (resetPage) {
-        setSalespersonPage(1);
-      }
-    } catch (error) {
-      console.error("Error fetching salespersons:", error);
-      setSalespersonError("Failed to fetch salespersons");
-      Swal.fire("Error", "Failed to fetch salespersons", "error");
-    } finally {
-      setIsLoadingSalespersons(false);
+  // Load more customers
+  const loadMoreCustomers = async () => {
+    if (hasMore && !isLoadingCustomers) {
+      setPage((prev) => prev + 1);
     }
   };
 
-  // Load more salespersons
-  const loadMoreSalespersons = async () => {
-    if (salespersonHasMore && !isLoadingSalespersons) {
-      setSalespersonPage((prev) => prev + 1);
-    }
-  };
+  // Search handler
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    setSearchTerm(value);
+    setPage(1);
 
-  // Handle salesperson search
-  const handleSalespersonsSearch = (searchTerm) => {
-    setSalespersonSearchTerm(searchTerm);
-
-    if (salespersonSearchTimeout) {
-      clearTimeout(salespersonSearchTimeout);
-    }
-
-    const newTimeout = setTimeout(() => {
-      setSalespersonPage(1);
-      fetchSalespersons(searchTerm, true);
+    // Debounce search
+    const timeoutId = setTimeout(() => {
+      fetchCustomers("", true);
     }, 300);
 
-    setSalespersonSearchTimeout(newTimeout);
+    return () => clearTimeout(timeoutId);
   };
 
-  // Fetch Taxes
-  const fetchTaxes = async (searchTerm = "", resetPage = false) => {
-    setIsLoadingTaxes(true);
-    setTaxError(null);
+  // Deposit dropdown handlers
+  const handleDepositSelect = (account) => {
+    handleInputChange("depositTo", account);
+    setShowDepositDropdown(false);
+    setDepositSearchTerm("");
+  };
 
-    try {
-      const currentPage = resetPage ? 1 : taxPage;
-      const body = {
-        search: searchTerm,
-        page: currentPage,
-        limit: taxLimit,
-      };
-
-      const response = await GET_ALL_TAXES(body);
-
-      const transformedTaxes = (
-        response.data ||
-        response.taxes ||
-        response.list ||
-        []
-      ).map((tax) => ({
-        id: tax.tax_id || tax.id,
-        name: tax.tax_name || tax.name || "",
-        rate: parseFloat(tax.tax_rate || tax.rate || 0),
-        type: tax.tax_type || tax.type || "",
-        description: tax.tax_description || tax.description || "",
-        label: tax.tax_name
-          ? `${tax.tax_name} [${tax.tax_rate || 0}%]`
-          : `Tax ${tax.tax_rate || 0}%`,
-        value: tax.tax_name
-          ? `${tax.tax_name} ${tax.tax_rate || 0}%`
-          : `TAX ${tax.tax_rate || 0}%`,
-      }));
-
-      if (resetPage || currentPage === 1) {
-        setTaxes(transformedTaxes);
-      } else {
-        setTaxes((prev) => [...prev, ...transformedTaxes]);
-      }
-
-      const totalCount =
-        response.total_count || response.total || response.count || 0;
-      const totalPages = Math.ceil(totalCount / taxLimit);
-      setTaxHasMore(currentPage < totalPages);
-
-      if (resetPage) {
-        setTaxPage(1);
-      }
-    } catch (error) {
-      console.error("Error fetching taxes:", error);
-      setTaxError("Failed to fetch taxes");
-      Swal.fire("Error", "Failed to fetch taxes", "error");
-    } finally {
-      setIsLoadingTaxes(false);
+  const toggleDepositDropdown = () => {
+    setShowDepositDropdown(!showDepositDropdown);
+    if (!showDepositDropdown) {
+      setDepositSearchTerm("");
     }
   };
 
-  // Load more taxes
-  const loadMoreTaxes = async () => {
-    if (taxHasMore && !isLoadingTaxes) {
-      setTaxPage((prev) => prev + 1);
-    }
-  };
-
-  // Handle tax search
-  const handleTaxSearch = (searchTerm) => {
-    setTaxSearchTerm(searchTerm);
-
-    if (taxSearchTimeout) {
-      clearTimeout(taxSearchTimeout);
-    }
-
-    const newTimeout = setTimeout(() => {
-      setTaxPage(1);
-      fetchTaxes(searchTerm, true);
-    }, 300);
-
-    setTaxSearchTimeout(newTimeout);
-  };
-
-  // Fetch Items
-  const fetchItems = async (searchTerm = "", resetPage = false) => {
-    setIsLoadingItems(true);
-    setItemsError(null);
-
-    try {
-      const currentPage = resetPage ? 1 : itemsPage;
-      const body = {
-        search: searchTerm,
-        page: currentPage,
-        limit: itemsLimit,
-      };
-
-      const response = await GET_ALL_ITEMS(body);
-
-      const transformedItems = (
-        response.data ||
-        response.items ||
-        response.list ||
-        []
-      ).map((item) => ({
-        id: item.i_id,
-        name: item.i_name,
-        rate: parseFloat(item.i_sales_price || 0),
-        tax: item.tax || item.tax_rate || "VAT 5%",
-        description: item.i_sales_description || "",
-        unit: item.i_weight_unit || item.uom || "pcs",
-      }));
-
-      if (resetPage || currentPage === 1) {
-        setAvailableItems(transformedItems);
-      } else {
-        setAvailableItems((prev) => [...prev, ...transformedItems]);
-      }
-
-      const totalCount =
-        response.total_count || response.total || response.count || 0;
-      const totalPages = Math.ceil(totalCount / itemsLimit);
-      setItemsHasMore(currentPage < totalPages);
-
-      if (resetPage) {
-        setItemsPage(1);
-      }
-    } catch (error) {
-      console.error("Error fetching items:", error);
-      setItemsError("Failed to fetch items");
-      Swal.fire("Error", "Failed to fetch items", "error");
-    } finally {
-      setIsLoadingItems(false);
-    }
-  };
-
-  // Create Tax
-  const handleCreateTax = async (taxData) => {
-    setIsCreatingTax(true);
-
-    try {
-      const response = await CREATE_TAX({
-        tax_name: taxData.name,
-        tax_rate: taxData.rate,
-      });
-
-      const newTax = {
-        id: response.tax_id || Date.now(),
-        name: taxData.name,
-        rate: taxData.rate,
-        label: taxData.label,
-        value: taxData.value,
-        description: response.description || "",
-      };
-
-      setTaxes((prevTaxes) => [newTax, ...prevTaxes]);
-      Swal.fire("Success", "Tax created successfully", "success");
-    } catch (error) {
-      console.error("Error creating tax:", error);
-      Swal.fire("Error", "Failed to create tax", "error");
-    } finally {
-      setIsCreatingTax(false);
-    }
-  };
-
-  // Fetch all data on mount
+  // Close dropdown when clicking outside
   useEffect(() => {
-    fetchCustomers("", true);
-    fetchSalespersons("", true);
-    fetchTaxes("", true);
-    fetchItems("", true);
+    const handleClickOutside = (event) => {
+      if (
+        depositDropdownRef.current &&
+        !depositDropdownRef.current.contains(event.target)
+      ) {
+        setShowDepositDropdown(false);
+        setDepositSearchTerm("");
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fetch salespersons when page changes
+  // Focus search input when dropdown opens
   useEffect(() => {
-    if (salespersonPage > 1) {
-      fetchSalespersons(salespersonSearchTerm);
+    if (showDepositDropdown && depositSearchInputRef.current) {
+      setTimeout(() => {
+        depositSearchInputRef.current.focus();
+      }, 50);
     }
-  }, [salespersonPage]);
+  }, [showDepositDropdown]);
 
-  // Fetch taxes when page changes
+  // Update the payment number when config changes (only for new payments)
   useEffect(() => {
-    if (taxPage > 1) {
-      fetchTaxes(taxSearchTerm);
+    if (paymentNumberConfig.autoGenerate && !id && !paymentDataLoaded) {
+      const newPaymentNumber = generateNextPaymentNumber();
+      handleInputChange("paymentNumber", newPaymentNumber);
     }
-  }, [taxPage]);
+  }, [
+    paymentNumberConfig.prefix,
+    paymentNumberConfig.digitLength,
+    paymentNumberConfig.suffix,
+    paymentNumberConfig.nextNumber,
+    id,
+    paymentDataLoaded,
+  ]);
 
   // Fetch customers when page changes
   useEffect(() => {
@@ -1183,202 +860,269 @@ export default function InvoiceForm() {
     }
   }, [page]);
 
-  // Fetch items when page changes
-  useEffect(() => {
-    if (itemsPage > 1) {
-      fetchItems(itemsSearchTerm);
-    }
-  }, [itemsPage]);
-
-  // Cleanup search timeouts
-  useEffect(() => {
-    return () => {
-      if (salespersonSearchTimeout) {
-        clearTimeout(salespersonSearchTimeout);
-      }
-      if (taxSearchTimeout) {
-        clearTimeout(taxSearchTimeout);
-      }
-      if (itemsSearchTimeout) {
-        clearTimeout(itemsSearchTimeout);
-      }
-    };
-  }, [salespersonSearchTimeout, taxSearchTimeout, itemsSearchTimeout]);
-
   // Customer selection handler
   const handleCustomerSelect = (customer) => {
-    handleFormDataChange("customer_id", customer.id);
-    handleFormDataChange("customerData", customer);
-
-    // Set customer's tax treatment automatically
-    const customerTaxTreatment =
-      customer.cu_tax_treatment ||
-      customer.tax_treatment ||
-      customer.taxTreatment ||
-      "Non VAT Registered";
-
-    handleFormDataChange("tax_treatment", customerTaxTreatment);
-
+    setSelectedCustomer(customer.name);
+    setFormData((prev) => ({
+      ...prev,
+      customer_id: customer.id,
+      customerData: customer,
+      customerName: customer.name,
+      email: customer.email || "",
+    }));
     setCustomerDropdownOpen(false);
     setSearchQuery("");
     setSearchTerm("");
+    setShowForm(true);
+
+    // Fetch unpaid invoices for the selected customer
+    fetchUnpaidInvoices(customer.id, id ? true : false);
   };
 
-  // Salesperson selection handler
-  const handleSalespersonSelect = (salesperson) => {
-    handleFormDataChange("sales_person", salesperson.id); // Changed from sales_person_id
-    handleFormDataChange("salespersonData", salesperson);
-    setSalespersonDropdownOpen(false);
-    setSalespersonSearchTerm("");
-  };
-  // Add new item row
-  const addNewRow = () => {
-    const newItem = {
-      id: Date.now(),
-      item_id: null,
-      name: "", // Added name field
-      description: "",
-      quantity: 1.0,
-      rate: 0.0,
-      discount: 0,
-      discount_type: "%",
-      tax_id: null,
-      tax: "",
-      amount: 0.0,
-      isEditing: true,
-    };
-    handleItemsChange([...formData.items, newItem]);
-  };
-
-  // Remove item
-  const removeItem = (itemId) => {
-    if (formData.items.length > 1) {
-      const newItems = formData.items.filter((item) => item.id !== itemId);
-      handleItemsChange(newItems);
-    }
-  };
-
-  // Select item from dropdown
-  const selectItem = (itemId, selectedItem) => {
-    updateItem(itemId, {
-      item_id: selectedItem.id,
-      name: selectedItem.name, // Store the item name
-      description: selectedItem.description || selectedItem.name, // Use description if available, otherwise use name
-      rate: selectedItem.rate,
-      tax: selectedItem.tax,
-      isEditing: false,
-    });
-    setItemDropdownOpen(null);
-    setItemSearchQuery("");
-  };
-
-  // Deselect item
-  const deselectItem = (itemId) => {
-    updateItem(itemId, {
-      name: "", // Clear name field
-      description: "",
-      rate: 0,
-      tax: "",
-      isEditing: true,
-      amount: 0,
-    });
-    setItemDropdownOpen(itemId);
-    setItemSearchQuery("");
-  };
-
-  // Item action handler
-  const handleItemAction = (action, item) => {
-    setSelectedItemForModal(item);
-    setModalType(action);
-    setShowItemModal(true);
-    setItemActionsDropdown(null);
-  };
-
-  // Close item modal
-  const closeItemModal = () => {
-    setShowItemModal(false);
-    setSelectedItemForModal(null);
-  };
-
-  // Handler functions
-  const handleOpenCustomerDetails = () => setShowCustomerDetailsModal(true);
-  const handleCloseCustomerDetails = () => {
-    setCustomerDetailsData(null);
-    setShowCustomerDetailsModal(false);
-  };
-  const handleExternalLinkClick = (customerData) => {};
-  const handleOpenSalesPerson = () => setShowSalesPersonModal(true);
-  const handleCloseSalesPerson = () => setShowSalesPersonModal(false);
+  // New customer handler
   const handleNewCustomer = () => {
     setCustomerDropdownOpen(false);
     console.log("Opening new customer form...");
   };
-  // Filter functions
+
+  // Payment mode selection handler
+  const handlePaymentModeSelect = (paymentMode) => {
+    handleInputChange("paymentMode", paymentMode.name);
+    setPaymentModeDropdownOpen(false);
+    setPaymentModeSearchTerm("");
+  };
+
+  // Configure payment mode handler
+  const handleConfigurePaymentMode = () => {
+    setPaymentModeDropdownOpen(false);
+    setShowConfigurePaymentModeModal(true);
+  };
+
+  // Handle payment mode configuration save
+  const handleSavePaymentModeConfig = (paymentModes) => {
+    console.log("Payment modes updated:", paymentModes);
+    const updatedOptions = paymentModes.map((mode, index) => ({
+      id: mode.id || index + 1,
+      name: mode.name,
+      description: `${mode.name} payment`,
+    }));
+    setPaymentModeOptions(updatedOptions);
+  };
+
+  // Handle payment mode selection from modal
+  const handlePaymentModeSelectFromModal = (paymentMode) => {
+    handleInputChange("paymentMode", paymentMode.name);
+  };
+
+  // Filter payment modes
+  const filteredPaymentModes = paymentModeOptions.filter((mode) =>
+    mode.name.toLowerCase().includes(paymentModeSearchTerm.toLowerCase())
+  );
+
+  // Filter customers
   const filteredCustomers = customers.filter(
     (customer) =>
       customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer.company.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredSalespersons = salespersons.filter(
-    (salesperson) =>
-      salesperson.name
-        .toLowerCase()
-        .includes(salespersonSearchTerm.toLowerCase()) ||
-      salesperson.email
-        .toLowerCase()
-        .includes(salespersonSearchTerm.toLowerCase())
-  );
+  // Customer details handlers
+  const handleOpenCustomerDetails = () => setShowCustomerDetailsModal(true);
+  const handleCloseCustomerDetails = () => {
+    setCustomerDetailsData(null);
+    setShowCustomerDetailsModal(false);
+  };
+  const handleExternalLinkClick = (customerData) => {};
 
-  const filteredItems = availableItems?.filter((item) =>
-    item?.name?.toLowerCase().includes(itemSearchQuery?.toLowerCase())
-  );
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
 
-  const placesOfSupply = [
-    { id: 1, name: "Dubai" },
-    { id: 2, name: "Abu Dhabi" },
-    { id: 3, name: "Sharjah" },
-    { id: 4, name: "Ajman" },
-  ];
-
-  const toggleTaxTooltip = () => {
-    setShowTaxTooltip((prev) => !prev);
+    // Clear validation error when user starts typing
+    if (validationErrors[field]) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        [field]: null,
+      }));
+    }
   };
 
-  const closeTaxTooltip = () => {
-    setShowTaxTooltip(false);
+  // UPDATED: handleSave function with edit/update support
+  const handleSave = async () => {
+    // Clear previous errors and success states
+    setSaveError(null);
+    setSaveSuccess(false);
+
+    // Validate form
+    if (!validateForm()) {
+      setSaveError("Please fix the validation errors before saving.");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      // Calculate payment summary
+      const paymentSummary = calculatePaymentSummary();
+
+      // Prepare unpaid_items in the format expected by backend
+      const unpaidItems = Object.entries(invoicePayments)
+        .filter(([id, amount]) => amount > 0)
+        .map(([invoice_id, amount]) => ({
+          invoice_id: parseInt(invoice_id),
+          amount: parseFloat(amount),
+        }));
+
+      // Create FormData for file upload
+      const formDataToSend = new FormData();
+
+      // Add all the required fields
+      formDataToSend.append("customer_id", formData.customer_id);
+      formDataToSend.append(
+        "amount_received",
+        parseFloat(formData.amountReceived)
+      );
+      formDataToSend.append(
+        "bank_charges",
+        parseFloat(formData.bankCharges) || 0
+      );
+      formDataToSend.append("payment_date", formData.paymentDate);
+      formDataToSend.append("payment_number", formData.paymentNumber);
+      formDataToSend.append("payment_mode", formData.paymentMode);
+      formDataToSend.append("deposit_to", formData.depositTo);
+      formDataToSend.append("reference", formData.reference || "");
+      formDataToSend.append("unpaid_items", JSON.stringify(unpaidItems));
+      formDataToSend.append("total", paymentSummary.total);
+      formDataToSend.append("amount_used", paymentSummary.totalPaymentsApplied);
+      formDataToSend.append("amount_refunded", paymentSummary.amountRefunded);
+      formDataToSend.append("amount_excess", paymentSummary.amountInExcess);
+      formDataToSend.append("notes", formData.notes || "");
+      formDataToSend.append("send_mail", formData.sendMail);
+      formDataToSend.append("email", formData.email || "");
+
+      // Add payment ID for update
+      if (id) {
+        formDataToSend.append("payment_id", id);
+      }
+
+      // Add file if uploaded
+      if (uploadedFile) {
+        formDataToSend.append("file", uploadedFile);
+      }
+
+      console.log("Sending payment data:", {
+        mode: id ? "update" : "create",
+        payment_id: id || null,
+        customer_id: formData.customer_id,
+        amount_received: parseFloat(formData.amountReceived),
+        unpaid_items: unpaidItems,
+      });
+
+      // Make API call
+      let response;
+      if (id) {
+        console.log("Updating existing payment with ID:", id);
+        response = await UPDATE_PAYMENT_RECEIVED(formDataToSend);
+      } else {
+        console.log("Creating new payment");
+        response = await CREATE_PAYMENT_RECEIVED(formDataToSend);
+      }
+
+      console.log("Payment saved successfully:", response);
+
+      // Update payment number sequence after successful save (only for new payments)
+      if (!id && paymentNumberConfig.autoGenerate) {
+        updatePaymentNumberSequence(formData.paymentNumber);
+        generateNewPaymentForNext();
+      }
+
+      // Show success message
+      const action = id ? "updated" : "created";
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 5000);
+
+      // Optionally reset form after successful save (only for new payments)
+      if (!id) {
+        // handleCancel(); // Uncomment if you want to reset after saving
+      }
+    } catch (error) {
+      console.error("Error saving payment:", error);
+
+      let errorMessage = `Failed to ${id ? "update" : "save"} payment. Please try again.`;
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      setSaveError(errorMessage);
+    } finally {
+      setIsSaving(false);
+      setSaveMode("");
+    }
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setSelectedCustomer("");
+    setFormData({
+      customer_id: null,
+      customerData: null,
+      customerName: "",
+      amountReceived: "",
+      bankCharges: "",
+      paymentDate: new Date().toISOString().split("T")[0],
+      paymentNumber: "",
+      paymentMode: "Cash",
+      depositTo: "Petty Cash",
+      reference: "",
+      notes: "",
+      sendMail: false,
+      email: "",
+    });
+
+    // Clear file upload
+    setUploadedFile(null);
+
+    // Clear invoice data
+    setUnpaidInvoices([]);
+    setInvoicePayments({});
+    setInvoicePaymentDates({});
+    setSelectedInvoices([]);
+    setDateRange({ startDate: "", endDate: "" });
+
+    // Clear validation errors and API states
+    setValidationErrors({});
+    setSaveError(null);
+    setSaveSuccess(false);
+
+    // Regenerate payment number if auto-generation is enabled (only for new payments)
+    if (!id && paymentNumberConfig.autoGenerate) {
+      setTimeout(() => {
+        initializePaymentNumber();
+      }, 100);
+    }
+
+    // Navigate back if in edit mode
+    if (id) {
+      // You can add navigation logic here
+      // e.g., navigate('/payments');
+    }
   };
 
   const handleSaveBilling = (data) => {
     console.log("Billing address saved:", data);
   };
 
-  const handleSaveShipping = (data) => {
-    console.log("Shipping address saved:", data);
-  };
-
   const getSaveHandler = () =>
     modalType === "billing" ? handleSaveBilling : handleSaveShipping;
-
-  // Search handler
-  const handleSearchChange = (e) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-    setSearchTerm(value);
-    setPage(1);
-  };
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!event.target.closest(".dropdown-container")) {
         setCustomerDropdownOpen(false);
-        setSalespersonDropdownOpen(false);
-        setPlaceOfSupplyDropdownOpen(false);
-      }
-
-      if (!event.target.closest(".item-dropdown-container")) {
-        setItemDropdownOpen(null);
+        setPaymentModeDropdownOpen(false);
       }
     };
 
@@ -1388,1073 +1132,999 @@ export default function InvoiceForm() {
     };
   }, []);
 
-  // Calculate current totals
-  const totals = calculateTotals();
+  // Close payment mode dropdown when configure modal opens
+  useEffect(() => {
+    if (showConfigurePaymentModeModal) {
+      setPaymentModeDropdownOpen(false);
+    }
+  }, [showConfigurePaymentModeModal]);
+
+  const paymentSummary = calculatePaymentSummary();
+
+  // Show loading state while fetching payment data
+  if (fetchingPaymentData) {
+    return (
+      <div className="min-h-screen">
+        <div className="max-w-full mx-auto rounded-lg">
+          <div className="flex justify-center items-center h-64">
+            <div className="flex items-center space-x-3">
+              <Loader className="w-6 h-6 animate-spin text-blue-500" />
+              <div className="text-lg text-gray-600">
+                Loading payment data...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if fetch failed
+  if (fetchError && !fetchingPaymentData) {
+    return (
+      <div className="min-h-screen">
+        <div className="max-w-full mx-auto rounded-lg">
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
+              <div className="text-lg text-red-600 mb-2">Error Loading Payment</div>
+              <div className="text-sm text-gray-600 mb-4">{fetchError}</div>
+              <button
+                onClick={fetchPaymentData}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white min-h-screen w-full text-gray-700">
-      <div className="p-6 space-y-6">
-        {/* Customer Name */}
-        <div className="flex items-center space-x-2 w-3/5">
-          <label className="text-red-500 font-medium w-32 text-sm">
-            Customer Name*
-          </label>
-          <div className="relative flex-1 dropdown-container">
-            <div
-              className="border focus:outline-none border-gray-300 rounded px-3 py-2 cursor-pointer flex items-center justify-between bg-white text-sm"
-              onClick={() => setCustomerDropdownOpen(!customerDropdownOpen)}
-            >
-              <span className="text-gray-500">
-                {formData.customerData?.name || "Select or add a customer"}
-              </span>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
-            </div>
+    <div className="min-h-screen">
+      {/* Debug Section - Remove after fixing */}
+      {id && process.env.NODE_ENV === 'development' && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mb-4 mx-4 mt-4">
+          <h4 className="font-semibold text-yellow-800 mb-2">Debug Info (Remove after fixing)</h4>
+          <div className="text-sm text-yellow-700 space-y-1">
+            <div>ID from URL: <strong>{id || 'null'}</strong></div>
+            <div>Fetching payment data: <strong>{fetchingPaymentData.toString()}</strong></div>
+            <div>Payment data loaded: <strong>{paymentDataLoaded.toString()}</strong></div>
+            <div>Fetch error: <strong>{fetchError || 'none'}</strong></div>
+            <div>Customer ID: <strong>{formData.customer_id || 'null'}</strong></div>
+            <div>Customer name: <strong>{formData.customerName || 'none'}</strong></div>
+            <div>Customer data exists: <strong>{(!!formData.customerData).toString()}</strong></div>
+            <div>Customer data name: <strong>{formData.customerData?.name || 'none'}</strong></div>
+          </div>
+        </div>
+      )}
 
-            {customerDropdownOpen && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
-                {/* Search Input */}
-                <div className="p-3 border-b border-gray-100">
-                  <div className="relative">
-                    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search"
-                      value={searchQuery}
-                      onChange={handleSearchChange}
-                      className="w-full pl-10 pr-8 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    {isLoadingCustomers && (
-                      <Loader className="w-4 h-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-500 animate-spin" />
+      {/* Success/Error Messages */}
+      {saveSuccess && (
+        <MessageAlert
+          type="success"
+          message={`Payment has been successfully ${id ? "updated" : "saved and recorded"}.`}
+          onClose={() => setSaveSuccess(false)}
+        />
+      )}
+
+      {saveError && (
+        <MessageAlert
+          type="error"
+          message={saveError}
+          onClose={() => setSaveError(null)}
+        />
+      )}
+
+      <div className="max-w-full mx-auto rounded-lg">
+        {/* Header - Updated title for edit mode */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {id ? "Edit Payment" : "Record Payment"}
+          </h2>
+          <button
+            onClick={handleCancel}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="max-w-full mt-6">
+          {/* Customer Name Selection */}
+          <div className="mb-6 p-6 flex items-center space-x-2 bg-gray-100 py-6">
+            <label className="block font-medium w-52 text-sm text-red-600 mb-2">
+              Customer Name*
+            </label>
+            <div className="relative dropdown-container">
+              <div
+                className={`border focus:outline-none border-gray-300 rounded px-3 py-2 ${
+                  id ? "cursor-default bg-gray-50" : "cursor-pointer bg-white"
+                } flex items-center justify-between text-sm w-96 ${
+                  validationErrors.customer_id ? "border-red-500" : ""
+                }`}
+                onClick={() => !id && setCustomerDropdownOpen(!customerDropdownOpen)}
+              >
+                {/* FIXED: Better customer display for edit mode */}
+                <span className={id ? "text-gray-700 font-medium" : "text-gray-900"}>
+                  {formData.customerData?.name || "Select or add a customer"}
+                </span>
+                {!id && <ChevronDown className="w-4 h-4 text-gray-400" />}
+                {id && <span className="text-xs text-gray-500 ml-2">(Edit mode)</span>}
+              </div>
+              {validationErrors.customer_id && (
+                <p className="text-red-500 text-xs mt-1">
+                  {validationErrors.customer_id}
+                </p>
+              )}
+
+              {/* FIXED: Only show dropdown in create mode */}
+              {!id && customerDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
+                  {/* Search Input */}
+                  <div className="p-3 border-b border-gray-100">
+                    <div className="relative">
+                      <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Search"
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        className="w-full pl-10 pr-8 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      {isLoadingCustomers && (
+                        <Loader className="w-4 h-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-500 animate-spin" />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Customer List */}
+                  <div className="max-h-60 overflow-y-auto">
+                    {customerError ? (
+                      <div className="p-4 text-center">
+                        <div className="text-sm text-red-500 mb-2">
+                          {customerError}
+                        </div>
+                        <button
+                          onClick={() => fetchCustomers("", true)}
+                          className="text-blue-500 text-sm hover:underline"
+                        >
+                          Retry
+                        </button>
+                      </div>
+                    ) : filteredCustomers.length > 0 ? (
+                      <>
+                        {filteredCustomers.map((customer) => (
+                          <div
+                            key={customer.id}
+                            className={`flex items-center p-3 cursor-pointer transition-colors hover:bg-gray-50 ${
+                              formData.customerData?.id === customer.id
+                                ? "bg-blue-500 text-white hover:bg-blue-600"
+                                : ""
+                            }`}
+                            onClick={() => handleCustomerSelect(customer)}
+                          >
+                            <div
+                              className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold mr-3 ${
+                                formData.customerData?.id === customer.id
+                                  ? "bg-white text-blue-500"
+                                  : "bg-blue-500 text-white"
+                              }`}
+                            >
+                              {customer.initial}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div
+                                className={`font-medium text-sm truncate ${
+                                  formData.customerData?.id === customer.id
+                                    ? "text-white"
+                                    : "text-gray-900"
+                                }`}
+                              >
+                                {customer.name}
+                              </div>
+                              <div
+                                className={`text-xs truncate ${
+                                  formData.customerData?.id === customer.id
+                                    ? "text-blue-100"
+                                    : "text-gray-500"
+                                }`}
+                              >
+                                {customer.company}
+                              </div>
+                            </div>
+                            {formData.customerData?.id === customer.id && (
+                              <div className="ml-2">
+                                <svg
+                                  className="w-4 h-4 text-white"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+
+                        {/* Load More Button for Pagination */}
+                        {hasMore && (
+                          <div className="p-3 border-t border-gray-100">
+                            <button
+                              onClick={loadMoreCustomers}
+                              disabled={isLoadingCustomers}
+                              className="w-full text-center text-blue-500 text-sm hover:bg-blue-50 py-2 rounded transition-colors disabled:opacity-50"
+                            >
+                              {isLoadingCustomers ? "Loading..." : "Load More"}
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="p-4 text-center">
+                        <div className="text-sm text-gray-500">
+                          {searchTerm
+                            ? "No customers found for your search"
+                            : "No customers found"}
+                        </div>
+                      </div>
                     )}
                   </div>
-                </div>
 
-                {/* Customer List */}
-                <div className="max-h-60 overflow-y-auto">
-                  {filteredCustomers.length > 0 ? (
-                    <>
-                      {filteredCustomers.map((customer) => (
-                        <div
-                          key={customer.id}
-                          className={`flex items-center p-3 cursor-pointer transition-colors hover:bg-gray-50 ${
-                            formData.customerData?.id === customer.id
-                              ? "bg-blue-500 text-white hover:bg-blue-600"
-                              : ""
-                          }`}
-                          onClick={() => handleCustomerSelect(customer)}
-                        >
-                          <div
-                            className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold mr-3 ${
-                              formData.customerData?.id === customer.id
-                                ? "bg-white text-blue-500"
-                                : "bg-blue-500 text-white"
-                            }`}
-                          >
-                            {customer.initial}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div
-                              className={`font-medium text-sm truncate ${
-                                formData.customerData?.id === customer.id
-                                  ? "text-white"
-                                  : "text-gray-900"
-                              }`}
-                            >
-                              {customer.name}
-                            </div>
-                            <div
-                              className={`text-xs truncate ${
-                                formData.customerData?.id === customer.id
-                                  ? "text-blue-100"
-                                  : "text-gray-500"
-                              }`}
-                            >
-                              {customer.company}
-                            </div>
-                          </div>
-                          {formData.customerData?.id === customer.id && (
-                            <div className="ml-2">
-                              <svg
-                                className="w-4 h-4 text-white"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </>
-                  ) : (
-                    <div className="p-4 text-center">
-                      <div className="text-sm text-gray-500">
-                        {searchTerm
-                          ? "No customers found for your search"
-                          : "No customers found"}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* New Customer Button */}
-                <div className="border-t border-gray-100 p-3">
-                  <button
-                    className="flex items-center w-full text-left p-2 text-blue-500 hover:bg-blue-50 rounded-md transition-colors group"
-                    onClick={handleNewCustomer}
-                  >
-                    <div className="w-9 h-9 bg-blue-500 text-white rounded-full flex items-center justify-center mr-3 group-hover:bg-blue-600 transition-colors">
-                      <Plus className="w-4 h-4" />
-                    </div>
-                    <span className="font-medium text-sm">New Customer</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Currency Display */}
-          {formData.customerData && (
-            <div className="flex items-center justify-end mt-2">
-              <div className="flex items-center space-x-2 bg-gray-100 px-3 py-2 rounded-lg">
-                <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-                <span className="text-gray-700 font-medium text-sm">
-                  {formData.customerData?.cu_currency || "AED"}
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {formData.customerData && (
-          <>
-            {/* Address Section */}
-            <div className="ml-36">
-              <div className="mt-4 grid grid-cols-2 gap-6">
-                {/* Billing Section */}
-                <div>
-                  <h4 className="text-gray-600 font-medium mb-2 text-sm">
-                    BILLING ADDRESS
-                  </h4>
-                  <CommonButton
-                    onClick={() => {
-                      setModalType("billing");
-                      setModalOpen(true);
-                    }}
-                    label="New Address"
-                    className="text-blue-500 text-sm hover:text-blue-700 transition-colors"
-                  />
-                </div>
-
-                {/* Shipping Section */}
-                <div>
-                  <h4 className="text-gray-600 font-medium mb-2 text-sm">
-                    SHIPPING ADDRESS
-                  </h4>
-                  <CommonButton
-                    onClick={() => {
-                      setModalType("shipping");
-                      setModalOpen(true);
-                    }}
-                    label="New Address"
-                    className="text-blue-500 text-sm hover:text-blue-700 transition-colors"
-                  />
-                </div>
-              </div>
-
-              {/* Tax Treatment */}
-              <div className="mt-8 relative inline-block">
-                <div className="flex items-center space-x-2">
-                  <span className="text-gray-600 text-sm">Tax Treatment:</span>
-                  <h1 className="text-gray-900 font-medium text-sm focus:outline-none">
-                    {formData.tax_treatment}
-                  </h1>
-                  <CommonButton
-                    label={<Edit className="w-4 h-4" />}
-                    className="text-blue-500 hover:text-blue-700 transition-colors"
-                    onClick={toggleTaxTooltip}
-                  />
-                </div>
-
-                {/* Tooltip on click */}
-                {showTaxTooltip && (
-                  <TaxPreferencesDialog onClose={closeTaxTooltip} />
-                )}
-              </div>
-            </div>
-
-            {/* Place of Supply */}
-            <div className="flex items-center space-x-2 text-sm">
-              <label className="text-red-500 font-medium w-32 text-sm">
-                Place of Supply*
-              </label>
-              <div className="relative w-1/2 dropdown-container">
-                <div
-                  className="border border-gray-300 rounded px-3 py-2 cursor-pointer flex items-center justify-between bg-white"
-                  onClick={() =>
-                    setPlaceOfSupplyDropdownOpen(!placeOfSupplyDropdownOpen)
-                  }
-                >
-                  <span className="text-gray-900 font-medium">
-                    {formData.supply_place || "Select place of supply"}
-                  </span>
-                  <ChevronDown className="w-5 h-5 text-gray-400" />
-                </div>
-
-                {placeOfSupplyDropdownOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-xl z-10">
-                    <div className="max-h-48 overflow-y-auto">
-                      {placesOfSupply.map((place) => (
-                        <div
-                          key={place.id}
-                          className="p-3 hover:bg-blue-50 cursor-pointer transition-colors focus:outline-none"
-                          onClick={() => {
-                            handleFormDataChange("supply_place", place.name);
-                            setPlaceOfSupplyDropdownOpen(false);
-                          }}
-                        >
-                          <div className="font-medium text-gray-900">
-                            {place.name}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Invoice# */}
-        <div className="flex items-center space-x-2">
-          <label className="text-red-500 font-medium w-32 text-sm">
-            Invoice*
-          </label>
-          <div className="relative w-1/2">
-            <input
-              type="text"
-              value={formData.invoice_number}
-              onChange={(e) => {
-                handleFormDataChange("invoice_number", e.target.value);
-                // Disable auto-generation if manually edited
-                if (invoiceNumberConfig.autoGenerate) {
-                  handleInvoiceNumberConfigChange({ autoGenerate: false });
-                }
-              }}
-              className={`border border-gray-300 rounded px-3 py-2 w-full pr-20 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                invoiceNumberConfig.autoGenerate
-                  ? "bg-gray-50 text-gray-600"
-                  : "bg-white text-gray-900"
-              }`}
-              placeholder="Invoice number will be auto-generated"
-              readOnly={invoiceNumberConfig.autoGenerate}
-            />
-
-            <div className="flex items-center space-x-1 absolute right-1 top-1 bottom-1">
-              {/* Auto-generate toggle button */}
-              {!invoiceNumberConfig.autoGenerate && (
-                <button
-                  onClick={() => toggleAutoGeneration(true)}
-                  className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors font-medium"
-                  title="Enable auto-generation"
-                >
-                  Auto
-                </button>
-              )}
-
-              {/* Refresh button for auto-generated numbers */}
-              {invoiceNumberConfig.autoGenerate && (
-                <button
-                  onClick={generateManualInvoiceNumber}
-                  className="px-2 py-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                  title="Generate new invoice number"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                    />
-                  </svg>
-                </button>
-              )}
-
-              {/* Settings button */}
-              <div className="group relative">
-                <button
-                  onClick={() => setConfigureModalOpen(true)}
-                  className="px-2 py-1 text-blue-700 hover:bg-blue-50 rounded transition-colors"
-                  title="Configure invoice number settings"
-                >
-                  <Settings className="w-4 h-4" />
-                </button>
-                <div className="absolute w-64 -top-8 right-0 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 z-10">
-                  Configure invoice number format and auto-generation settings.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Order Number*/}
-        <div className="flex items-center space-x-2">
-          <label className="text-gray-900 font-medium w-32 text-sm">
-            Order Number
-          </label>
-          <input
-            type="text"
-            value={formData.order_number}
-            onChange={(e) => handleFormDataChange("order_number", e.target.value)}
-            className="border text-sm border-gray-300 rounded px-3 py-2 w-1/2 focus:outline-none"
-          />
-        </div>
-
-        {/* Invoice Date */}
-        <div className="flex items-center space-x-2 ">
-          <label className="text-red-500 font-medium w-32 text-sm pr-28">
-            Invoice Date*
-          </label>
-          <input
-            type="date"
-            value={formData.invoice_date}
-            onChange={(e) => handleFormDataChange("invoice_date", e.target.value)}
-            className="border text-sm border-gray-300 rounded px-3 py-2 w-1/5 focus:outline-none"
-          />
-          {/* Terms Dropdown */}
-          <span className="text-gray-900 font-medium w-16 text-sm ml-8">
-            Terms
-          </span>
-          <div className="relative w-1/5 dropdown-container">
-            <div
-              className="border text-sm border-gray-300 rounded px-3 py-2 cursor-pointer flex items-center justify-between bg-white"
-              onClick={() => setTermsDropdownOpen(!termsDropdownOpen)}
-            >
-              <span className="text-gray-700">
-                {formData.terms ||
-                  paymentTerms.find((term) => term.isDefault)?.name ||
-                  "Due on Receipt"}
-              </span>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
-            </div>
-
-            {termsDropdownOpen && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
-                <div className="max-h-64 overflow-y-auto">
-                  {/* Built-in Terms */}
-                  {builtInTermsOptions.map((term) => (
-                    <div
-                      key={term.value}
-                      className={`p-3 hover:bg-blue-50 cursor-pointer transition-colors ${
-                        formData.terms === term.value
-                          ? "bg-blue-50 text-blue-600"
-                          : ""
-                      }`}
-                      onClick={() => {
-                        handleTermsChange(term.value);
-                        setTermsDropdownOpen(false);
-                      }}
-                    >
-                      <div className="font-medium text-gray-900 text-sm">
-                        {term.label}
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Separator */}
-                  {paymentTerms.length > 0 && (
-                    <div className="border-t border-gray-100 my-1"></div>
-                  )}
-
-                  {/* Custom Payment Terms */}
-                  {paymentTerms.map((term) => (
-                    <div
-                      key={term.id}
-                      className={`p-3 hover:bg-blue-50 cursor-pointer transition-colors ${
-                        formData.terms === term.name
-                          ? "bg-blue-50 text-blue-600"
-                          : ""
-                      }`}
-                      onClick={() => {
-                        handleTermsChange(term.name);
-                        setTermsDropdownOpen(false);
-                      }}
-                    >
-                      <div className="font-medium text-gray-900 text-sm">
-                        {term.name}
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Configure Terms Button */}
-                  <div className="border-t border-gray-100">
+                  {/* New Customer Button */}
+                  <div className="border-t border-gray-100 p-3">
                     <button
-                      className="w-full p-3 text-left text-blue-500 hover:bg-blue-50 transition-colors text-sm font-medium"
-                      onClick={() => {
-                        setShowConfigureTermsModal(true);
-                        setTermsDropdownOpen(false);
-                      }}
+                      className="flex items-center w-full text-left p-2 text-blue-500 hover:bg-blue-50 rounded-md transition-colors group"
+                      onClick={handleNewCustomer}
                     >
-                      <div className="flex items-center space-x-2">
-                        <Settings className="w-4 h-4" />
-                        <span>Configure Terms</span>
+                      <div className="w-9 h-9 bg-blue-500 text-white rounded-full flex items-center justify-center mr-3 group-hover:bg-blue-600 transition-colors">
+                        <Plus className="w-4 h-4" />
                       </div>
+                      <span className="font-medium text-sm">New Customer</span>
                     </button>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
-          <span className="text-gray-900 font-medium text-sm ml-6 px-2">
-            Due Date
-          </span>
-          <input
-            type="date"
-            value={formData.due_date}
-            onChange={(e) => handleFormDataChange("due_date", e.target.value)}
-            className="border text-sm border-gray-300 rounded px-3 py-2 w-1/5 focus:outline-none"
-          />
-        </div>
-
-        {/* Salesperson */}
-        <div className="flex items-center space-x-2">
-          <label className="text-gray-900 font-medium w-32 text-sm">
-            Salesperson
-          </label>
-          <div className="relative w-1/2 dropdown-container">
-            <div
-              className="border text-sm border-gray-300 rounded px-3 py-2 cursor-pointer flex items-center justify-between bg-white"
-              onClick={() =>
-                setSalespersonDropdownOpen(!salespersonDropdownOpen)
-              }
-            >
-              <span className="text-gray-500">
-                {formData.salespersonData?.name || "Select or Add Salesperson"}
-              </span>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
+              )}
             </div>
+          </div>
 
-            {salespersonDropdownOpen && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
-                {/* Search Input */}
-                <div className="p-3 border-b border-gray-100">
-                  <div className="relative">
-                    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search"
-                      value={salespersonSearchTerm}
-                      onChange={(e) => handleSalespersonsSearch(e.target.value)}
-                      className="w-full pl-10 pr-8 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    {isLoadingSalespersons && (
-                      <Loader className="w-4 h-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-500 animate-spin" />
-                    )}
+          {/* FIXED: Show form based on customer data like InvoiceForm */}
+          {formData.customerData && (
+            <div className="px-6">
+              {/* Amount Received */}
+              <div className="mb-4 flex items-center space-x-2">
+                <label className="block text-sm font-medium text-red-600 mb-2 w-52">
+                  Amount Received*
+                </label>
+                <div className="flex">
+                  <span className="inline-flex items-center px-4 py-2 border border-r-0 border-gray-300 bg-gray-50 text-sm text-gray-500 rounded-l-md">
+                    {formData.customerData?.cu_currency || "AED"}
+                  </span>
+                  <input
+                    type="text"
+                    value={formData.amountReceived}
+                    onChange={(e) =>
+                      handleInputChange("amountReceived", e.target.value)
+                    }
+                    className={`flex-1 focus:outline-none border border-gray-300 rounded-r-md px-3 py-2 bg-white text-sm w-80 ${
+                      validationErrors.amountReceived ? "border-red-500" : ""
+                    }`}
+                  />
+                </div>
+                {validationErrors.amountReceived && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {validationErrors.amountReceived}
+                  </p>
+                )}
+              </div>
+
+              {/* Bank Charges */}
+              <div className="mb-4 flex items-center space-x-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2 w-52">
+                  Bank Charges (if any)
+                </label>
+                <input
+                  type="text"
+                  value={formData.bankCharges}
+                  onChange={(e) =>
+                    handleInputChange("bankCharges", e.target.value)
+                  }
+                  className="focus:outline-none border border-gray-300 rounded px-3 py-2 flex items-center justify-between bg-white text-sm w-96"
+                />
+              </div>
+
+              {/* Payment Date */}
+              <div className="mb-4 flex items-center space-x-2">
+                <label className="block text-sm font-medium text-red-600 mb-2 w-52">
+                  Payment Date*
+                </label>
+                <div className="relative">
+                  <input
+                    type="date"
+                    value={formData.paymentDate}
+                    onChange={(e) =>
+                      handleInputChange("paymentDate", e.target.value)
+                    }
+                    className={`focus:outline-none border border-gray-300 rounded px-3 py-2 flex items-center justify-between bg-white text-sm w-96 ${
+                      validationErrors.paymentDate ? "border-red-500" : ""
+                    }`}
+                  />
+                  {validationErrors.paymentDate && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {validationErrors.paymentDate}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Payment Number */}
+              <div className="mb-4 flex items-center space-x-2">
+                <label className="block text-sm font-medium text-red-600 mb-2 w-52">
+                  Payment #*
+                </label>
+                <div className="relative w-96">
+                  <input
+                    type="text"
+                    value={formData.paymentNumber}
+                    onChange={(e) => {
+                      handleInputChange("paymentNumber", e.target.value);
+                      // Disable auto-generation if manually edited
+                      if (paymentNumberConfig.autoGenerate) {
+                        handlePaymentNumberConfigChange({
+                          autoGenerate: false,
+                        });
+                      }
+                    }}
+                    className={`border border-gray-300 rounded px-3 py-2 w-full pr-20 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      paymentNumberConfig.autoGenerate && !id
+                        ? "bg-gray-50 text-gray-600"
+                        : "bg-white text-gray-900"
+                    } ${
+                      validationErrors.paymentNumber ? "border-red-500" : ""
+                    }`}
+                    placeholder={id ? "" : "Payment number will be auto-generated"}
+                    readOnly={paymentNumberConfig.autoGenerate && !id}
+                  />
+                  {validationErrors.paymentNumber && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {validationErrors.paymentNumber}
+                    </p>
+                  )}
+
+                  {!id && (
+                    <div className="flex items-center space-x-1 absolute right-1 top-1 bottom-1">
+                      {/* Auto-generate toggle button */}
+                      {!paymentNumberConfig.autoGenerate && (
+                        <button
+                          onClick={() => toggleAutoGeneration(true)}
+                          className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors font-medium"
+                          title="Enable auto-generation"
+                        >
+                          Auto
+                        </button>
+                      )}
+
+                      {/* Refresh button for auto-generated numbers */}
+                      {paymentNumberConfig.autoGenerate && (
+                        <button
+                          onClick={generateManualPaymentNumber}
+                          className="px-2 py-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          title="Generate new payment number"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                          </svg>
+                        </button>
+                      )}
+
+                      {/* Settings button */}
+                      <div className="group relative">
+                        <button
+                          onClick={() => setConfigureModalOpen(true)}
+                          className="px-2 py-1 text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                          title="Configure payment number settings"
+                        >
+                          <Settings className="w-4 h-4" />
+                        </button>
+                        <div className="absolute w-64 -top-8 right-0 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 z-10">
+                          Configure payment number format and auto-generation
+                          settings.
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Payment Mode */}
+              <div className="mb-4 flex items-center space-x-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2 w-52">
+                  Payment Mode
+                </label>
+                <div className="relative w-96 dropdown-container">
+                  <div
+                    className="border border-gray-300 rounded px-3 py-2 cursor-pointer flex items-center justify-between bg-white text-sm"
+                    onClick={() =>
+                      setPaymentModeDropdownOpen(!paymentModeDropdownOpen)
+                    }
+                  >
+                    <span className="text-gray-700">
+                      {formData.paymentMode || "Select payment mode"}
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  </div>
+
+                  {paymentModeDropdownOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
+                      {/* Search Input */}
+                      <div className="p-3 border-b border-gray-100">
+                        <div className="relative">
+                          <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                          <input
+                            type="text"
+                            placeholder="Search"
+                            value={paymentModeSearchTerm}
+                            onChange={(e) =>
+                              setPaymentModeSearchTerm(e.target.value)
+                            }
+                            className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Payment Mode List */}
+                      <div className="max-h-60 overflow-y-auto">
+                        {filteredPaymentModes.length > 0 ? (
+                          <>
+                            {filteredPaymentModes.map((mode) => (
+                              <div
+                                key={mode.id}
+                                className={`flex items-center p-3 cursor-pointer transition-colors hover:bg-gray-50 ${
+                                  formData.paymentMode === mode.name
+                                    ? "bg-blue-500 text-white hover:bg-blue-600"
+                                    : ""
+                                }`}
+                                onClick={() => handlePaymentModeSelect(mode)}
+                              >
+                                <div className="flex-1 min-w-0">
+                                  <div
+                                    className={`font-medium text-sm ${
+                                      formData.paymentMode === mode.name
+                                        ? "text-white"
+                                        : "text-gray-900"
+                                    }`}
+                                  >
+                                    {mode.name}
+                                  </div>
+                                </div>
+                                {formData.paymentMode === mode.name && (
+                                  <div className="ml-2">
+                                    <svg
+                                      className="w-4 h-4 text-white"
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </>
+                        ) : (
+                          <div className="p-4 text-center">
+                            <div className="text-sm text-gray-500">
+                              {paymentModeSearchTerm
+                                ? "No payment modes found for your search"
+                                : "No payment modes found"}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Configure Payment Mode Button */}
+                      <div className="border-t border-gray-100">
+                        <button
+                          className="flex items-center w-full text-left p-3 text-blue-500 hover:bg-blue-50 transition-colors text-sm"
+                          onClick={handleConfigurePaymentMode}
+                        >
+                          <div className="w-4 h-4 bg-blue-500 text-white rounded-full flex items-center justify-center mr-3">
+                            <svg
+                              className="w-3 h-3 text-white"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </div>
+                          <span className="font-medium">
+                            Configure Payment Mode
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Deposit To */}
+              <div className="mb-4 flex items-center space-x-2">
+                <label className="block text-sm font-medium text-red-600 mb-2 w-52">
+                  Deposit To*
+                </label>
+                <div className="relative w-96" ref={depositDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={toggleDepositDropdown}
+                    className={`w-full px-3 py-2 text-left bg-white border border-blue-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 transition-colors ${
+                      validationErrors.depositTo ? "border-red-500" : ""
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="block truncate text-gray-900">
+                        {formData.depositTo}
+                      </span>
+                      <ChevronDown
+                        className={`w-4 h-4 text-blue-500 transition-transform duration-200 ${
+                          showDepositDropdown ? "transform rotate-180" : ""
+                        }`}
+                      />
+                    </div>
+                  </button>
+                  {validationErrors.depositTo && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {validationErrors.depositTo}
+                    </p>
+                  )}
+
+                  {/* Dropdown Menu */}
+                  {showDepositDropdown && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg overflow-hidden">
+                      {/* Search Input */}
+                      <div className="p-3 bg-gray-50 border-b border-gray-200">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <input
+                            ref={depositSearchInputRef}
+                            type="text"
+                            placeholder="Search"
+                            value={depositSearchTerm}
+                            onChange={(e) =>
+                              setDepositSearchTerm(e.target.value)
+                            }
+                            className="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Account Categories */}
+                      <div className="max-h-60 overflow-y-auto">
+                        {Object.keys(filteredDepositCategories).length > 0 ? (
+                          Object.entries(filteredDepositCategories).map(
+                            ([category, accounts]) => (
+                              <div key={category}>
+                                {/* Category Header */}
+                                <div className="px-3 py-2 bg-gray-100 text-sm font-medium text-gray-700 border-b border-gray-200">
+                                  {category}
+                                </div>
+
+                                {/* Category Items */}
+                                {accounts.map((account, index) => (
+                                  <button
+                                    key={`${category}-${index}`}
+                                    type="button"
+                                    onClick={() => handleDepositSelect(account)}
+                                    className={`w-full px-3 py-2.5 text-left text-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 ${
+                                      formData.depositTo === account
+                                        ? "bg-blue-500 text-white hover:bg-blue-600 focus:bg-blue-600"
+                                        : "text-gray-900"
+                                    }`}
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <span
+                                        className="truncate"
+                                        title={account}
+                                      >
+                                        {account}
+                                      </span>
+
+                                      {formData.depositTo === account && (
+                                        <svg
+                                          className="w-4 h-4 text-white ml-2 flex-shrink-0"
+                                          fill="currentColor"
+                                          viewBox="0 0 20 20"
+                                        >
+                                          <path
+                                            fillRule="evenodd"
+                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                            clipRule="evenodd"
+                                          />
+                                        </svg>
+                                      )}
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            )
+                          )
+                        ) : (
+                          <div className="px-3 py-4 text-center text-gray-500 text-sm">
+                            No accounts found
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Reference */}
+              <div className="mb-4 flex items-center space-x-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2 w-52">
+                  Reference#
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={formData.reference}
+                    onChange={(e) =>
+                      handleInputChange("reference", e.target.value)
+                    }
+                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none text-sm w-96"
+                  />
+                </div>
+              </div>
+
+              {/* Unpaid Invoices Section */}
+              <div className="mb-6 w-full">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-4">
+                    <h3 className="text-sm font-medium text-gray-700">
+                      {id ? "Invoice Payments" : "Unpaid Invoices"}
+                    </h3>
+                    <div>
+                      <button
+                        onClick={() => setModalOpen(true)}
+                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <Calendar className="w-4 h-4 mr-2" />
+                        <span>{displayLabel}</span>
+                      </button>
+
+                      <DateRangeFilterModal
+                        isOpen={modalOpen}
+                        onClose={() => setModalOpen(false)}
+                        onApply={handleDateRangeApply}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {parseFloat(formData.amountReceived) > 0 &&
+                      unpaidInvoices.length > 0 && (
+                        <button
+                          onClick={autoApplyPayment}
+                          className="px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          Auto Apply
+                        </button>
+                      )}
+                    <button
+                      onClick={clearInvoiceSelection}
+                      className="text-blue-600 hover:text-blue-700 text-sm font-medium disabled:text-gray-400 disabled:cursor-not-allowed"
+                      disabled={Object.values(invoicePayments).every(
+                        (amount) => amount === 0
+                      )}
+                    >
+                      Clear Applied Amount
+                    </button>
                   </div>
                 </div>
 
-                {/* Salesperson List */}
-                <div className="max-h-60 overflow-y-auto">
-                  {salespersonError ? (
-                    <div className="p-4 text-center">
-                      <div className="text-sm text-red-500 mb-2">
-                        {salespersonError}
-                      </div>
+                {/* Invoice Table */}
+                <div className="border border-gray-200 rounded-md overflow-hidden">
+                  {/* Table Headers */}
+                  <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                    <div className="grid grid-cols-6 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <div>Date</div>
+                      <div>Invoice Number</div>
+                      <div>Invoice Amount</div>
+                      <div>Amount Due</div>
+                      <div>Payment Received On</div>
+                      <div>Payment</div>
+                    </div>
+                  </div>
+
+                  {/* Loading State */}
+                  {isLoadingInvoices && (
+                    <div className="text-center py-12 bg-white">
+                      <Loader className="w-6 h-6 animate-spin mx-auto text-blue-500 mb-2" />
+                      <p className="text-sm text-gray-500">
+                        Loading {id ? "invoice payments" : "unpaid invoices"}...
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Error State */}
+                  {invoiceError && (
+                    <div className="text-center py-12 bg-white">
+                      <p className="text-sm text-red-500 mb-2">
+                        {invoiceError}
+                      </p>
                       <button
-                        onClick={() => fetchSalespersons("", true)}
+                        onClick={() =>
+                          fetchUnpaidInvoices(formData.customer_id, id ? true : false)
+                        }
                         className="text-blue-500 text-sm hover:underline"
                       >
                         Retry
                       </button>
                     </div>
-                  ) : filteredSalespersons.length > 0 ? (
-                    <>
-                      {filteredSalespersons.map((salesperson) => (
-                        <div
-                          key={salesperson.id}
-                          className={`flex items-center p-3 cursor-pointer transition-colors hover:bg-gray-50 ${
-                            formData.salespersonData?.id === salesperson.id
-                              ? "bg-blue-500 text-white hover:bg-blue-600"
-                              : ""
-                          }`}
-                          onClick={() => handleSalespersonSelect(salesperson)}
-                        >
+                  )}
+
+                  {/* Invoice List */}
+                  {!isLoadingInvoices &&
+                    !invoiceError &&
+                    unpaidInvoices.length > 0 && (
+                      <div className="bg-white">
+                        {unpaidInvoices.map((invoice, index) => (
                           <div
-                            className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold mr-3 ${
-                              formData.salespersonData?.id === salesperson.id
-                                ? "bg-white text-blue-500"
-                                : "bg-blue-500 text-white"
+                            key={invoice.id}
+                            className={`grid grid-cols-6 gap-4 px-4 py-3 hover:bg-gray-50 transition-colors ${
+                              index !== unpaidInvoices.length - 1
+                                ? "border-b border-gray-100"
+                                : ""
                             }`}
                           >
-                            {salesperson.initial}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div
-                              className={`font-medium text-sm truncate ${
-                                formData.salespersonData?.id === salesperson.id
-                                  ? "text-white"
-                                  : "text-gray-900"
-                              }`}
-                            >
-                              {salesperson.name}
+                            {/* Date */}
+                            <div className="flex flex-col">
+                              <div className="text-base text-gray-900 font-medium">
+                                {formatToDDMMYYYY(invoice.invoiceDate)}
+                              </div>
+                              <div className="text-sm text-nowrap">
+                                Due Date: {formatToDDMMYYYY(invoice.dueDate)}
+                              </div>
                             </div>
-                            <div
-                              className={`text-xs truncate ${
-                                formData.salespersonData?.id === salesperson.id
-                                  ? "text-blue-100"
-                                  : "text-gray-500"
-                              }`}
-                            >
-                              {salesperson.email}
+
+                            {/* Invoice Number */}
+                            <div className="flex flex-col justify-center">
+                              <div className="text-sm text-blue-600 font-medium hover:text-blue-800 cursor-pointer">
+                                {invoice.invoiceNumber}
+                              </div>
                             </div>
-                          </div>
-                          {formData.salespersonData?.id === salesperson.id && (
-                            <div className="ml-2">
-                              <svg
-                                className="w-4 h-4 text-white"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
+
+                            {/* Invoice Amount */}
+                            <div className="flex items-center">
+                              <div className="text-sm text-gray-900 font-medium">
+                                {invoice.totalAmount?.toLocaleString() || "0"}
+                              </div>
                             </div>
-                          )}
-                        </div>
-                      ))}
 
-                      {/* Load More Button for Pagination */}
-                      {salespersonHasMore && (
-                        <div className="p-3 border-t border-gray-100">
-                          <button
-                            onClick={loadMoreSalespersons}
-                            disabled={isLoadingSalespersons}
-                            className="w-full text-center text-blue-500 text-sm hover:bg-blue-50 py-2 rounded transition-colors disabled:opacity-50"
-                          >
-                            {isLoadingSalespersons ? "Loading..." : "Load More"}
-                          </button>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="p-4 text-center">
-                      <div className="text-sm text-gray-500">
-                        {salespersonSearchTerm
-                          ? "No salespersons found for your search"
-                          : "No salespersons found"}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                            {/* Amount Due */}
+                            <div className="flex items-center">
+                              <div className="text-sm text-gray-900 font-medium">
+                                {invoice.amountDue?.toLocaleString() || "0"}
+                              </div>
+                            </div>
 
-                {/* Manage Salespersons Button */}
-                <div className="border-t border-gray-100 p-3">
-                  <button
-                    className="flex items-center w-full text-left p-2 text-blue-500 hover:bg-blue-50 rounded-md transition-colors group"
-                    onClick={handleOpenSalesPerson}
-                  >
-                    <div className="w-9 h-9 bg-blue-500 text-white rounded-full flex items-center justify-center mr-3 group-hover:bg-blue-600 transition-colors">
-                      <Plus className="w-4 h-4" />
-                    </div>
-                    <span className="font-medium text-sm">
-                      Manage Salespersons
-                    </span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Subject */}
-        <div className="flex items-start space-x-2 w-2/5">
-          <div className="flex items-center space-x-1 w-32 text-sm">
-            <label className="text-gray-900 font-medium">Subject</label>
-            <div className="relative group">
-              <CommonButton
-                label={<HelpCircle className="w-4 h-4 text-gray-400" />}
-              />
-              <div className="absolute w-64 -top-16 right-0 left-0 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 z-50">
-                You can enter up to 250 characters. If you do not require this
-                field, you can mark it as inactive under Invoice preferences.
-              </div>
-            </div>
-          </div>
-          <textarea
-            placeholder="Let your customer know what this Invoice is for"
-            value={formData.subject}
-            onChange={(e) => handleFormDataChange("subject", e.target.value)}
-            maxLength="250"
-            className="border border-gray-300 rounded px-3 py-2 w-1/2 h-20 resize-none"
-          />
-        </div>
-
-        {/* Item Table */}
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium">Item Table</h3>
-            <button className="text-blue-500 text-sm">Bulk Actions</button>
-          </div>
-
-          <div
-            className="border border-gray-300 rounded"
-            style={{ overflow: "visible" }}
-          >
-            <div className="bg-gray-50 px-4 py-2 border-b border-gray-300">
-              <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700">
-                <div className="col-span-4">ITEM DETAILS</div>
-                <div className="col-span-1 text-center">QUANTITY</div>
-                <div className="col-span-1 text-center">RATE</div>
-                <div className="col-span-1 text-center">DISCOUNT</div>
-                <div className="col-span-3 text-center">TAX</div>
-                <div className="col-span-1 text-right">AMOUNT</div>
-                <div className="col-span-1"></div>
-              </div>
-            </div>
-
-            {/* Table Body */}
-            <div className="bg-white" style={{ overflow: "visible" }}>
-              {formData.items.map((item, index) => (
-                <div
-                  key={item.id}
-                  className="grid grid-cols-12 gap-2 px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 items-center"
-                >
-                  {/* Item Details */}
-                  <div className="col-span-4">
-                    <div className="item-dropdown-container relative">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex-1 relative">
-                          {item.isEditing || !item.description ? (
-                            <>
+                            {/* Payment Received On */}
+                            <div className="flex items-center">
                               <input
-                                type="text"
-                                placeholder="Type or click to select an item."
-                                value={
-                                  itemDropdownOpen === item.id
-                                    ? itemSearchQuery
-                                    : (item.name || item.description)
+                                type="date"
+                                value={invoicePaymentDates[invoice.id] || ""}
+                                onChange={(e) =>
+                                  handleInvoicePaymentDateChange(
+                                    invoice.id,
+                                    e.target.value
+                                  )
                                 }
-                                onChange={(e) => {
-                                  const value = e.target.value;
-                                  setItemSearchQuery(value);
-                                  // Update both name and description for manually entered items
-                                  updateSingleField(item.id, "description", value);
-                                  updateSingleField(item.id, "name", value);
-                                  if (!itemDropdownOpen) {
-                                    setItemDropdownOpen(item.id);
-                                  }
-                                }}
-                                onFocus={() => {
-                                  setItemDropdownOpen(item.id);
-                                  setItemSearchQuery(item.name || item.description || "");
-                                }}
-                                onClick={() => {
-                                  setItemDropdownOpen(item.id);
-                                  setItemSearchQuery(item.name || item.description || "");
-                                }}
-                                className="w-full text-sm text-gray-700 bg-white border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
                               />
-
-                              {/* Item Dropdown */}
-                              {itemDropdownOpen === item.id && (
-                                <div
-                                  className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-xl min-w-[350px]"
-                                  style={{
-                                    position: "absolute",
-                                    zIndex: 1000,
-                                    maxHeight: "200px",
-                                    overflowY: "auto",
-                                  }}
-                                >
-                                  {filteredItems.length > 0 ? (
-                                    <div className="max-h-48 overflow-y-auto">
-                                      {filteredItems.map((availableItem) => (
-                                        <div
-                                          key={availableItem.id}
-                                          className="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            selectItem(item.id, availableItem);
-                                          }}
-                                        >
-                                          <div className="font-medium text-gray-900 text-sm">
-                                            {availableItem.name}
-                                          </div>
-                                          <div className="text-xs text-gray-500 mt-1">
-                                            Rate:{" "}
-                                            {availableItem.rate.toFixed(2)} |
-                                            Tax: {availableItem.tax}
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <div className="p-3 text-sm text-gray-500 text-center">
-                                      {itemSearchQuery
-                                        ? `No items found for "${itemSearchQuery}"`
-                                        : "No items found"}
-                                    </div>
-                                  )}
-                                  <div className="p-2 border-t border-gray-100">
-                                    <button
-                                      className="flex items-center space-x-2 text-blue-500 text-sm w-full hover:bg-blue-50 p-2 rounded transition-colors"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        console.log("Add new item clicked");
-                                      }}
-                                    >
-                                      <Plus className="w-4 h-4" />
-                                      <span>Add New Item</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
-                            </>
-                          ) : (
-                            <div className="flex items-center justify-between">
-                              <div
-                                className="cursor-pointer hover:text-blue-600 py-2 px-3 border border-green-300 rounded bg-green-50 transition-colors flex-1"
-                                onClick={() => {
-                                  updateSingleField(item.id, "isEditing", true);
-                                  setItemDropdownOpen(item.id);
-                                  setItemSearchQuery(item.name || item.description);
-                                }}
-                              >
-                                <div className="text-sm font-medium text-gray-900 flex items-center">
-                                  <span className="text-green-600 mr-2">✓</span>
-                                  {item.name || item.description}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  {item.name && item.description && item.name !== item.description && (
-                                    <div>Description: {item.description}</div>
-                                  )}
-                                  <div>Rate: {item.rate} | Tax: {item.tax}</div>
-                                </div>
-                              </div>
-
-                              {/* Action buttons for selected items */}
-                              <div className="flex items-center space-x-1 ml-2">
-                                <div className="item-actions-container relative">
-                                  <button
-                                    onClick={() =>
-                                      setItemActionsDropdown(
-                                        itemActionsDropdown === item.id
-                                          ? null
-                                          : item.id
-                                      )
-                                    }
-                                    className="p-1 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100"
-                                    title="More actions"
-                                  >
-                                    <svg
-                                      className="w-4 h-4"
-                                      fill="currentColor"
-                                      viewBox="0 0 20 20"
-                                    >
-                                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                                    </svg>
-                                  </button>
-
-                                  {/* Actions Dropdown */}
-                                  {itemActionsDropdown === item.id && (
-                                    <div className="absolute top-full right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-xl z-50 min-w-[120px]">
-                                      <div className="py-1">
-                                        <button
-                                          onClick={() =>
-                                            handleItemAction("edit", item)
-                                          }
-                                          className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
-                                        >
-                                          <Edit className="w-3 h-3 mr-2" />
-                                          Edit Item
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            handleItemAction("view", item)
-                                          }
-                                          className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
-                                        >
-                                          <Search className="w-3 h-3 mr-2" />
-                                          View Details
-                                        </button>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-
-                                <button
-                                  className="p-1 text-gray-400 hover:text-red-500 rounded hover:bg-red-50"
-                                  onClick={() => deselectItem(item.id)}
-                                  title="Deselect item"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
-                              </div>
                             </div>
-                          )}
+
+                            {/* Payment Input */}
+                            <div className="flex items-center">
+                              <input
+                                type="number"
+                                value={invoicePayments[invoice.id] || ""}
+                                onChange={(e) =>
+                                  handleInvoicePaymentChange(
+                                    invoice.id,
+                                    e.target.value
+                                  )
+                                }
+                                placeholder=""
+                                min="0"
+                                max={invoice.amountDue}
+                                step="0.01"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-right"
+                              />
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Total Row */}
+                        <div className="grid grid-cols-6 gap-4 px-4 py-3 bg-gray-50 border-t border-gray-200 font-medium">
+                          <div></div>
+                          <div></div>
+                          <div></div>
+                          <div></div>
+                          <div className="text-sm text-gray-900">Total</div>
+                          <div className="text-sm text-gray-900 text-right">
+                            {Object.values(invoicePayments)
+                              .reduce(
+                                (sum, amount) =>
+                                  sum + (parseFloat(amount) || 0),
+                                0
+                              )
+                              .toLocaleString()}
+                          </div>
                         </div>
+                      </div>
+                    )}
+
+                  {/* No Invoices Message */}
+                  {!isLoadingInvoices &&
+                    !invoiceError &&
+                    unpaidInvoices.length === 0 && (
+                      <div className="text-center py-12 bg-white text-gray-500">
+                        <div className="flex flex-col items-center">
+                          <svg
+                            className="w-12 h-12 text-gray-300 mb-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                          <p className="text-sm font-medium text-gray-500 mb-1">
+                            No {id ? "invoices" : "unpaid invoices"} found
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {id 
+                              ? "There are no invoices associated with this payment."
+                              : "There are no unpaid invoices associated with this customer."}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                </div>
+
+                {/* Summary Section */}
+                <div className="bg-gray-50 px-4 py-4 mt-0 rounded-b-md border-t border-gray-200">
+                  <div className="flex justify-between items-start">
+                    <div className="text-xs text-gray-500">
+                      <p>**List contains {id ? "all associated" : "only SENT"} invoices</p>
+                      {unpaidInvoices.length > 0 && (
+                        <p className="mt-1">
+                          Total: {unpaidInvoices.length} invoice
+                          {unpaidInvoices.length !== 1 ? "s" : ""}
+                        </p>
+                      )}
+                    </div>
+                    <div className="space-y-2 text-right min-w-0">
+                      <div className="flex justify-between items-center w-64 text-sm">
+                        <span className="text-gray-600">Total</span>
+                        <span className="font-medium text-gray-900">
+                          {paymentSummary.total.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center w-64 text-sm">
+                        <span className="text-gray-600">Amount Received</span>
+                        <span className="font-medium text-gray-900">
+                          {paymentSummary.amountReceived.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center w-64 text-sm">
+                        <span className="text-gray-600">
+                          Amount used for Payments
+                        </span>
+                        <span className="font-medium text-gray-900">
+                          {paymentSummary.totalPaymentsApplied.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center w-64 text-sm">
+                        <span className="text-gray-600">Amount Refunded</span>
+                        <span className="font-medium text-gray-900">
+                          {paymentSummary.amountRefunded.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center w-64 text-sm border-t border-gray-300 pt-2">
+                        <span className="text-gray-600 font-medium">
+                          Amount in Excess
+                        </span>
+                        <span
+                          className={`font-semibold ${
+                            paymentSummary.amountInExcess > 0
+                              ? "text-red-600"
+                              : "text-gray-900"
+                          }`}
+                        >
+                          {formData.customerData?.cu_currency || "AED"}{" "}
+                          {paymentSummary.amountInExcess.toFixed(2)}
+                        </span>
                       </div>
                     </div>
                   </div>
-
-                  {/* Quantity */}
-                  <div className="col-span-1">
-                    <input
-                      type="number"
-                      value={item.quantity}
-                      onChange={(e) =>
-                        updateSingleField(item.id, "quantity", e.target.value)
-                      }
-                      className="w-full text-center border border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      step="0.01"
-                      min="0"
-                    />
-                  </div>
-
-                  {/* Rate */}
-                  <div className="col-span-1">
-                    <input
-                      type="number"
-                      value={item.rate}
-                      onChange={(e) =>
-                        updateSingleField(item.id, "rate", e.target.value)
-                      }
-                      className="w-full text-center border border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      step="0.01"
-                      min="0"
-                    />
-                  </div>
-
-                  {/* Discount */}
-                  <div className="col-span-1">
-                    <div className="flex items-center space-x-1">
-                      <input
-                        type="number"
-                        value={item.discount}
-                        onChange={(e) =>
-                          updateSingleField(item.id, "discount", e.target.value)
-                        }
-                        className="w-16 text-center border border-gray-300 rounded px-1 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        min="0"
-                        max="100"
-                      />
-                      <select
-                        value={item.discount_type || "%"}
-                        onChange={(e) =>
-                          updateSingleField(
-                            item.id,
-                            "discount_type",
-                            e.target.value
-                          )
-                        }
-                        className="w-16 border border-gray-300 rounded px-1 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="%">%</option>
-                        <option value="AED">AED</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Tax */}
-                  <div className="col-span-3 items-center text-center">
-                    <CustomTaxDropdown
-                      value={item.tax}
-                      onChange={(selectedTax) =>
-                        updateSingleField(item.id, "tax", selectedTax)
-                      }
-                      className="w-1/2 mx-auto"
-                      taxes={taxes}
-                      isLoadingTaxes={isLoadingTaxes}
-                      taxError={taxError}
-                      onTaxSearch={handleTaxSearch}
-                      onLoadMoreTaxes={loadMoreTaxes}
-                      taxHasMore={taxHasMore}
-                      onCreateTax={handleCreateTax}
-                    />
-                  </div>
-
-                  {/* Amount */}
-                  <div className="col-span-1 text-right">
-                    <span className="text-red-500">
-                      {item.amount.toFixed(2)}
-                    </span>
-                  </div>
-
-                  {/* Remove Button */}
-                  <div className="col-span-1 text-center">
-                    <button
-                      className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors"
-                      onClick={() => removeItem(item.id)}
-                      title="Remove item"
-                      disabled={formData.items.length === 1}
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          <div className="flex space-x-4 mt-2">
-            <button
-              className="flex items-center space-x-2 text-blue-500 text-sm"
-              onClick={addNewRow}
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add New Row</span>
-            </button>
-            <button className="flex items-center space-x-2 text-blue-500 text-sm">
-              <Plus className="w-4 h-4" />
-              <span>Add Items in Bulk</span>
-            </button>
-          </div>
-
-          {/* Totals */}
-          <div className="mt-6 flex justify-end">
-            <div className="w-64 space-y-2">
-              <div className="flex justify-between">
-                <span className="text-orange-600">Sub Total</span>
-                <span>{totals.subtotal.toFixed(2)}</span>
-              </div>
-              <div className="text-xs text-gray-500">(Tax Inclusive)</div>
-              <div className="flex justify-between font-medium text-lg border-t pt-2">
-                <span>
-                  Total ( {formData.customerData?.cu_currency || "AED"} )
-                </span>
-                <span>{totals.grandTotal.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Customer Notes */}
-        <div className="mt-8">
-          <label className="text-gray-900 font-medium block mb-2">
-            Customer Notes
-          </label>
-          <textarea
-            value={formData.customer_note}
-            onChange={(e) => handleFormDataChange("customer_note", e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2 h-20"
-          />
-        </div>
-
-        {/* Terms & Conditions */}
-        <div className="mt-6">
-          <label className="text-gray-900 font-medium block mb-2">
-            Terms & Conditions
-          </label>
-          <textarea
-            placeholder="Enter the terms and conditions of your business to be displayed in your transaction"
-            value={formData.terms_condition}
-            onChange={(e) =>
-              handleFormDataChange("terms_condition", e.target.value)
-            }
-            className="w-full border border-gray-300 rounded px-3 py-2 h-24"
-          />
-          <div className="mt-2 flex items-center justify-between">
-            <div className="text-sm text-gray-600">
-              <span className="font-medium">Attach Files to Invoice</span>
-              <div className="flex items-center space-x-2 mt-1">
-                <label className="flex items-center space-x-1 text-blue-500 border border-blue-500 rounded px-2 py-1 text-xs cursor-pointer hover:bg-blue-50 transition-colors">
-                  <Upload className="w-3 h-3" />
-                  <span>Upload File</span>
-                  <ChevronDown className="w-3 h-3" />
-                  <input
-                    type="file"
-                    multiple
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif"
+                {/* Notes Section */}
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Notes
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formData.notes}
+                    onChange={(e) => handleInputChange("notes", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none text-sm"
+                    placeholder="Enter notes..."
                   />
-                </label>
-                {isUploading && (
-                  <span className="text-xs text-blue-500">Uploading...</span>
-                )}
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                You can upload a maximum of 5 files, 10MB each
-              </div>
-              
-              {/* Display uploaded files */}
-              {uploadedFiles.length > 0 && (
-                <div className="mt-2 space-y-1">
-                  {uploadedFiles.map((file) => (
-                    <div key={file.id} className="flex items-center space-x-2 bg-gray-50 rounded px-2 py-1">
-                      <span className="text-xs text-gray-700 flex-1">{file.name}</span>
-                      <span className="text-xs text-gray-500">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </span>
-                      <button
-                        onClick={() => removeUploadedFile(file.id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
                 </div>
-              )}
+
+                {/* File Upload */}
+                <FileUploadComponent onFileUpload={handleFileUpload} />
+
+                {/* Footer Note */}
+                <div className="mt-4 text-xs text-gray-500">
+                  <p>
+                    Additional Fields: Start adding custom fields for your
+                    payment workflows by going to Settings → Preferences →
+                    Modules.
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons - Updated with loading states and edit mode text */}
+              <div className="flex space-x-3 pt-4 border-t border-gray-200">
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                >
+                  {isSaving && <Loader className="w-4 h-4 mr-2 animate-spin" />}
+                  {isSaving 
+                    ? (id ? "Updating..." : "Saving...")
+                    : (id ? "Update" : "Save")}
+                </button>
+                <button
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                  className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-
-        {/* Additional Fields Note */}
-        <div className="text-sm text-gray-600 mt-6">
-          <span className="font-medium">Additional Fields:</span> Start adding
-          custom fields for your Invoice by going to Settings ⚙️ Sales ➤ Invoice
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex space-x-4 mt-8 pt-6 border-t">
-          <button
-            onClick={() => handleCreateInvoice(true)}
-            disabled={isSavingInvoice}
-            className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-          >
-            {isSavingInvoice && saveMode === "draft" && (
-              <Loader className="w-4 h-4 animate-spin" />
-            )}
-            <span>
-              {isSavingInvoice && saveMode === "draft"
-                ? "Saving..."
-                : "Save as Draft"}
-            </span>
-          </button>
-          <button
-            onClick={() => handleCreateInvoice(false)}
-            disabled={isSavingInvoice}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-          >
-            {isSavingInvoice && saveMode === "send" && (
-              <Loader className="w-4 h-4 animate-spin" />
-            )}
-            <span>
-              {isSavingInvoice && saveMode === "send"
-                ? "Saving..."
-                : "Save and Send"}
-            </span>
-          </button>
-          <button
-            className="text-gray-500 px-4 py-2 hover:text-gray-700"
-            disabled={isSavingInvoice}
-          >
-            Cancel
-          </button>
+          )}
         </div>
       </div>
 
@@ -2476,22 +2146,6 @@ export default function InvoiceForm() {
         </button>
       )}
 
-      {/* Modals */}
-      <BillingAddressFormModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        addressType={modalType}
-        onSave={getSaveHandler()}
-      />
-
-      <QuoteNumberPreferences
-        isOpen={configureModalOpen}
-        onClose={() => setConfigureModalOpen(false)}
-        currentConfig={invoiceNumberConfig}
-        onConfigChange={handleInvoiceNumberConfigChange}
-        source="invoice"
-      />
-
       {/* Customer Details Panel */}
       {showCustomerDetailsModal && customerDetailsData && (
         <CustomerDetailsModal
@@ -2502,39 +2156,25 @@ export default function InvoiceForm() {
         />
       )}
 
-      {/* Manage Salespersons Modal */}
-      {showSalesPersonModal && (
-        <ManageSalespersonsModal
-          isOpen={showSalesPersonModal}
-          onClose={handleCloseSalesPerson}
-          onSelectSalesperson={handleSalespersonSelect}
-        />
-      )}
-
-      {/* Item Modal */}
-      <ItemModal
-        isOpen={showItemModal}
-        onClose={closeItemModal}
-        item={selectedItemForModal}
-        mode={modalType}
+      {/* Payment Number Configuration Modal */}
+      <QuoteNumberPreferences
+        isOpen={configureModalOpen}
+        onClose={() => setConfigureModalOpen(false)}
+        currentConfig={paymentNumberConfig}
+        onConfigChange={handlePaymentNumberConfigChange}
+        source="payment"
       />
 
-      {/* Configure Payment Terms Modal */}
-      {showConfigureTermsModal && (
-        <ConfigureTerms
-          isOpen={showConfigureTermsModal}
-          onClose={() => setShowConfigureTermsModal(false)}
-          paymentTerms={paymentTerms}
-          newTermName={newTermName}
-          setNewTermName={setNewTermName}
-          newTermDays={newTermDays}
-          setNewTermDays={setNewTermDays}
-          onAddNewTerm={handleAddNewTerm}
-          onMarkAsDefault={handleMarkAsDefault}
-          onDeleteTerm={handleDeleteTerm}
-          onSave={handleSavePaymentTerms}
-        />
-      )}
+      {/* Configure Payment Mode Modal */}
+      <ConfigurePaymentModeModal
+        isOpen={showConfigurePaymentModeModal}
+        onClose={() => setShowConfigurePaymentModeModal(false)}
+        onSave={handleSavePaymentModeConfig}
+        selectedPaymentMode={formData.paymentMode}
+        onPaymentModeSelect={handlePaymentModeSelectFromModal}
+      />
     </div>
   );
-}
+};
+
+export default PaymentRecevibleForm;

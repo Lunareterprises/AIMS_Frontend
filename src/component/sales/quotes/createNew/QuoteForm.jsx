@@ -26,6 +26,7 @@ import {
   GET_ALL_PROJECTS,
   CREATE_PROJECT,
   GET_ALL_QUOTES,
+  UPDATE_QUOTES,
 } from "../../../../api/services/sales/createCustomer";
 import ItemModal from "./ItemModal";
 import CustomTaxDropdown from "../CustomTaxDropdown";
@@ -190,7 +191,6 @@ export default function QuoteForm() {
 
   const [customerDetailsData, setCustomerDetailsData] = useState(null);
 
-  // Updated fetchQuoteData function based on your API response structure
   const fetchQuoteData = async () => {
     if (!id) return;
 
@@ -201,7 +201,7 @@ export default function QuoteForm() {
       // Using GET_ALL_QUOTES with quote_id parameter
       const response = await GET_ALL_QUOTES({ quote_id: id });
 
-      console.log("API Response:", response);
+      console.log("API Response:  of quotes data ", response);
 
       // Check if response has data - handle both direct array and wrapped array formats
       let quoteData = null;
@@ -266,6 +266,7 @@ export default function QuoteForm() {
             quoteData.items && quoteData.items.length > 0
               ? quoteData.items.map((item, index) => ({
                   id: item.qi_id || Date.now() + index,
+                  qi_id: item.qi_id || null, // ✅ Store qi_id for editing
                   item_id: item.qi_i_id || null,
                   description: item.qi_description || "",
                   quantity: parseFloat(item.qi_quantity || 1),
@@ -276,10 +277,12 @@ export default function QuoteForm() {
                   tax: item.qi_tax || "",
                   amount: parseFloat(item.qi_amount || 0),
                   isEditing: false,
+                  isExistingItem: true, // ✅ Flag to identify existing items
                 }))
               : [
                   {
                     id: 1,
+                    qi_id: null, // New items don't have qi_id
                     item_id: null,
                     description: "",
                     quantity: 1.0,
@@ -290,6 +293,7 @@ export default function QuoteForm() {
                     tax: "",
                     amount: 0.0,
                     isEditing: true,
+                    isExistingItem: false,
                   },
                 ],
           status: quoteData.q_status || "draft",
@@ -679,7 +683,17 @@ export default function QuoteForm() {
     };
   };
 
-  // UPDATED CREATE/UPDATE QUOTE API FUNCTION
+  // ✅ FIXED: Utility function to validate item_id
+  const isValidItemId = (itemId) => {
+    return itemId !== null && 
+           itemId !== undefined && 
+           itemId !== "" && 
+           itemId !== 0 && 
+           itemId !== "0" && 
+           (typeof itemId === 'number' && itemId > 0) || 
+           (typeof itemId === 'string' && itemId.trim() !== "" && !isNaN(itemId) && parseInt(itemId) > 0);
+  };
+
   const handleCreateQuote = async (isDraft = false) => {
     // Validation
     if (!formData.customer_id) {
@@ -768,17 +782,31 @@ export default function QuoteForm() {
           ).toFixed(2)
         ),
 
-        // Items
-        items: validItems.map((item) => ({
-          item_id: item.item_id,
-          description: item.description,
-          quantity: parseFloat(item.quantity),
-          rate: parseFloat(item.rate),
-          discount: parseFloat(item.discount || 0),
-          discount_type: item.discount_type,
-          tax_id: getTaxId(item.tax),
-          amount: parseFloat(item.amount),
-        })),
+        // ✅ FIXED: Improved item handling with better validation
+        items: validItems.map((item) => {
+          const itemData = {
+            description: item.description,
+            quantity: parseFloat(item.quantity),
+            rate: parseFloat(item.rate),
+            discount: parseFloat(item.discount || 0),
+            discount_type: item.discount_type,
+            tax_id: getTaxId(item.tax),
+            amount: parseFloat(item.amount),
+          };
+
+          // ✅ For editing existing quotes, include qi_id for existing items
+          if (id && item.qi_id) {
+            itemData.qi_id = item.qi_id;
+          }
+
+          // ✅ FIXED: Only include item_id if it's a valid, positive number
+          if (isValidItemId(item.item_id)) {
+            itemData.item_id = parseInt(item.item_id);
+          }
+          // ✅ If item_id is not valid, this is a custom item - don't include item_id at all
+
+          return itemData;
+        }),
 
         // Status
         status: isDraft ? "draft" : "sent",
@@ -789,17 +817,68 @@ export default function QuoteForm() {
         quoteData.quote_id = id;
       }
 
-      console.log("Quote data being sent to API:", quoteData);
+      console.log("Quote data being prepared for API:", quoteData);
+
+      // ✅ Enhanced logging to debug item issues
+      console.log("Items validation summary:");
+      quoteData.items.forEach((item, index) => {
+        console.log(`Item ${index + 1}:`, {
+          hasQiId: !!item.qi_id,
+          hasItemId: !!item.item_id,
+          itemIdValue: item.item_id,
+          isValidItemId: item.item_id ? isValidItemId(item.item_id) : false,
+          description: item.description,
+          isCustomItem: !item.item_id,
+        });
+      });
+
+      // Convert JavaScript object to FormData
+      const formDataToSend = new FormData();
+
+      // Add all simple fields to FormData
+      Object.keys(quoteData).forEach((key) => {
+        if (key === "items") {
+          // Handle items array as JSON string
+          formDataToSend.append("items", JSON.stringify(quoteData[key]));
+        } else if (quoteData[key] !== null && quoteData[key] !== undefined) {
+          // Handle all other fields as strings
+          formDataToSend.append(key, String(quoteData[key]));
+        }
+      });
+
+      // Debug: Log FormData contents
+      console.log("FormData contents being sent to API:");
+      for (let [key, value] of formDataToSend.entries()) {
+        if (key === "items") {
+          const parsedItems = JSON.parse(value);
+          console.log(`${key}:`, parsedItems);
+          console.log("Items breakdown:");
+          parsedItems.forEach((item, idx) => {
+            console.log(`  Item ${idx + 1}:`, {
+              qi_id: item.qi_id || "NEW ITEM",
+              item_id: item.item_id || "CUSTOM ITEM (no item_id)",
+              description: item.description,
+              quantity: item.quantity,
+              rate: item.rate,
+              amount: item.amount,
+              isValidItemId: item.item_id ? isValidItemId(item.item_id) : "N/A",
+            });
+          });
+        } else {
+          console.log(`${key}:`, value);
+        }
+      }
 
       let response;
       if (id) {
-        response = await UPDATE_QUOTES(quoteData);
+        console.log("Updating existing quote with ID:", id);
+        response = await UPDATE_QUOTES(formDataToSend);
       } else {
-        // Create new quote
-        response = await CREATE_QUOTES(quoteData);
+        console.log("Creating new quote");
+        response = await CREATE_QUOTES(formDataToSend);
       }
 
-      console.log({ response });
+      console.log("API Response:", response);
 
       if (response.result) {
         // Update quote number sequence after successful creation (only for new quotes)
@@ -826,22 +905,51 @@ export default function QuoteForm() {
 
         console.log(`Quote ${action} successfully:`, response);
       } else {
+        // Enhanced error handling for item issues
+        let errorMessage = response.message || "Failed to process quote";
+
+        if (response.message && response.message.includes("Item not found")) {
+          errorMessage =
+            "Some items have invalid IDs. Please re-select items from the dropdown or remove custom items.";
+
+          // ✅ Enhanced debugging for problematic items
+          console.error("Possible problematic items:");
+          validItems.forEach((item, index) => {
+            if (item.item_id && !isValidItemId(item.item_id)) {
+              console.error(`Item ${index + 1} has invalid item_id:`, {
+                item_id: item.item_id,
+                typeof: typeof item.item_id,
+                description: item.description,
+              });
+            }
+          });
+        }
+
         Swal.fire({
           title: "Error",
-          text: response.message,
+          text: errorMessage,
           icon: "error",
           confirmButtonText: "OK",
         });
       }
     } catch (error) {
       console.error("Error saving quote:", error);
+      console.error("Error response:", error.response?.data);
+      console.error("Error status:", error.response?.status);
 
       let errorMessage = `Failed to ${
         id ? "update" : "save"
       } quote. Please try again.`;
 
       if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
+        if (error.response.data.message.includes("Item not found")) {
+          errorMessage =
+            "Invalid item detected. Please ensure all items are properly selected from the dropdown or entered as custom items.";
+        } else {
+          errorMessage = error.response.data.message;
+        }
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -1483,9 +1591,10 @@ export default function QuoteForm() {
     setItemSearchQuery("");
   };
 
-  // Deselect item
+  // ✅ FIXED: Deselect item - now properly clears item_id
   const deselectItem = (itemId) => {
     updateItem(itemId, {
+      item_id: null, // ✅ Clear the item_id when deselecting 
       description: "",
       rate: 0,
       tax: "",

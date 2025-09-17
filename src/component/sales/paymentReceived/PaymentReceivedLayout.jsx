@@ -376,7 +376,7 @@ export default function PaymentReceivedLayout() {
         paymentData: selectedPayment,
         title: "PAYMENT RECEIPT",
         backToPath: "/payemntReceived",
-        editForm: "/PaymentRecevibleForm",
+        editForm: `/PaymentRecevibleForm/${id}`,
       },
     });
   };
@@ -442,7 +442,7 @@ export default function PaymentReceivedLayout() {
             showStarIcons={true}
             dropdownWidth="w-80"
             showDefaultFilters={true}
-          />
+          /> 
           <div className="flex items-center gap-2">
             {/* Error notification */}
             {error && (

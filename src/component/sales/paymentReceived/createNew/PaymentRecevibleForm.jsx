@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
 import {
   ChevronDown,
   X,
@@ -17,7 +18,9 @@ import CustomerDetailsModal from "../../../sales/customers/CustomerDetailsModal"
 import {
   customer_list,
   GET_ALL_INVOICES,
-  CREATE_PAYMENT_RECEIVED, // Add your existing API function
+  CREATE_PAYMENT_RECEIVED,
+  GET_PAYMENT_RECEIVED_BY_ID,
+  UPDATE_PAYMENT_RECEIVED,
 } from "../../../../api/services/sales/createCustomer";
 import ConfigurePaymentModeModal from "./ConfigurePaymentModeModal";
 
@@ -33,6 +36,13 @@ function formatDate(dateString) {
 }
 
 const PaymentRecevibleForm = () => {
+  const { id } = useParams(); // Get payment ID from URL for editing
+
+  // Add loading states for fetching payment data
+  const [fetchingPaymentData, setFetchingPaymentData] = useState(false);
+  const [paymentDataLoaded, setPaymentDataLoaded] = useState(false);
+  const [fetchError, setFetchError] = useState("");
+
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [showForm, setShowForm] = useState(false);
 
@@ -59,9 +69,9 @@ const PaymentRecevibleForm = () => {
     paymentMode: "Cash",
     depositTo: "Petty Cash",
     reference: "",
-    notes: "", // Added notes field
-    sendMail: false, // Added email notification
-    email: "", // Added customer email
+    notes: "",
+    sendMail: false,
+    email: "",
   });
 
   // NEW: File upload state
@@ -69,6 +79,7 @@ const PaymentRecevibleForm = () => {
 
   // NEW: API Loading and Error States
   const [isSaving, setIsSaving] = useState(false);
+  const [saveMode, setSaveMode] = useState(""); // Added for tracking save mode
   const [saveError, setSaveError] = useState(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
@@ -96,11 +107,9 @@ const PaymentRecevibleForm = () => {
   const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
   const [paymentModeDropdownOpen, setPaymentModeDropdownOpen] = useState(false);
   const [paymentModeSearchTerm, setPaymentModeSearchTerm] = useState("");
-  const [showCustomerDetailsModal, setShowCustomerDetailsModal] =
-    useState(false);
+  const [showCustomerDetailsModal, setShowCustomerDetailsModal] = useState(false);
   const [customerDetailsData, setCustomerDetailsData] = useState(null);
-  const [showConfigurePaymentModeModal, setShowConfigurePaymentModeModal] =
-    useState(false);
+  const [showConfigurePaymentModeModal, setShowConfigurePaymentModeModal] = useState(false);
 
   const [showDepositDropdown, setShowDepositDropdown] = useState(false);
   const [depositSearchTerm, setDepositSearchTerm] = useState("");
@@ -150,6 +159,202 @@ const PaymentRecevibleForm = () => {
   } else {
     Object.assign(filteredDepositCategories, depositAccounts);
   }
+
+  // UPDATED: Complete fetchPaymentData function with customer filtering
+  const fetchPaymentData = async () => {
+    if (!id) return;
+
+    setFetchingPaymentData(true);
+    setFetchError("");
+
+    try {
+      const response = await GET_PAYMENT_RECEIVED_BY_ID({ payment_received_id: id });
+
+      console.log("API Response for payment data:", response);
+
+      // FIXED: Use same response parsing pattern as InvoiceForm
+      let paymentData = null;
+
+      if (Array.isArray(response) && response.length > 0) {
+        // Direct array format
+        paymentData = response[0];
+        console.log("Fetched payment data from direct array:", paymentData);
+      } else if (
+        response &&
+        response.data &&
+        Array.isArray(response.data) &&
+        response.data.length > 0
+      ) {
+        // Wrapped array format
+        paymentData = response.data[0];
+        console.log("Fetched payment data from wrapped array:", paymentData);
+      } else if (
+        response &&
+        response.result &&
+        response.list &&
+        Array.isArray(response.list) &&
+        response.list.length > 0
+      ) {
+        // Alternative wrapped format
+        paymentData = response.list[0];
+        console.log("Fetched payment data from list array:", paymentData);
+      }
+
+      if (paymentData) {
+        console.log("Fetched payment data:", paymentData);
+
+        // FIXED: Map API fields using same pattern as InvoiceForm
+        const updatedFormData = {
+          customer_id: paymentData.pr_customer_id || paymentData.customer_id || null,
+          customerData: null, // Will be populated below
+          customerName: paymentData.customer_name || paymentData.pr_customer_name || "",
+          amountReceived: paymentData.pr_amount_received || paymentData.amount_received || "",
+          bankCharges: paymentData.pr_bank_charges || paymentData.bank_charges || "",
+          paymentDate: paymentData.pr_payment_date
+            ? paymentData.pr_payment_date.split("T")[0]
+            : paymentData.payment_date
+            ? paymentData.payment_date.split("T")[0]
+            : "",
+          paymentNumber: paymentData.pr_payment_number || paymentData.payment_number || "",
+          paymentMode: paymentData.pr_payment_mode || paymentData.payment_mode || "Cash",
+          depositTo: paymentData.pr_deposit_to || paymentData.deposit_to || "Petty Cash",
+          reference: paymentData.pr_reference || paymentData.reference || "",
+          notes: paymentData.pr_notes || paymentData.notes || "",
+          sendMail: paymentData.pr_send_mail || paymentData.send_mail || false,
+          email: paymentData.pr_email || paymentData.email || "",
+        };
+
+        console.log("Mapped form data:", updatedFormData);
+        setFormData(updatedFormData);
+
+        // FIXED: Create customer data using InvoiceForm pattern
+        if (updatedFormData.customer_id) {
+          const customerData = {
+            id: updatedFormData.customer_id,
+            cu_id: updatedFormData.customer_id,
+            name: updatedFormData.customerName.trim(),
+            cu_display_name: updatedFormData.customerName.trim(),
+            cu_name: updatedFormData.customerName.trim(),
+            company: paymentData.customer_company || paymentData.pr_customer_company || "",
+            cu_company_name: paymentData.customer_company || paymentData.pr_customer_company || "",
+            initial: generateInitial(updatedFormData.customerName.trim()),
+            email: paymentData.customer_email || paymentData.pr_email || paymentData.pr_customer_email || "",
+            cu_email: paymentData.customer_email || paymentData.pr_email || paymentData.pr_customer_email || "",
+            phone: paymentData.customer_phone || paymentData.pr_customer_phone || "",
+            cu_phone: paymentData.customer_phone || paymentData.pr_customer_phone || "",
+            cu_currency: paymentData.customer_currency || paymentData.pr_currency || "AED",
+          };
+
+          // FIXED: Update form data with customer information using same pattern
+          setFormData((prevData) => ({
+            ...prevData,
+            customerData: customerData,
+            email: customerData.email || prevData.email,
+          }));
+
+          console.log("Customer data created from API response:", customerData);
+          console.log("Form data updated with customer:", customerData.name);
+
+          // Load invoice payments if available
+          if (paymentData.unpaid_items || paymentData.invoice_payments) {
+            const items = paymentData.unpaid_items || paymentData.invoice_payments || [];
+            const payments = {};
+            const paymentDates = {};
+
+            items.forEach((item) => {
+              payments[item.invoice_id] = parseFloat(item.amount || 0);
+              paymentDates[item.invoice_id] = item.payment_date
+                ? item.payment_date.split("T")[0]
+                : paymentData.pr_payment_date
+                ? paymentData.pr_payment_date.split("T")[0]
+                : "";
+            });
+
+            setInvoicePayments(payments);
+            setInvoicePaymentDates(paymentDates);
+
+            // Fetch invoices for this customer
+            if (updatedFormData.customer_id) {
+              fetchUnpaidInvoices(updatedFormData.customer_id, true);
+            }
+          }
+
+          // ADDED: Fetch customers list after payment data is loaded successfully
+          // This ensures the customer dropdown is populated with the full customer list
+          await fetchCustomers("", true);
+          
+          // ADDED: Filter and select the specific customer using pr_customer_id
+          // Wait a bit for state to update, then find and select the customer
+          setTimeout(() => {
+            setCustomers(currentCustomers => {
+              const matchingCustomer = currentCustomers.find(
+                customer => customer.id === updatedFormData.customer_id || 
+                            customer.cu_id === updatedFormData.customer_id
+              );
+              
+              if (matchingCustomer) {
+                console.log("Found matching customer for payment:", matchingCustomer);
+                
+                // Update the form with the complete customer data from the list
+                const completeCustomerData = {
+                  ...customerData,
+                  ...matchingCustomer, // Merge with data from customer list
+                  id: matchingCustomer.id || matchingCustomer.cu_id,
+                  cu_id: matchingCustomer.id || matchingCustomer.cu_id,
+                };
+                
+                setFormData(prevData => ({
+                  ...prevData,
+                  customerData: completeCustomerData,
+                  customerName: completeCustomerData.name,
+                  email: completeCustomerData.email || prevData.email,
+                }));
+                
+                setSelectedCustomer(completeCustomerData.name);
+                setShowForm(true); // Show the form since customer is selected
+                console.log("Customer selected in dropdown:", completeCustomerData.name);
+              } else {
+                console.warn("Customer not found in list for pr_customer_id:", updatedFormData.customer_id);
+              }
+              
+              return currentCustomers;
+            });
+          }, 100);
+
+        } else {
+          console.error("Missing customer_id or customerName:", {
+            customer_id: updatedFormData.customer_id,
+            customerName: updatedFormData.customerName
+          });
+        }
+
+        setPaymentDataLoaded(true);
+        console.log("Payment data loaded successfully");
+      } else {
+        setFetchError("Failed to fetch payment data - no data found in response");
+        console.error("No valid data found in response:", response);
+      }
+    } catch (error) {
+      console.error("Error fetching payment data:", error);
+      setFetchError("Failed to fetch payment data. Please try again.");
+    } finally {
+      setFetchingPaymentData(false);
+    }
+  };
+
+  // UPDATED: Simplified useEffect 
+  useEffect(() => {
+    if (id) {
+      // Only fetch payment data - fetchCustomers will be called within fetchPaymentData after success
+      fetchPaymentData();
+    } else {
+      // Setup for new payments
+      fetchCustomers("", true);
+      const today = new Date().toISOString().split("T")[0];
+      setFormData(prev => ({ ...prev, paymentDate: today }));
+      initializePaymentNumber();
+    }
+  }, [id]);
 
   // NEW: Validation function
   const validateForm = () => {
@@ -250,8 +455,8 @@ const PaymentRecevibleForm = () => {
     setUploadedFile(file);
   };
 
-  // Fetch Unpaid Invoices API function
-  const fetchUnpaidInvoices = async (customerId) => {
+  // Fetch Unpaid Invoices API function - Updated to include paid invoices for edit mode
+  const fetchUnpaidInvoices = async (customerId, includeAll = false) => {
     if (!customerId) return;
 
     setIsLoadingInvoices(true);
@@ -260,16 +465,14 @@ const PaymentRecevibleForm = () => {
     try {
       const body = {
         customer_id: customerId,
-        status: "unpaid", // or "UNPAID" depending on your API
-        // Add date range filter if selected
+        status: includeAll ? "all" : "unpaid", // Get all invoices in edit mode
         ...(dateRange.startDate &&
           dateRange.endDate && {
             start_date: dateRange.startDate,
             end_date: dateRange.endDate,
           }),
-        // You can add other filters as needed
         page: 1,
-        limit: 100, // Adjust as needed
+        limit: 100,
       };
 
       const response = await GET_ALL_INVOICES(body);
@@ -283,7 +486,7 @@ const PaymentRecevibleForm = () => {
           dueDate: invoice.i_due_date,
           totalAmount: parseFloat(invoice.i_total || 0),
           subTotal: parseFloat(invoice.i_sub_total || 0),
-          amountDue: parseFloat(invoice.i_total || 0), // Assuming unpaid invoices have full amount due
+          amountDue: parseFloat(invoice.i_amount_due || invoice.i_total || 0),
           currency: formData.customerData?.cu_currency || "AED",
           status: invoice.i_status,
           customerName: invoice.customer_name,
@@ -295,16 +498,19 @@ const PaymentRecevibleForm = () => {
       setUnpaidInvoices(transformedInvoices);
 
       // Initialize payment amounts and dates for each invoice
-      const initialPayments = {};
-      const initialPaymentDates = {};
-      const currentDate = new Date().toISOString().split("T")[0];
+      if (!id) {
+        // Only initialize if not in edit mode
+        const initialPayments = {};
+        const initialPaymentDates = {};
+        const currentDate = new Date().toISOString().split("T")[0];
 
-      transformedInvoices.forEach((invoice) => {
-        initialPayments[invoice.id] = 0;
-        initialPaymentDates[invoice.id] = currentDate;
-      });
-      setInvoicePayments(initialPayments);
-      setInvoicePaymentDates(initialPaymentDates);
+        transformedInvoices.forEach((invoice) => {
+          initialPayments[invoice.id] = 0;
+          initialPaymentDates[invoice.id] = currentDate;
+        });
+        setInvoicePayments(initialPayments);
+        setInvoicePaymentDates(initialPaymentDates);
+      }
     } catch (error) {
       console.error("Error fetching unpaid invoices:", error);
       setInvoiceError("Failed to fetch unpaid invoices");
@@ -384,7 +590,7 @@ const PaymentRecevibleForm = () => {
       total: totalInvoicesAmount,
       amountReceived,
       totalPaymentsApplied,
-      amountRefunded: 0, // You can implement refund logic
+      amountRefunded: 0,
       amountInExcess: Math.max(0, amountInExcess),
     };
   };
@@ -408,7 +614,7 @@ const PaymentRecevibleForm = () => {
   const handleDateRangeApply = (range) => {
     setDateRange(range);
     if (formData.customer_id) {
-      fetchUnpaidInvoices(formData.customer_id);
+      fetchUnpaidInvoices(formData.customer_id, id ? true : false);
     }
   };
 
@@ -467,6 +673,9 @@ const PaymentRecevibleForm = () => {
   };
 
   const initializePaymentNumber = () => {
+    // Don't auto-generate payment number if we're editing an existing payment
+    if (id && paymentDataLoaded) return;
+
     try {
       const savedConfig = localStorage.getItem("paymentNumberConfig");
       let configToUse = { ...paymentNumberConfig };
@@ -477,7 +686,7 @@ const PaymentRecevibleForm = () => {
         setPaymentNumberConfig(configToUse);
       }
 
-      if (configToUse.autoGenerate) {
+      if (configToUse.autoGenerate && !id) {
         const nextNumber = getNextPaymentNumber();
         configToUse.nextNumber = nextNumber;
 
@@ -490,7 +699,9 @@ const PaymentRecevibleForm = () => {
       }
     } catch (error) {
       console.error("Error initializing payment number:", error);
-      handleInputChange("paymentNumber", "000001");
+      if (!id) {
+        handleInputChange("paymentNumber", "000001");
+      }
     }
   };
 
@@ -671,18 +882,9 @@ const PaymentRecevibleForm = () => {
     }
   }, [showDepositDropdown]);
 
-  // Fetch customers on mount and initialize payment number
+  // Update the payment number when config changes (only for new payments)
   useEffect(() => {
-    fetchCustomers("", true);
-    // Initialize payment date to today and payment number
-    const today = new Date().toISOString().split("T")[0];
-    handleInputChange("paymentDate", today);
-    initializePaymentNumber();
-  }, []);
-
-  // Update the payment number when config changes
-  useEffect(() => {
-    if (paymentNumberConfig.autoGenerate) {
+    if (paymentNumberConfig.autoGenerate && !id && !paymentDataLoaded) {
       const newPaymentNumber = generateNextPaymentNumber();
       handleInputChange("paymentNumber", newPaymentNumber);
     }
@@ -691,6 +893,8 @@ const PaymentRecevibleForm = () => {
     paymentNumberConfig.digitLength,
     paymentNumberConfig.suffix,
     paymentNumberConfig.nextNumber,
+    id,
+    paymentDataLoaded,
   ]);
 
   // Fetch customers when page changes
@@ -708,7 +912,7 @@ const PaymentRecevibleForm = () => {
       customer_id: customer.id,
       customerData: customer,
       customerName: customer.name,
-      email: customer.email || "", // Auto-populate email
+      email: customer.email || "",
     }));
     setCustomerDropdownOpen(false);
     setSearchQuery("");
@@ -716,7 +920,7 @@ const PaymentRecevibleForm = () => {
     setShowForm(true);
 
     // Fetch unpaid invoices for the selected customer
-    fetchUnpaidInvoices(customer.id);
+    fetchUnpaidInvoices(customer.id, id ? true : false);
   };
 
   // New customer handler
@@ -741,7 +945,6 @@ const PaymentRecevibleForm = () => {
   // Handle payment mode configuration save
   const handleSavePaymentModeConfig = (paymentModes) => {
     console.log("Payment modes updated:", paymentModes);
-    // Update the payment mode options based on the modal configuration
     const updatedOptions = paymentModes.map((mode, index) => ({
       id: mode.id || index + 1,
       name: mode.name,
@@ -787,7 +990,7 @@ const PaymentRecevibleForm = () => {
     }
   };
 
-  // UPDATED: handleSave function with YOUR API integration
+  // UPDATED: handleSave function with edit/update support
   const handleSave = async () => {
     // Clear previous errors and success states
     setSaveError(null);
@@ -813,10 +1016,10 @@ const PaymentRecevibleForm = () => {
           amount: parseFloat(amount),
         }));
 
-      // Create FormData for file upload (as your backend expects)
+      // Create FormData for file upload
       const formDataToSend = new FormData();
 
-      // Add all the required fields in the exact structure expected by backend
+      // Add all the required fields
       formDataToSend.append("customer_id", formData.customer_id);
       formDataToSend.append(
         "amount_received",
@@ -840,53 +1043,55 @@ const PaymentRecevibleForm = () => {
       formDataToSend.append("send_mail", formData.sendMail);
       formDataToSend.append("email", formData.email || "");
 
+      // Add payment ID for update
+      if (id) {
+        formDataToSend.append("payment_id", id);
+      }
+
       // Add file if uploaded
       if (uploadedFile) {
         formDataToSend.append("file", uploadedFile);
       }
 
-      console.log("Sending payment data with structure:", {
+      console.log("Sending payment data:", {
+        mode: id ? "update" : "create",
+        payment_id: id || null,
         customer_id: formData.customer_id,
         amount_received: parseFloat(formData.amountReceived),
-        bank_charges: parseFloat(formData.bankCharges) || 0,
-        payment_date: formData.paymentDate,
-        payment_number: formData.paymentNumber,
-        payment_mode: formData.paymentMode,
-        deposit_to: formData.depositTo,
-        reference: formData.reference || "",
         unpaid_items: unpaidItems,
-        total: paymentSummary.total,
-        amount_used: paymentSummary.totalPaymentsApplied,
-        amount_refunded: paymentSummary.amountRefunded,
-        amount_excess: paymentSummary.amountInExcess,
-        notes: formData.notes || "",
-        send_mail: formData.sendMail,
-        email: formData.email || "",
-        file: uploadedFile ? uploadedFile.name : null,
       });
 
-      // Make API call using YOUR existing function
-      const response = await CREATE_PAYMENT_RECEIVED(formDataToSend);
+      // Make API call
+      let response;
+      if (id) {
+        console.log("Updating existing payment with ID:", id);
+        response = await UPDATE_PAYMENT_RECEIVED(formDataToSend);
+      } else {
+        console.log("Creating new payment");
+        response = await CREATE_PAYMENT_RECEIVED(formDataToSend);
+      }
 
-      console.log("Payment created successfully:", response);
+      console.log("Payment saved successfully:", response);
 
-      // Update payment number sequence after successful save
-      if (paymentNumberConfig.autoGenerate) {
+      // Update payment number sequence after successful save (only for new payments)
+      if (!id && paymentNumberConfig.autoGenerate) {
         updatePaymentNumberSequence(formData.paymentNumber);
         generateNewPaymentForNext();
       }
 
       // Show success message
+      const action = id ? "updated" : "created";
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 5000); // Hide after 5 seconds
+      setTimeout(() => setSaveSuccess(false), 5000);
 
-      // Optionally reset form after successful save
-      // handleCancel();
+      // Optionally reset form after successful save (only for new payments)
+      if (!id) {
+        // handleCancel(); // Uncomment if you want to reset after saving
+      }
     } catch (error) {
       console.error("Error saving payment:", error);
 
-      // Handle different types of errors
-      let errorMessage = "Failed to save payment. Please try again.";
+      let errorMessage = `Failed to ${id ? "update" : "save"} payment. Please try again.`;
 
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
@@ -897,6 +1102,7 @@ const PaymentRecevibleForm = () => {
       setSaveError(errorMessage);
     } finally {
       setIsSaving(false);
+      setSaveMode("");
     }
   };
 
@@ -934,17 +1140,22 @@ const PaymentRecevibleForm = () => {
     setSaveError(null);
     setSaveSuccess(false);
 
-    // Regenerate payment number if auto-generation is enabled
-    if (paymentNumberConfig.autoGenerate) {
+    // Regenerate payment number if auto-generation is enabled (only for new payments)
+    if (!id && paymentNumberConfig.autoGenerate) {
       setTimeout(() => {
         initializePaymentNumber();
       }, 100);
+    }
+
+    // Navigate back if in edit mode
+    if (id) {
+      // You can add navigation logic here
+      // e.g., navigate('/payments');
     }
   };
 
   const handleSaveBilling = (data) => {
     console.log("Billing address saved:", data);
-    // call billing API here
   };
 
   const getSaveHandler = () =>
@@ -974,13 +1185,54 @@ const PaymentRecevibleForm = () => {
 
   const paymentSummary = calculatePaymentSummary();
 
+  // Show loading state while fetching payment data
+  if (fetchingPaymentData) {
+    return (
+      <div className="min-h-screen">
+        <div className="max-w-full mx-auto rounded-lg">
+          <div className="flex justify-center items-center h-64">
+            <div className="flex items-center space-x-3">
+              <Loader className="w-6 h-6 animate-spin text-blue-500" />
+              <div className="text-lg text-gray-600">
+                Loading payment data...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if fetch failed
+  if (fetchError && !fetchingPaymentData) {
+    return (
+      <div className="min-h-screen">
+        <div className="max-w-full mx-auto rounded-lg">
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
+              <div className="text-lg text-red-600 mb-2">Error Loading Payment</div>
+              <div className="text-sm text-gray-600 mb-4">{fetchError}</div>
+              <button
+                onClick={fetchPaymentData}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen ">
-      {/* NEW: Success/Error Messages */}
+    <div className="min-h-screen">
+      {/* Success/Error Messages */}
       {saveSuccess && (
         <MessageAlert
           type="success"
-          message="Payment has been successfully saved and recorded."
+          message={`Payment has been successfully ${id ? "updated" : "saved and recorded"}.`}
           onClose={() => setSaveSuccess(false)}
         />
       )}
@@ -993,11 +1245,11 @@ const PaymentRecevibleForm = () => {
         />
       )}
 
-      <div className="max-w-full mx-auto  rounded-lg ">
-        {/* Header */}
+      <div className="max-w-full mx-auto rounded-lg">
+        {/* Header - Updated title for edit mode */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">
-            Record Payment
+            {id ? "Edit Payment" : "Record Payment"}
           </h2>
           <button
             onClick={handleCancel}
@@ -1007,7 +1259,7 @@ const PaymentRecevibleForm = () => {
           </button>
         </div>
 
-        <div className=" max-w-full  mt-6">
+        <div className="max-w-full mt-6">
           {/* Customer Name Selection */}
           <div className="mb-6 p-6 flex items-center space-x-2 bg-gray-100 py-6">
             <label className="block font-medium w-52 text-sm text-red-600 mb-2">
@@ -1015,24 +1267,27 @@ const PaymentRecevibleForm = () => {
             </label>
             <div className="relative dropdown-container">
               <div
-                className={`border focus:outline-none border-gray-300 rounded px-3 py-2 cursor-pointer flex items-center justify-between bg-white text-sm w-96 ${
+                className={`border focus:outline-none border-gray-300 rounded px-3 py-2 ${
+                  id ? "cursor-default bg-gray-50" : "cursor-pointer bg-white"
+                } flex items-center justify-between text-sm w-96 ${
                   validationErrors.customer_id ? "border-red-500" : ""
                 }`}
-                onClick={() => setCustomerDropdownOpen(!customerDropdownOpen)}
+                onClick={() => !id && setCustomerDropdownOpen(!customerDropdownOpen)}
               >
-                <span className="text-gray-500">
-                  {formData.customerData?.name || "Select or add a customer"}
+                {/* FIXED: Better customer display for edit mode */}
+                <span className={id ? "text-gray-700 font-medium" : "text-gray-900"}>
+                  {formData.customerData?.name || selectedCustomer || "Select or add a customer"}
                 </span>
-                <ChevronDown className="w-4 h-4 text-gray-400" />
+                {!id && <ChevronDown className="w-4 h-4 text-gray-400" />}
               </div>
-              {/* NEW: Validation error display */}
               {validationErrors.customer_id && (
                 <p className="text-red-500 text-xs mt-1">
                   {validationErrors.customer_id}
                 </p>
               )}
 
-              {customerDropdownOpen && (
+              {/* FIXED: Only show dropdown in create mode */}
+              {!id && customerDropdownOpen && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
                   {/* Search Input */}
                   <div className="p-3 border-b border-gray-100">
@@ -1165,8 +1420,8 @@ const PaymentRecevibleForm = () => {
             </div>
           </div>
 
-          {/* Rest of the form - only show after customer selection */}
-          {showForm && (
+          {/* FIXED: Show form based on customer data like InvoiceForm */}
+          {(formData.customerData || showForm) && (
             <div className="px-6">
               {/* Amount Received */}
               <div className="mb-4 flex items-center space-x-2">
@@ -1175,7 +1430,7 @@ const PaymentRecevibleForm = () => {
                 </label>
                 <div className="flex">
                   <span className="inline-flex items-center px-4 py-2 border border-r-0 border-gray-300 bg-gray-50 text-sm text-gray-500 rounded-l-md">
-                    {"AED"}
+                    {formData.customerData?.cu_currency || "AED"}
                   </span>
                   <input
                     type="text"
@@ -1183,7 +1438,7 @@ const PaymentRecevibleForm = () => {
                     onChange={(e) =>
                       handleInputChange("amountReceived", e.target.value)
                     }
-                    className={`flex-1 focus:outline-none border border-gray-300 rounded px-3 py-2  flex items-center justify-between bg-white text-sm w-80 ${
+                    className={`flex-1 focus:outline-none border border-gray-300 rounded-r-md px-3 py-2 bg-white text-sm w-80 ${
                       validationErrors.amountReceived ? "border-red-500" : ""
                     }`}
                   />
@@ -1196,7 +1451,7 @@ const PaymentRecevibleForm = () => {
               </div>
 
               {/* Bank Charges */}
-              <div className="mb-4 flex items-center space-x-2 ">
+              <div className="mb-4 flex items-center space-x-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2 w-52">
                   Bank Charges (if any)
                 </label>
@@ -1206,7 +1461,7 @@ const PaymentRecevibleForm = () => {
                   onChange={(e) =>
                     handleInputChange("bankCharges", e.target.value)
                   }
-                  className=" focus:outline-none border border-gray-300 rounded px-3 py-2  flex items-center justify-between bg-white text-sm w-96 "
+                  className="focus:outline-none border border-gray-300 rounded px-3 py-2 flex items-center justify-between bg-white text-sm w-96"
                 />
               </div>
 
@@ -1222,7 +1477,7 @@ const PaymentRecevibleForm = () => {
                     onChange={(e) =>
                       handleInputChange("paymentDate", e.target.value)
                     }
-                    className={` focus:outline-none border border-gray-300 rounded px-3 py-2  flex items-center justify-between bg-white text-sm w-96 ${
+                    className={`focus:outline-none border border-gray-300 rounded px-3 py-2 flex items-center justify-between bg-white text-sm w-96 ${
                       validationErrors.paymentDate ? "border-red-500" : ""
                     }`}
                   />
@@ -1253,14 +1508,14 @@ const PaymentRecevibleForm = () => {
                       }
                     }}
                     className={`border border-gray-300 rounded px-3 py-2 w-full pr-20 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      paymentNumberConfig.autoGenerate
+                      paymentNumberConfig.autoGenerate && !id
                         ? "bg-gray-50 text-gray-600"
                         : "bg-white text-gray-900"
                     } ${
                       validationErrors.paymentNumber ? "border-red-500" : ""
                     }`}
-                    placeholder="Payment number will be auto-generated"
-                    readOnly={paymentNumberConfig.autoGenerate}
+                    placeholder={id ? "" : "Payment number will be auto-generated"}
+                    readOnly={paymentNumberConfig.autoGenerate && !id}
                   />
                   {validationErrors.paymentNumber && (
                     <p className="text-red-500 text-xs mt-1">
@@ -1268,56 +1523,58 @@ const PaymentRecevibleForm = () => {
                     </p>
                   )}
 
-                  <div className="flex items-center space-x-1 absolute right-1 top-1 bottom-1">
-                    {/* Auto-generate toggle button */}
-                    {!paymentNumberConfig.autoGenerate && (
-                      <button
-                        onClick={() => toggleAutoGeneration(true)}
-                        className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors font-medium"
-                        title="Enable auto-generation"
-                      >
-                        Auto
-                      </button>
-                    )}
-
-                    {/* Refresh button for auto-generated numbers */}
-                    {paymentNumberConfig.autoGenerate && (
-                      <button
-                        onClick={generateManualPaymentNumber}
-                        className="px-2 py-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                        title="Generate new payment number"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                  {!id && (
+                    <div className="flex items-center space-x-1 absolute right-1 top-1 bottom-1">
+                      {/* Auto-generate toggle button */}
+                      {!paymentNumberConfig.autoGenerate && (
+                        <button
+                          onClick={() => toggleAutoGeneration(true)}
+                          className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors font-medium"
+                          title="Enable auto-generation"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                          />
-                        </svg>
-                      </button>
-                    )}
+                          Auto
+                        </button>
+                      )}
 
-                    {/* Settings button */}
-                    <div className="group relative">
-                      <button
-                        onClick={() => setConfigureModalOpen(true)}
-                        className="px-2 py-1 text-blue-700 hover:bg-blue-50 rounded transition-colors"
-                        title="Configure payment number settings"
-                      >
-                        <Settings className="w-4 h-4" />
-                      </button>
-                      <div className="absolute w-64 -top-8 right-0 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 z-10">
-                        Configure payment number format and auto-generation
-                        settings.
+                      {/* Refresh button for auto-generated numbers */}
+                      {paymentNumberConfig.autoGenerate && (
+                        <button
+                          onClick={generateManualPaymentNumber}
+                          className="px-2 py-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          title="Generate new payment number"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                          </svg>
+                        </button>
+                      )}
+
+                      {/* Settings button */}
+                      <div className="group relative">
+                        <button
+                          onClick={() => setConfigureModalOpen(true)}
+                          className="px-2 py-1 text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                          title="Configure payment number settings"
+                        >
+                          <Settings className="w-4 h-4" />
+                        </button>
+                        <div className="absolute w-64 -top-8 right-0 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 z-10">
+                          Configure payment number format and auto-generation
+                          settings.
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -1440,13 +1697,12 @@ const PaymentRecevibleForm = () => {
                 </div>
               </div>
 
-              {/* Deposit To - Updated with searchable categorized dropdown */}
+              {/* Deposit To */}
               <div className="mb-4 flex items-center space-x-2">
                 <label className="block text-sm font-medium text-red-600 mb-2 w-52">
                   Deposit To*
                 </label>
                 <div className="relative w-96" ref={depositDropdownRef}>
-                  {/* Dropdown Trigger */}
                   <button
                     type="button"
                     onClick={toggleDepositDropdown}
@@ -1564,7 +1820,7 @@ const PaymentRecevibleForm = () => {
                     onChange={(e) =>
                       handleInputChange("reference", e.target.value)
                     }
-                    className=" px-3 py-2 border border-gray-300 rounded-md focus:outline-none text-sm w-96"
+                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none text-sm w-96"
                   />
                 </div>
               </div>
@@ -1574,7 +1830,7 @@ const PaymentRecevibleForm = () => {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-4">
                     <h3 className="text-sm font-medium text-gray-700">
-                      Unpaid Invoices
+                      {id ? "Invoice Payments" : "Unpaid Invoices"}
                     </h3>
                     <div>
                       <button
@@ -1633,7 +1889,7 @@ const PaymentRecevibleForm = () => {
                     <div className="text-center py-12 bg-white">
                       <Loader className="w-6 h-6 animate-spin mx-auto text-blue-500 mb-2" />
                       <p className="text-sm text-gray-500">
-                        Loading unpaid invoices...
+                        Loading {id ? "invoice payments" : "unpaid invoices"}...
                       </p>
                     </div>
                   )}
@@ -1646,7 +1902,7 @@ const PaymentRecevibleForm = () => {
                       </p>
                       <button
                         onClick={() =>
-                          fetchUnpaidInvoices(formData.customer_id)
+                          fetchUnpaidInvoices(formData.customer_id, id ? true : false)
                         }
                         className="text-blue-500 text-sm hover:underline"
                       >
@@ -1776,11 +2032,12 @@ const PaymentRecevibleForm = () => {
                             />
                           </svg>
                           <p className="text-sm font-medium text-gray-500 mb-1">
-                            No unpaid invoices found
+                            No {id ? "invoices" : "unpaid invoices"} found
                           </p>
                           <p className="text-xs text-gray-400">
-                            There are no unpaid invoices associated with this
-                            customer.
+                            {id 
+                              ? "There are no invoices associated with this payment."
+                              : "There are no unpaid invoices associated with this customer."}
                           </p>
                         </div>
                       </div>
@@ -1791,7 +2048,7 @@ const PaymentRecevibleForm = () => {
                 <div className="bg-gray-50 px-4 py-4 mt-0 rounded-b-md border-t border-gray-200">
                   <div className="flex justify-between items-start">
                     <div className="text-xs text-gray-500">
-                      <p>**List contains only SENT invoices</p>
+                      <p>**List contains {id ? "all associated" : "only SENT"} invoices</p>
                       {unpaidInvoices.length > 0 && (
                         <p className="mt-1">
                           Total: {unpaidInvoices.length} invoice
@@ -1859,8 +2116,8 @@ const PaymentRecevibleForm = () => {
                   />
                 </div>
 
-                {/* File Upload - Updated to use new component */}
-                <FileUploadComponent />
+                {/* File Upload */}
+                <FileUploadComponent onFileUpload={handleFileUpload} />
 
                 {/* Footer Note */}
                 <div className="mt-4 text-xs text-gray-500">
@@ -1872,7 +2129,7 @@ const PaymentRecevibleForm = () => {
                 </div>
               </div>
 
-              {/* Action Buttons - UPDATED with loading states */}
+              {/* Action Buttons - Updated with loading states and edit mode text */}
               <div className="flex space-x-3 pt-4 border-t border-gray-200">
                 <button
                   onClick={handleSave}
@@ -1880,7 +2137,9 @@ const PaymentRecevibleForm = () => {
                   className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                 >
                   {isSaving && <Loader className="w-4 h-4 mr-2 animate-spin" />}
-                  {isSaving ? "Saving..." : "Save"}
+                  {isSaving 
+                    ? (id ? "Updating..." : "Saving...")
+                    : (id ? "Update" : "Save")}
                 </button>
                 <button
                   onClick={handleCancel}
